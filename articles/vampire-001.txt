@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 15/03/2005
+:Updated: 16/03/2005
 
 .. contents::
 
@@ -320,6 +320,90 @@ If any attempt is made to access the actual Python code file by supplying
 the ".py" extension, it will result in a "Not Found" error being returned
 by Vampire. This ensures that the Python code is never accessible to users
 of a web site and that the fact that Python is used is also not evident.
+
+
+Apache Configuration Files
+==========================
+
+Apache can be configured to use Vampire from within a ".htaccess" file or
+the main Apache configuration file. You should first use the "SetHandler"
+directive to enable use of mod_python and then the "PythonHandler"
+directive to specify use of "vampire". The configuration settings should
+be included within a "Directory" directive if being placed in the main
+Apache configuration file.
+
+::
+
+  SetHandler python-program
+  PythonHandler vampire
+  PythonPath 'sys.path'
+
+Setting "PythonPath" as shown is highly recommended but is optional and may
+not actually be possible in some cases. Doing this ensures that the
+document tree directory does not get added into the Python module search
+path. This is beneficial because there is then no risk that arbitrary ".py"
+files in your document tree will errornously get picked up as being
+modules. It does mean though that the Vampire module loading system needs
+to be used to explicitly load modules which are stored in the document
+tree.
+
+It is also recommended that both "MultiViews" and "Indexes" be disabled.
+This is necessary because extensions such as mod_mime and mod_index can
+get applied to requests falling beneath the directory which has been set up
+to be managed by Vampire. If "MultiViews" is enabled, Apache can rewrite
+request URLs that it shouldn't and confuse Vampire. If "Indexes" are
+enabled a remote person would be able to view what source code may exist in
+a directory.
+
+::
+
+  Options -Indexes -MultiViews
+
+If using Apache 1.3, setting "DirectoryIndex" to a specific resource to be
+used when a directory is accessed works, albeit with the caveat that the
+target file must exist. If the resource is actually a virtual resource
+created on demand by a content handler, this means one will need to create
+a dummy file as a place marker for the resource to ensure that mod_dir
+works correctly.
+
+When using Apache 2.0, the "DirectoryIndex" directive does not get applied to
+directories being managed by Vampire. As a result, Vampire provides its own
+means of redirecting requests against a directory to a specific resource. This
+is enabled by using the "PythonOption" directive to set a value for the
+"VampireDirectoryIndex" option.
+
+::
+
+  PythonOption VampireDirectoryIndex index.html
+
+When using this feature however, unlike the "DirectoryIndex" directive, you
+can only specify a single target resource. It is not possible to supply a
+list of resources with the first one found being used.
+
+If the version of mod_python being used supports internal redirects within
+Apache, that mechanism will be used to redirect the request to the
+specified resource. If internal redirects aren't supported by the version
+of mod_python being used, then a HTTP redirect response is returned and the
+browser is expected to deal with it.
+
+Note that options set using the "PythonOption" directive are inherited by
+subdirectories beneath the directory where the option is set. This means
+that you do not have to set the option for every single directory, only the
+common parent directory. If different subdirectories needed to use a
+different resource, then each directory should set "VampireDirectoryIndex"
+themselves. If it was necessary to eliminate the inherited value of the
+option, it should be set to ".".
+
+::
+
+  PythonOption VampireDirectoryIndex .
+
+It is necessary to use "." as mod_python or Apache has a bug in it which
+doesn't allow you to unset an option or set it to an empty value.
+
+If using Apache 1.3 and the "DirectoryIndex" directive, there doesn't seem
+to be any way at all of disabling it within a subdirectory once set in the
+context of a parent directory.
 
 
 Processing Form Parameters
