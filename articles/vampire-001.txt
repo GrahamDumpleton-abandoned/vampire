@@ -709,7 +709,7 @@ bug list`_.
 As a solution to these problems, Vampire provides its own implementation of
 the publisher handler which should be able to be used in most cases as a
 drop in replacement for mod_python.publisher. To make use of this handler
-the PythonHandler directive should be set to reference the Vampire
+the "PythonHandler" directive should be set to reference the Vampire
 implementation rather than the mod_python.publisher version.
 
 ::

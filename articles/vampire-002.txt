@@ -182,3 +182,34 @@ When using default directory index files, you should avoid having any
 corresponding handler accept form parameters. This is because form
 parameters submitted using the POST method will not survive the internal
 redirect performed by Apache to add the trailing slash to a directory.
+
+
+Enabling Publisher Support
+==========================
+
+Vampire provides its own implementation of the publisher handler which
+should be able to be used in most cases as a drop in replacement for
+mod_python.publisher. To make use of this handler the "PythonHandler"
+directive should be set to reference the Vampire implementation rather than
+the mod_python.publisher version.
+
+::
+
+  PythonHandler vampire::publisher
+
+Because Vampire provides an extended mechanism for interpreting form
+parameters, it may be necessary to modify the names of form parameters
+where a conflict occurs. Alternatively, this extended mechanism can be
+disabled. This can be done by setting the "VampireStructuredForms" option
+to "Off".
+
+::
+
+  PythonOption VampireStructuredForms Off
+
+To make best use of Vampire, any direct use of the Python "import"
+statement or the "apache.import_module()" function to import modules which
+are a part of the web application, should be changed to use the Vampire
+import mechanism instead. This will provide a more reliable way of having
+modules reloaded when changes are made and lift the various constraints
+imposed by using the standard Python module import system.
