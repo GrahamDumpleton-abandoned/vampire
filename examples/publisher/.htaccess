@@ -1,0 +1,5 @@
+Options -MultiViews -Indexes
+SetHandler python-program
+PythonHandler vampire::publisher
+PythonDebug On
+PythonPath 'sys.path'
