@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 20/03/2005
+:Updated: 24/03/2005
 
 .. contents::
 

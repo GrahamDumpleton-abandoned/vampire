@@ -4,15 +4,15 @@ Getting mod_python Working
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 20/03/2005
+:Updated: 24/03/2005
 
 .. contents::
 
 
 This article is intended to assist newbies to mod_python_ in trying to get
-their first test program under mod_python to work. It goes beyond what is
-provided in the mod_python documentation, attempting to describe common
-problems that can arise.
+their first test program to work. It goes beyond what is provided in the
+mod_python documentation, attempting to describe common problems that can
+arise.
 
 Note that this article is not intended to describe how to install mod_python
 itself. For instructions on installing mod_python, you should refer to the

@@ -22,9 +22,9 @@ _package = []
 
 _package.append(("Overview","%(vampire_home)s/index.html"))
 _package.append(("Articles","%(vampire_home)s/articles.html"))
+_package.append(("License","%(vampire_home)s/license.html"))
 #_package.append(("Examples","%(vampire_home)s/examples/index.html"))
 _package.append(("Installation","%(vampire_home)s/install.html"))
-_package.append(("License","%(vampire_home)s/license.html"))
 _package.append(("Patches","%(vampire_home)s/patches.html"))
 _package.append(("Changes","%(vampire_home)s/changes.html"))
 _package.append(("Credits","%(vampire_home)s/credits.html"))

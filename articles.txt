@@ -2,20 +2,16 @@
 Articles
 ========
 
-Below are listed various articles related to Vampire and mod_python.
-
 `Getting mod_python Working`_
-  This article is intended to assist newbies to mod_python in
-  trying to get their first test program under mod_python to
-  work.
+  Intended to assist newbies to mod_python in trying to get their first
+  test program to work.
 
 `Quick Overview of Vampire`_
-  This article gives a slightly more in depth overview of some of
-  the main features provided by Vampire.
+  Provides a slightly more in depth overview of some of the main features
+  provided by Vampire.
 
 `Apache Configuration Files`_
-  This article provides instructions on how to configure Apache to make
-  use of Vampire.
+  Provides instructions on how to configure Apache to make use of Vampire.
 
 
 .. _Getting MOD_PYTHON Working: articles/modpython-001.html

@@ -4,7 +4,9 @@ Vampire
 
 Vampire is an extension module for mod_python_, which provides a more
 flexible dispatch mechanism for basic content handlers, as well as an
-alternative implementation of the mod_python.publisher module.
+alternative implementation of the mod_python.publisher module. A range of
+other useful features are also provided which make using mod_python a much
+more pleasant experience.
 
 For further information about Vampire, check out the supplied articles_. If
 you have any questions about Vampire, it is suggested you subscribe to the
