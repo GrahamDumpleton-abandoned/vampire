@@ -860,3 +860,33 @@ parameter must be the first parameter of the function.
 Implementing Web Services
 =========================
 
+Interacting with an application through web pages alone may be possible,
+but a more rich style of interaction is often required. One means of
+achieving this is by implementing a web service using the XML-RPC protocol.
+This permits the exporting of functions by an application such that they
+are callable using a remote procedure call over the HTTP protocol. These
+functions could be the same functions which are used in populating data in
+the web pages.
+
+::
+
+  class _Object:
+
+    def method1(self):
+      return "method1"
+
+    def method2(self,req):
+      return "method2"
+
+    def method3(self,req,arg):
+      return "method3"
+
+  _object = _Object()
+
+  handler = vampire.Service(_object)
+
+The XML-RPC service wrapper makes use of the "xmlrpclib" module. As such,
+any types supported by the "xmlrpclib" module can be used. Faults can also
+be raised using the "xmlrpclib.Fault" class. Where the first parameter of
+a function is the "req" parameter, it will be passed the mod_python
+request object.
