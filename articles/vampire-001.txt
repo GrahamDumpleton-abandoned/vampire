@@ -548,6 +548,10 @@ circumstances without needing to explicitly touch files to update their
 modification times.
 
 
+Configuration Mechanism
+=======================
+
+
 Publisher Implementation
 ========================
 
@@ -596,3 +600,16 @@ are a part of the web application, should be changed to use the Vampire
 import mechanism instead. This will provide a more reliable way of having
 modules reloaded when changes are made and lift the various constraints
 imposed by using the standard Python module import system.
+
+
+Mixing Publisher and Handler
+============================
+
+
+Processing Extra Path Info
+==========================
+
+
+Implementing Web Services
+=========================
+
