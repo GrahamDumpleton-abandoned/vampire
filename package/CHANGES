@@ -61,6 +61,15 @@ Changes in Vampire 1.5
     Note that both these classes can actually be used from outside of
     Vampire from a standard content handler.
 
+  - Advanced form parameter processing, ie., conversion into structs and
+    lists can be disabled by specifying:
+
+      PythonOption VampireAdvancedForms Off
+
+    This should be used if converting existing publisher code to the
+    vampire::publisher handler to avoid form parameters being interpreted
+    strangely.
+
 
 Changes in Vampire 1.4
 ======================

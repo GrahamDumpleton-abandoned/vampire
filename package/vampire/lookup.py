@@ -235,7 +235,16 @@ def _execute(req,object):
   # from FormEncode/Validator which can be obtained from
   # "http://formencode.org/".
 
-  args = forms.variable_decode(args)
+  advanced = True
+
+  options = req.get_options()
+  if options.has_key("VampireAdvancedForms"):
+    value = options["VampireAdvancedForms"]
+    if value in ["Off","off"]:
+      advanced = False
+
+  if advanced:
+    args = forms.variable_decode(args)
 
   # Determine names of parameters expected by callable
   # object and whether it also supports keyword argument
