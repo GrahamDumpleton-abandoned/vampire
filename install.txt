@@ -4,7 +4,7 @@ Installation
 
 To install Vampire, execute::
 
-  cd packages
+  cd software
   python setup.py build
   python setup.py install
 
