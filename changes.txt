@@ -10,7 +10,8 @@ been made available.
 .. warning::
   The current officially released version of Vampire is 1.5. Features
   described here for Vampire 1.6 are only available by checking out
-  the source code from the Vampire source code repository directly.
+  the development copy of the source code from the Vampire source code
+  repository directly.
 
 Changes in Vampire 1.6
 ======================
