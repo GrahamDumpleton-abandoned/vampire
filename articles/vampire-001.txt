@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 17/03/2005
+:Updated: 18/03/2005
 
 .. contents::
 
@@ -755,60 +755,38 @@ and functions.
       self.value1 = "value1"
 
     def method1(self):
-      return "method1"
+      return "method1()"
+
+    def method2(self,req):
+      req.content_type = "text/plain"
+      req.send_http_header()
+      req.write("method2()")
+
+    def __call__(self):
+      return "__call__()"
 
   _object = _Object()
 
   handler = vampire.Publisher(_object)
 
-The equivalent if one were using either mod_python.publisher or the Vampire
-version of publisher would be as follows.
+  def handler_txt(req):
+    req.content_type = "text/plain"
+    req.send_http_header()
+    req.write("handler_txt()")
 
-::
+When this handler is accessed with no extension specified, the "__call__()"
+method will be executed. If a ".txt" extension is used then "handler_txt()"
+is called. Finally, if no extension is specified but additional path
+information is supplied, that will be mapped against the object hierarchy
+as appropriate to select "value1", "method1()" or "method2()" if possible.
 
-  value1 = "value1"
-
-  def method1(self):
-    return "method1"
-
-Although in most cases it is necessary for data and functions to be scoped
-within a class, one hasn't lost the ability to hold within the same file
-other handlers which serve up different views of the same resource based on
-a different extension appearing in the URL.
-
-As a further alternative, it is posssible to have URLs map to different
-functions and still use the calling semantics of a basic content handler.
-In this case though, basic data types are not exported as they are when
-publisher semantics is used and access to them would need to be wrapped
-in their own access functions.
-
-::
-
-  from mod_python import apache
-  import vampire
-
-  class _Object:
-
-    def __init__(self):
-      self._value1 = "value1"
-
-    def value1(self,req):
-      req.content_type = "text/plain"
-      req.send_http_header()
-      req.write(self._value1)
-      return apache.OK
-
-    def method1(self,req):
-      req.content_type = "text/plain"
-      req.send_http_header()
-      req.write("method1")
-      return apache.OK
-
-  _object = _Object()
-
-  handler = vampire.Handler(_object)
-
-XXX explicit response construction in publisher
+Note that in Vampire, if a basic content handler doesn't explicitly return
+a value, it is interpreted as if "apache.OK" had been returned. If a method
+mapped using publisher neither writes an explicit response to the request
+object, nor returns a value, it is interpreted as an empty response. This
+behaviour is different on both counts when compared to basic content handlers
+in mod_python and published methods in mod_python.publisher, both of which
+respond with a HTTP internal server error.
 
 
 Processing Extra Path Info
