@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 16/03/2005
+:Updated: 17/03/2005
 
 .. contents::
 
@@ -328,7 +328,7 @@ Apache Configuration Files
 Apache can be configured to use Vampire from within a ".htaccess" file or
 the main Apache configuration file. You should first use the "SetHandler"
 directive to enable use of mod_python and then the "PythonHandler"
-directive to specify use of "vampire". The configuration settings should
+directive to specify use of Vampire. The configuration settings should
 be included within a "Directory" directive if being placed in the main
 Apache configuration file.
 
@@ -338,14 +338,13 @@ Apache configuration file.
   PythonHandler vampire
   PythonPath 'sys.path'
 
-Setting "PythonPath" as shown is highly recommended but is optional and may
-not actually be possible in some cases. Doing this ensures that the
-document tree directory does not get added into the Python module search
-path. This is beneficial because there is then no risk that arbitrary ".py"
-files in your document tree will errornously get picked up as being
-modules. It does mean though that the Vampire module loading system needs
-to be used to explicitly load modules which are stored in the document
-tree.
+Setting "PythonPath" as shown is highly recommended but is optional.
+Setting "PythonPath" in this way ensures that the document tree directory
+does not get added into the Python module search path. This is beneficial
+because there is then no risk that arbitrary ".py" files in your document
+tree will errornously get picked up as being modules. It does mean though
+that the Vampire module loading system needs to be used to explicitly load
+modules which are stored in the document tree.
 
 It is also recommended that both "MultiViews" and "Indexes" be disabled.
 This is necessary because extensions such as mod_mime and mod_index can
@@ -358,52 +357,6 @@ a directory.
 ::
 
   Options -Indexes -MultiViews
-
-If using Apache 1.3, setting "DirectoryIndex" to a specific resource to be
-used when a directory is accessed works, albeit with the caveat that the
-target file must exist. If the resource is actually a virtual resource
-created on demand by a content handler, this means one will need to create
-a dummy file as a place marker for the resource to ensure that mod_dir
-works correctly.
-
-When using Apache 2.0, the "DirectoryIndex" directive does not get applied to
-directories being managed by Vampire. As a result, Vampire provides its own
-means of redirecting requests against a directory to a specific resource. This
-is enabled by using the "PythonOption" directive to set a value for the
-"VampireDirectoryIndex" option.
-
-::
-
-  PythonOption VampireDirectoryIndex index.html
-
-When using this feature however, unlike the "DirectoryIndex" directive, you
-can only specify a single target resource. It is not possible to supply a
-list of resources with the first one found being used.
-
-If the version of mod_python being used supports internal redirects within
-Apache, that mechanism will be used to redirect the request to the
-specified resource. If internal redirects aren't supported by the version
-of mod_python being used, then a HTTP redirect response is returned and the
-browser is expected to deal with it.
-
-Note that options set using the "PythonOption" directive are inherited by
-subdirectories beneath the directory where the option is set. This means
-that you do not have to set the option for every single directory, only the
-common parent directory. If different subdirectories needed to use a
-different resource, then each directory should set "VampireDirectoryIndex"
-themselves. If it was necessary to eliminate the inherited value of the
-option, it should be set to ".".
-
-::
-
-  PythonOption VampireDirectoryIndex .
-
-It is necessary to use "." as mod_python or Apache has a bug in it which
-doesn't allow you to unset an option or set it to an empty value.
-
-If using Apache 1.3 and the "DirectoryIndex" directive, there doesn't seem
-to be any way at all of disabling it within a subdirectory once set in the
-context of a parent directory.
 
 
 Processing Form Parameters
@@ -561,6 +514,102 @@ be done by defining the "PythonAuthenHandler" directive, or by using the
 Vampire configuration mechanism to define the authentication handler.
 
 
+Configuration Mechanism
+=======================
+
+A standard Python installation provides the "ConfigParser" module for
+implementing of configuration files. Vampire uses this to allow some
+aspects of its internal configuration and behaviour to be overridden. This
+configuration file may however also be used for application data.
+
+Normally when using "ConfigParser" it is necessary to explicitly define the
+location of the configuration file to be read. In Vampire however, a
+dynamic search mechanism is used to find the appropriate configuration file
+which pertains to code being executed to handle a particular request.
+
+::
+
+  import vampire
+
+  def handler(req):
+    config = vampire.loadConfig(req,".vampire")
+    templates = config.get("Settings","templates")
+    ...
+
+What will occur is that a search will be performed starting at the physical
+directory which the URL mapped to, back up the directory hierarchy until
+the root directory where the original "PythonHandler" directive was defined
+so as to use Vampire. Along the way, if a configuration file with the
+specified name is found in one of the directories, that configuration file
+will be the one which is used.
+
+This search mechanism means that a single configuration file can be
+specified in the root directory of an application and it will be
+automatically found by any request handlers falling anywhere under that
+root directory. By the configuration file being dynamically located in this
+way, it avoids having to encode relative or absolute path names into code
+and makes it easy to move code between different directories.
+
+One means of using the configuration mechanism is to make available
+application settings stored within the configuration file within the
+environment of available variables in a templating system.
+
+::
+
+  from mod_python import apache, psp
+
+  import os
+
+  # Handler for ".html" request.
+
+  def handler_html(req):
+    path = os.path.splitext(req.filename)[0] + ".psp"
+    if os.path.exists(path):
+      req.content_type = "text/html"
+      config = vampire.loadConfig(req,".vampire")
+      settings = {}
+      for key,value in config.items("Settings"):
+	settings[key] = value
+      template = psp.PSP(req,filename=path,vars=settings)
+      template.run()
+      return apache.OK
+    return apache.DECLINED
+
+Vampire makes this even more useful by predefining some special variables
+within the configuration which could then be used within template code.
+These special variables are:
+
+__handler_root__
+  Absolute path name of the directory where the PythonHandler directive was
+  defined which pertains to the request being handled.
+
+__config_root__
+  Absolute path name of the directory containing the configuration file
+  being used.
+
+__baseurl_abs__
+  Absolute URL which maps to the directory in which the configuration file
+  being used was located.
+
+__baseurl_rel__ 
+  Relative URL in respect of the request URL which maps to the directory in
+  which the configuration file being used was located.
+
+These may be used direct by a template, or could be used in the
+configuration file itself as part of the definition of a variable, with it
+being expanded automatically when accessed. The inbuilt variable
+"__baseurl_rel__" is particularly useful in constructing relative URLs to
+special files such as images and stylesheets.
+
+::
+
+  [Settings]
+
+  templates = %(__config_root__)s/templates
+  images = %(__baseurl_rel__)s/images
+  styles = %(__baseurl_rel__)s/styles
+
+
 Module Importing System
 =======================
 
@@ -632,10 +681,6 @@ circumstances without needing to explicitly touch files to update their
 modification times.
 
 
-Configuration Mechanism
-=======================
-
-
 Publisher Implementation
 ========================
 
@@ -688,6 +733,82 @@ imposed by using the standard Python module import system.
 
 Mixing Publisher and Handler
 ============================
+
+By using mod_python.publisher or the Vampire equivalent, one gains the
+ability to have URLs map to distinct data or functions within a single
+Python code file. This can be beneficial in itself, but at the same time
+one has to sacrifice other abilities to get it.
+
+Vampire avoids any loss of functionality by allowing you to selectively
+apply publisher style URL mapping and response generation within the
+context of a basic content handler. This is achieved by creating special
+handler objects which apply publisher style semantics to selected data
+and functions.
+
+::
+
+  import vampire
+
+  class _Object:
+
+    def __init__(self):
+      self.value1 = "value1"
+
+    def method1(self):
+      return "method1"
+
+  _object = _Object()
+
+  handler = vampire.Publisher(_object)
+
+The equivalent if one were using either mod_python.publisher or the Vampire
+version of publisher would be as follows.
+
+::
+
+  value1 = "value1"
+
+  def method1(self):
+    return "method1"
+
+Although in most cases it is necessary for data and functions to be scoped
+within a class, one hasn't lost the ability to hold within the same file
+other handlers which serve up different views of the same resource based on
+a different extension appearing in the URL.
+
+As a further alternative, it is posssible to have URLs map to different
+functions and still use the calling semantics of a basic content handler.
+In this case though, basic data types are not exported as they are when
+publisher semantics is used and access to them would need to be wrapped
+in their own access functions.
+
+::
+
+  from mod_python import apache
+  import vampire
+
+  class _Object:
+
+    def __init__(self):
+      self._value1 = "value1"
+
+    def value1(self,req):
+      req.content_type = "text/plain"
+      req.send_http_header()
+      req.write(self._value1)
+      return apache.OK
+
+    def method1(self,req):
+      req.content_type = "text/plain"
+      req.send_http_header()
+      req.write("method1")
+      return apache.OK
+
+  _object = _Object()
+
+  handler = vampire.Handler(_object)
+
+XXX explicit response construction in publisher
 
 
 Processing Extra Path Info
