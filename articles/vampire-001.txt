@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 18/03/2005
+:Updated: 20/03/2005
 
 .. contents::
 
@@ -50,12 +50,12 @@ ensuring there is no significant loss in performance for normal files.
 
 In addition to expanding on the basic content handler mechanism, Vampire
 also provides a drop in replacement for mod_python.publisher. Some obscure
-corners of this replacement for mod_python.publisher are however a little
-different to the original. These differences derive however from the fact
-that the Vampire version fixes many bugs in the original and also addresses
-some of its shortcomings and limitations. In order to do this, it wasn't
-practical to maintain 100 percent compatibility as that would have mean't
-preserving what could be seen as incorrect behaviour.
+corners of this replacement for mod_python.publisher are a little different
+to the original. These differences derive however from the fact that the
+Vampire version fixes many bugs in the original and also addresses some of
+its shortcomings and limitations. In order to do this, it wasn't practical
+to maintain 100 percent compatibility as that would have mean't preserving
+what could be seen as incorrect or buggy behaviour.
 
 Most important of all to note is that Vampire is not a framework in itself.
 Its prime purpose is to make the basic mechanisms available through using
@@ -65,8 +65,9 @@ dictate a particular solution for performing page templating. In fact, it
 is relatively straight forward to integrate the use of frameworks such as
 PSP and mpservlets_. Similarly, it is relatively straight forward to adopt
 and use other page templating systems such as HTMLTemplate_ and Cheetah_.
-In fact, using HTMLTemplate is made really easy by virtue of Vampire
-integrating a template loading and caching system for that system.
+Use of HTMLTemplate does however get a head start on the others and is more
+easy to use by virtue of Vampire integrating a template loading and caching
+system for that system.
 
 .. _mod_python: http://www.modpython.org
 .. _mpservlets: http://home.comcast.net/~d.popowich/mpservlets
@@ -127,11 +128,6 @@ services. The full list of the major features provided by Vampire are:
   publisher mechanism, which allows additional path information to be
   supplied, with the path being split into components and passed as
   separate parameters.
-
-- A publisher like traversal mechanism for basic content handlers. This
-  means that a single file can process requests for different resources
-  just like publisher, but where the calling semantics are those of a
-  basic content handler.
 
 - An improved module importing and caching system which can track
   parent/child relationships between modules and will automatically
@@ -472,7 +468,8 @@ templating system.
 Similar or slightly different techniques to that described aboved can be
 employed to integrate any other third party templating system which you may
 wish to use. Such a task should be relatively straight forward, especially
-if the package has already been setup to be used with the mod_python.
+if the package has already been setup to be used with mod_python in some
+way previously.
 
 
 User Authentication Hooks
@@ -676,9 +673,13 @@ reloaded and it is generally necessary to restart Apache to pick up the
 change. When using the Vampire module importing system, it will detect that
 changes have been made in the child modules imported by a content handler
 using Vampire and will automatically force a reload of the content handler
-and the child module, thereby avoiding the need to restart Apache in most
-circumstances without needing to explicitly touch files to update their
-modification times.
+and the child module.
+
+Through Vampire being able to do this, any restarting of Apache is avoided
+in most circumstances, nor is there any need to be explicitly touching all
+files to update their modification times as is done by some users to trick
+mod_python into reloading handlers when only modules they have imported
+have changed.
 
 
 Publisher Implementation
@@ -698,7 +699,7 @@ manner in which the mod_python module importing mechanism is implemented
 and the way that mod_python.publisher makes use of it, certain constraints
 are however placed on the use of mod_python.publisher. This is currently
 exacerbated by a number of bugs which are also present in the current
-version of mod_python.publisher and which are document on the `mod_python
+version of mod_python.publisher and which are documented on the `mod_python
 bug list`_.
 
 .. _`mod_python bug list`: http://issues.apache.org/jira/browse/MODPYTHON
@@ -737,7 +738,8 @@ Mixing Publisher and Handler
 By using mod_python.publisher or the Vampire equivalent, one gains the
 ability to have URLs map to distinct data or functions within a single
 Python code file. This can be beneficial in itself, but at the same time
-one has to sacrifice other abilities to get it.
+one has to sacrifice other abilities deriving from using basic content
+handlers to get it.
 
 Vampire avoids any loss of functionality by allowing you to selectively
 apply publisher style URL mapping and response generation within the
@@ -777,7 +779,7 @@ and functions.
 When this handler is accessed with no extension specified, the "__call__()"
 method will be executed. If a ".txt" extension is used then "handler_txt()"
 is called. Finally, if no extension is specified but additional path
-information is supplied, that will be mapped against the object hierarchy
+information is supplied, this will be mapped against the object hierarchy
 as appropriate to select "value1", "method1()" or "method2()" if possible.
 
 Note that in Vampire, if a basic content handler doesn't explicitly return

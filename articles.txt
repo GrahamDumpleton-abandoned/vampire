@@ -9,7 +9,7 @@ Below are listed various articles related to Vampire and mod_python.
   trying to get their first test program under mod_python to
   work.
 
-`Quick Overview of Vampire`_ (Updated 18/03/2005)
+`Quick Overview of Vampire`_ (Updated 20/03/2005)
   This article gives a slightly more in depth overview of some of
   the main features provided by Vampire.
 
