@@ -548,5 +548,51 @@ circumstances without needing to explicitly touch files to update their
 modification times.
 
 
-New Publishing Framework
+Publisher Implementation
 ========================
+
+When using handler functions, each resource identified by a URL is
+typically linked directly to a distinct file stored within the filesystem.
+If it is desired that a component of the URL identifies a virtual resource
+such as a Python data structure or data stored in a database, it becomes
+necessary to manually interpret any additional path info detailed in the
+URL.
+
+The mod_python.publisher handler provides one automated means of
+interpreting this additional path information by mapping requests to either
+Python data objects, methods of those data objects or functions. Due to the
+manner in which the mod_python module importing mechanism is implemented
+and the way that mod_python.publisher makes use of it, certain constraints
+are however placed on the use of mod_python.publisher. This is currently
+exacerbated by a number of bugs which are also present in the current
+version of mod_python.publisher and which are document on the `mod_python
+bug list`_.
+
+.. _`mod_python bug list`: http://issues.apache.org/jira/browse/MODPYTHON
+
+As a solution to these problems, Vampire provides its own implementation of
+the publisher handler which should be able to be used in most cases as a
+drop in replacement for mod_python.publisher. To make use of this handler
+the PythonHandler directive should be set to reference the Vampire
+implementation rather than the mod_python.publisher version.
+
+::
+
+  PythonHandler vampire::publisher
+
+Because Vampire provides an extended mechanism for interpreting form
+parameters, it may be necessary to modify the names of form parameters
+where a conflict occurs. Alternatively, this extended mechanism can be
+disabled. This can be done by setting the "VampireStructuredForms"
+option to "Off".
+
+::
+
+  PythonOption VampireStructuredForms Off
+
+To make best use of Vampire, any direct use of the Python "import"
+statement or the "apache.import_module()" function to import modules which
+are a part of the web application, should be changed to use the Vampire
+import mechanism instead. This will provide a more reliable way of having
+modules reloaded when changes are made and lift the various constraints
+imposed by using the standard Python module import system.
