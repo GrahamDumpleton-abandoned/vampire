@@ -1,0 +1,28 @@
+# Note, that if AllowOverrides is not allowed for this
+# directory, then disabling of the options MultiViews
+# and Indexes will cause a 500 error. If this occurs,
+# make sure those options aren't set for this directory
+# in the main Apache configuration file and then comment
+# them out in this file.
+
+# Disable MultiViews, they stop Vampire from working.
+Options -MultiViews
+
+# Disable Indexes so directory contents aren't exposed.
+Options -Indexes
+
+# Pass all requests through Vampire.
+SetHandler python-program
+PythonHandler vampire
+
+# Display of exception tracebacks and import messages.
+PythonDebug On
+
+# Stop the directory being added to path.
+PythonPath 'sys.path'
+
+# Block access to configuration file.
+<Files ~ "^\.vampire">
+Order allow,deny
+deny from all
+</Files>
