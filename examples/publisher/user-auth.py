@@ -1,15 +1,12 @@
 # This file exhibits how authentication can be used.
 #
-# Note that auth realms and differing passwords for a
-# user should not be nested within each other as it
-# causes browsers to go into loops trying to reapply
-# authentication information. This may be a general
-# issue with authentication but may also be an issue
-# with how mod_python handles authentication. This is
-# still being investigated and the mod_python scheme may
-# need to be replaced to handle this in a sensible way.
+# Note that an auth realm is mandatory when using
+# Vampire. In mod_python.publisher it defaults to
+# "unknown" if not set which is different to what Apache
+# allows. In Vampire if an auth realm is not set a 500
+# error is returned.
 
-__auth_realm__ = "Top Secret"
+__auth_realm__ = "Disney Land"
 __auth__ = { "mickey": "mouse", "minney": "mouse", "donald": "duck" }
 
 # Any of the above can access method1().
@@ -24,28 +21,45 @@ def method2():
     return user == "mickey"
   return "method2"
 
-# Both "minney" and "donald" can access "object1".
-# Both "minney" and "donald" can access "object1.method3()".
-# Both "minney" and "donald" can access "object1.method4()".
-#
-# This should not be the case for "object1.method4()"
-# and access should only be available to "minney", but
-# as of mod_python 3.1.4 it doesn't support methods for
-# authentication within MethodType and Vampire uses the
-# authentication routine from mod_python rather than
-# using its own at this stage.
-
 class Object1:
 
   __access__ = [ "minney", "donald" ]
 
+  # Both "minney" and "donald" can access "method3()".
+
   def method3(self):
     return "method3"
 
+  # Only "minney" can access "method4()".
+  #
+  # Note that mod_python.publisher as of mod_python
+  # version 3.1.4 doesn't support methods for
+  # authentication within methods of a class. Vampire
+  # fixes this and thus why "__access__" in this context
+  # does actually restrict access to just "minney".
+
   def method4(self):
     def __access__(req,user):
-      # This doesn't work here.
       return user == "minney"
     return "method4"
 
 object1 = Object1()
+
+# Note that in mod_python.publisher different sets of
+# authentication credentials cannot not be nested within
+# each other in certain ways as it causes browsers to go
+# into loops. Vampire however fixes this bug in
+# mod_python.publisher.
+
+class Object2:
+
+  __auth_realm__ = "Top Secret"
+  __auth__ = { "donald": "duck" }
+  __access__ = [ "donald" ]
+
+  # Only "donald" can access "method5()".
+
+  def method5(self):
+    return "method5"
+
+object2 = Object2()

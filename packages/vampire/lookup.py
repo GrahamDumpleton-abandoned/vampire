@@ -19,6 +19,8 @@ import types
 import string
 import re
 import sys
+import base64
+import new
 
 import cache
 import config
@@ -53,17 +55,158 @@ def _import(req,file):
   return module
 
 
+# Following determines what authentication data or
+# hooks have been defined by a specified object.
+
+def _access(req,object,realm=None,auth=None,access=None):
+
+  func_code = None
+
+  object_type = type(object)
+
+  if object_type == types.FunctionType:
+    func_code = object.func_code
+  elif object_type == types.MethodType:
+    func_code = object.im_func.func_code
+
+  if func_code:
+
+    if "__auth_realm__" in func_code.co_names:
+      i = list(func_code.co_names).index("__auth_realm__")
+      realm = func_code.co_consts[i+1]
+
+    if "__auth__" in func_code.co_names:
+      i = list(func_code.co_names).index("__auth__")
+      auth = func_code.co_consts[i+1]
+      if hasattr(auth,"co_name"):
+	auth = new.function(auth,globals())
+
+    if "__access__" in func_code.co_names:
+      i = list(func_code.co_names).index("__access__")
+      access = func_code.co_consts[i+1]
+      if hasattr(access,"co_name"):
+	access = new.function(access,globals())
+
+  else:
+    if hasattr(object,"__auth_realm__"):
+      realm = object.__auth_realm__
+    if hasattr(object,"__auth__"):
+      auth = object.__auth__
+    if hasattr(object,"__access__"):
+      access = object.__access__
+
+  return realm,auth,access
+
+
 # Following provides authentication checks for a
-# sequence of objects. For the time being, it uses the
-# authentication routine that is included with
-# mod_python.publisher.
+# sequence of objects. We don't use that which is
+# provided by mod_python.publisher because it does not
+# work for methods of classes. The mod_python.publisher
+# mechanism also applies authentication at each point in
+# traversal into an object which is wrong and results in
+# different behaviour to how authentication works in
+# Apache. In the worst cases, the mod_python.publisher
+# mechanism can result in browsers going into loops.
+# For most people they wouldn't be aware of the problems
+# in mod_python.publisher, so the improvements here are
+# not actually going to be noticed.
 
 def _authenticate(req,objects):
 
-  realm,user,passwd = ("unknown",None,None)
+  # If authorisation credentials provided, determine if
+  # it is an accepted scheme and if it is then extract
+  # user and passwd. Only "basic" authentication scheme
+  # supported when performing object traversal. If
+  # "digest" or some other scheme required, should be
+  # done by means of an "authenhandler".
+
+  user = None
+  passwd = None
+
+  if req.headers_in.has_key("Authorization"):
+    try:
+      header = req.headers_in["Authorization"]
+      scheme,credentials = header.split(" ",1)
+      credentials = credentials.strip()
+
+      scheme = scheme.lower()
+      if scheme == "basic":
+	credentials = base64.decodestring(credentials)
+	user,passwd = string.split(credentials,":",1)
+      else:
+	raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
+    except:
+      raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
+
+  # Determine most nested authentication data or hooks.
+
+  realm = None
+  auth = None
+  access = None
 
   for object in objects:
-    realm,user,passwd = publisher.process_auth(req,object,realm,user,passwd)
+    realm,auth,access = _access(req,object,realm,auth,access)
+
+  if auth is not None:
+
+    # If realm is not defined, raise a server error.
+    # This is different to mod_python.publisher which
+    # sets the realm to "unknown", but raising an error
+    # seems to be more consistent with how Apache does
+    # authentication.
+
+    if realm is None:
+      raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+
+    # User needed if authentication being performed.
+
+    if not user:
+      s = 'Basic realm="%s"' % realm
+      req.err_headers_out["WWW-Authenticate"] = s
+      raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+
+    # Perform actual authentication checks.
+
+    if callable(auth):
+      result = auth(req,user,passwd)
+    else:
+      if type(auth) is types.DictionaryType:
+	result = auth.has_key(user) and auth[user] == passwd
+      else: 
+	result = auth
+
+    if not result:
+      s = 'Basic realm="%s"' % realm
+      req.err_headers_out["WWW-Authenticate"] = s
+      raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+
+  if access is not None:
+
+    # Perform actual access checks.
+
+    if callable(access): 
+      result = access(req,user)
+    else:
+      if type(access) in (types.ListType,types.TupleType):
+	result = user in access
+      else:
+	result = access
+
+    # If access check failed, and authentication was
+    # performed with actual user details being checked,
+    # as opposed to any user being allowed, must provide
+    # ability to reauthenticate with a different user
+    # and not just return forbidden. This isn't done
+    # correctly in mod_python.publisher.
+
+    if not result:
+      if auth is not None and (callable(auth) or \
+          type(auth) == types.DictionaryType):
+	s = 'Basic realm="%s"' % realm
+	req.err_headers_out["WWW-Authenticate"] = s
+	raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+      else:
+	raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
 
 # Access to and traversal of objects is controlled by
@@ -158,48 +301,48 @@ def _params(object):
   # list then drop out arguments for which there is no
   # corresponding named parameter.
 
-  fc = None
+  func_code = None
 
   if callable(object):
     object_type = type(object)
 
     if object_type is types.FunctionType:
-      fc = object.func_code
+      func_code = object.func_code
       defaults = object.func_defaults
-      expected = fc.co_varnames[0:fc.co_argcount]
+      expected = func_code.co_varnames[0:func_code.co_argcount]
 
     elif object_type is types.MethodType:
-      fc = object.im_func.func_code
+      func_code = object.im_func.func_code
       defaults = object.im_func.func_defaults
-      expected = fc.co_varnames[1:fc.co_argcount]
+      expected = func_code.co_varnames[1:func_code.co_argcount]
 
     elif object_type is types.ClassType:
-      fc = object.__init__.im_func.func_code
+      func_code = object.__init__.im_func.func_code
       defaults = object.__init__.im_func.func_defaults
-      expected = fc.co_varnames[1:fc.co_argcount]
+      expected = func_code.co_varnames[1:func_code.co_argcount]
 
     elif hasattr(object,"__call__"):
-      fc = object.__call__.im_func.func_code
+      func_code = object.__call__.im_func.func_code
       defaults = object.__call__.im_func.func_defaults
-      expected = fc.co_varnames[1:fc.co_argcount]
+      expected = func_code.co_varnames[1:func_code.co_argcount]
 
     elif hasattr(object,"func_code"):
-      fc = object.func_code
+      func_code = object.func_code
       defaults = object.func_defaults
-      expected = fc.co_varnames[0:fc.co_argcount]
+      expected = func_code.co_varnames[0:func_code.co_argcount]
 
     elif hasattr(object,"im_func"):
-      fc = object.im_func.func_code
+      func_code = object.im_func.func_code
       defaults = object.im_func.func_defaults
-      expected = fc.co_varnames[1:fc.co_argcount]
+      expected = func_code.co_varnames[1:func_code.co_argcount]
 
-  if fc is None:
+  if func_code is None:
     return (apache.HTTP_INTERNAL_SERVER_ERROR,None,None,None)
 
   if defaults is None:
     defaults = []
 
-  return (apache.OK,fc.co_flags,expected,defaults)
+  return (apache.OK,func_code.co_flags,expected,defaults)
 
 
 # Following executes a callable object. Any form

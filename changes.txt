@@ -201,6 +201,15 @@ Changes in Vampire 1.5
   special mod_python request object with the XML-RPC parameters passed
   as the remaining parameters.
 
+- The authentication code used from mod_python.publisher has been replaced.
+  The functionality is in general the same, but a number of bugs in the
+  mod_python.publisher code have been fixed. Support for defining
+  authentication and access constraints within a member of class has also
+  been added. The other big difference is that an auth realm must be
+  defined. In mod_python.publisher it would default to "unknown" if not
+  defined. When using Apache, it will raise a 500 error if the auth realm
+  isn't defined, so Vampire has been made to behave like Apache instead.
+
 
 Changes in Vampire 1.4
 ======================
