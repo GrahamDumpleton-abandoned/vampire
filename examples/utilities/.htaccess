@@ -1,0 +1,2 @@
+# Disable default content handlers.
+PythonOption VampireDefaultHandlers Off
