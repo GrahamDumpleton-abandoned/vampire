@@ -4,7 +4,7 @@ Getting mod_python Working
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 06/02/2005
+:Updated: 20/03/2005
 
 .. contents::
 
@@ -263,6 +263,10 @@ Failing that, you can subscribe to the mailing list and ask about the
 problems you are having in that forum. When asking a question, make sure
 you clearly explain what the problem is and include at least the following
 information:
+
+- Which version of Python you are using.
+
+- Which operating system platform you are using.
 
 - Which version of mod_python and Apache you are using.
 

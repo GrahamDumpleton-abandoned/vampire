@@ -4,7 +4,7 @@ Articles
 
 Below are listed various articles related to Vampire and mod_python.
 
-`Getting mod_python Working`_ (Updated 06/02/2005)
+`Getting mod_python Working`_ (Updated 20/03/2005)
   This article is intended to assist newbies to mod_python in
   trying to get their first test program under mod_python to
   work.
