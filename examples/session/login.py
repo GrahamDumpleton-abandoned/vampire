@@ -98,7 +98,7 @@ def handler_html(req,event="Login",username=None,password=None):
 
     util.redirect(req,req.uri)
 
-  # If login has yet occurred or incorrect login
+  # If login has not yet occurred or incorrect login
   # details, need to display the login page.
 
   if not username or not password or \
@@ -113,7 +113,11 @@ def handler_html(req,event="Login",username=None,password=None):
     req.headers_out['Cache-Control'] = 'no-cache'
     req.headers_out['Expires'] = '-1'
     req.send_http_header()
+
+    # Send back content of the login page.
+
     req.sendfile(req.filename)
+
     return apache.OK
 
   # Save the username in the session object. This is
