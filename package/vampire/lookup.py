@@ -79,14 +79,14 @@ def _authenticate(req,objects):
 # blocks any name component which begins with a leading
 # underscore.
 
-_default_rule = (True,True,False)
-
 def _default_filter(req,name,object):
   return name[:1] != '_'
 
 def _resolve(req,object,parts,rules,filter=_default_filter):
 
   objects = [object]
+
+  default = rules.get(None)
 
   # This mmethod can be called with either "None" or a
   # list of path elements. If "None" is supplied then
@@ -97,7 +97,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
     object_type = type(object)
 
-    traverse,execute,access = rules.get(object_type,_default_rule)
+    traverse,execute,access = rules.get(object_type,default)
 
   else:
 
@@ -122,7 +122,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
       # Apply rule set to the next object in the path.
 
-      traverse,execute,access = rules.get(object_type,_default_rule)
+      traverse,execute,access = rules.get(object_type,default)
 
       # Check for whether traversal is allowed needs to be
       # performed on all but the last object in the path.
@@ -132,11 +132,18 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 	  return (False,False,False,None)
 
   # Even if the rule says that the last object is
-  # potentially executable it doesn't necessarily
-  # mean that it is. Thus need to check that it is
-  # in fact callable and if not mark it as such.
+  # potentially executable it doesn't necessarily mean
+  # that it is. Thus need to check that it is in fact
+  # callable and if not mark it as such.
 
   execute = execute and callable(object)
+
+  # Also enforce a special rule that an object can only
+  # be accessible if it is not traversable. In order to
+  # publish a traversable object it therefore must be
+  # executable.
+
+  access = not traverse and access
 
   return (traverse,execute,access,objects)
 
@@ -327,6 +334,15 @@ def _flush(req,result):
 
 _handler_rules = {}
 
+# Add in the default rule. This effectively means that
+# anything that is left and that can be executed, will
+# be able to be used. It wasn't actually necessary to
+# even add rules for functions, methods and old style
+# class instances as is done below, but do it so that
+# everything is explicit.
+
+_handler_rules[None] = (False,True,False)
+
 # For all of the Python builtin types, mark them as
 # not being able to be traversed, executed or accessed.
 
@@ -338,11 +354,11 @@ for t in types.__dict__.values():
 # potentially executable.
 
 _handler_rules.update({
-  types.InstanceType: (True,True,False),
+  types.InstanceType: (False,True,False),
 })
 
 # Globally defined functions and methods of a class are
-# executable, but cannot be traversed or accessed.
+# marked as potentially executable.
 
 _handler_rules.update({
   types.FunctionType: (False,True,False),
@@ -473,22 +489,41 @@ def _handler(req):
   return result
 
 
-# Following provides an alternate implementation of
-# the mod_python.publisher module. It fixes various
-# bugs in the original and is more strict about what
-# can be traversed and accessed. First need to define
-# the traversal rules to be used when resolving the
-# function path.
+# Following provides an alternate implementation of the
+# mod_python.publisher module. It fixes various bugs in
+# the original. First need to define the traversal rules
+# to be used when resolving the function path. Note that
+# the rules are just as loose as mod_python.publisher
+# and thus if one isn't careful one can expose the fact
+# that Python is used because of default rules all
+# objects have for conversion to strings. Thus need to
+# prefix names with underscore if you don't want them
+# exposed.
 
 _publisher_rules = {}
 
-# For all of the Python builtin types, first mark them as
-# not being able to be traversed, executed or accessed.
-# The rule for certain types will be overridden later.
+# For all types defined by Python itself, first mark
+# them as not being able to be traversed or executed,
+# but allow them to be accessed.
 
 for t in types.__dict__.values():
   if type(t) is types.TypeType:
-    _publisher_rules[t] = (False,False,False)
+    _publisher_rules[t] = (False,False,True)
+
+# Modules are marked as not being able to be traversed,
+# executable or accessible.
+
+_publisher_rules.update({
+  types.ModuleType: (False,False,False),
+})
+
+# New and old style classes are marked as not being able
+# to be traversed, executable or accessible.
+
+_publisher_rules.update({
+  types.ClassType: (False,False,False),
+  types.TypeType: (False,False,False),
+})
 
 # Instances of any old style classes are marked as being
 # traversable and potentially executable.
@@ -505,37 +540,21 @@ _publisher_rules.update({
   types.MethodType:   (False,True,False),
 })
 
-# All the basic builtin data types are accessable, but
-# not traversable or executable. The basic builtin types
-# are the only types defined as accessible as they are
-# the only object types which are gauranteed to be
-# convertable to a string in a sensible way. Instances
-# of old and new style classes may or may not have
-# defined type specific conversion methods for yielding
-# a string so they are always ignored. Such types should
-# be coded to be executable instead.
+# Builtin functions are marked as not being able to be
+# traversed, executed or accessed. They are not allowed
+# to be executable as they don't have named parameters.
 
 _publisher_rules.update({
-  types.TupleType:    (False,False,True),
-  types.ListType:     (False,False,True),
-  types.DictType:     (False,False,True),
-  types.StringType:   (False,False,True),
-  types.UnicodeType:  (False,False,True),
-  types.BufferType:   (False,False,True),
-  types.BooleanType:  (False,False,True),
-  types.IntType:      (False,False,True),
-  types.LongType:     (False,False,True),
-  types.FloatType:    (False,False,True),
-  types.ComplexType:  (False,False,True),
-  types.NoneType:     (False,False,True),
+  types.BuiltinFunctionType: (False,False,False),
 })
 
 # In practice what is left are instances of new style
 # classes and classes implemented in a C extension
 # module. These are defined as being traversable and
-# potentially executable by way of application of the
-# default rule. Whether they can be used will be
-# dictated by some final checks within "_resolve()".
+# potentially executable by way of application of a
+# default rule.
+
+_publisher_rules[None] = (True,True,False)
 
 # Now for the actual handler function which implements
 # the publisher functionality.
@@ -653,7 +672,8 @@ def _publisher(req):
   if not func_path:
     func_path = "index"
 
-  # Now resolve the path to identify target object.
+  # Now resolve the path to identify target object,
+  # applying the publisher rule set in the process.
 
   rules = _publisher_rules
   parts = func_path.split('/')
@@ -669,13 +689,6 @@ def _publisher(req):
 
     if execute:
       result = _execute(req,objects[-1])
-
-      result_type = type(result)
-
-      traverse,execute,access = rules.get(result_type,_default_rule)
-
-      if not access:
-	raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
       return _flush(req,result)
 
@@ -921,7 +934,9 @@ class Publisher:
 
 	result_type = type(result)
 
-	traverse,execute,access = rules.get(result_type,_default_rule)
+        default = rules.get(None)
+
+	traverse,execute,access = rules.get(result_type,default)
 
 	if not access:
 	  raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR

@@ -22,9 +22,8 @@ Changes in Vampire 1.5
 
   - Added equivalent of mod_python.publisher. This is enabled by setting
     PythonHandler to "vampire::publisher". This implementation of publisher
-    style methods fixes a lot of mod_python.publisher bugs, allows
-    additional forms of object traversal but is also more strict on certain
-    types of traversal and access.
+    style methods fixes a lot of mod_python.publisher bugs and allows
+    traversal into new style classes where appropriate.
 
     You should not use "import" or "apache.import_module()" to import
     application modules when using "vampire::publisher", instead use the

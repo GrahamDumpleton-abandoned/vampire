@@ -3,6 +3,9 @@ To install Vampire, execute:
   python setup.py build
   python setup.py install
 
+The "install" phase may need to be done as "root", using the "sudo"
+command or other means as may be appropriate for your system.
+
 Make sure you read the PATCHES file to see if you may need to patch the
 version of mod_python you are using. The patches are recommended if you
 are working with a multithread MPM for Apache.

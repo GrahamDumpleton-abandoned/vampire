@@ -20,30 +20,54 @@ import vampire
 def _method1(path):
   return "method1()",path
 
+# URL: "/method1/1/2/3".
+# Result: path="/1/2/3".
+
 method1 = vampire.PathInfo(_method1)
 
 def _method2(req,path):
   return "method2()",path
+
+# URL: "/method2/1/2/3".
+# Result: path="/1/2/3".
 
 method2 = vampire.PathInfo(_method2)
 
 def _method3(xpath):
   return "_method3()",xpath
 
+# URL: "/method3/1/2/3".
+# Result: xpath="/1/2/3".
+
 method3 = vampire.PathInfo(_method3,"xpath")
 
 def _method4(req,xpath):
   return "_method4()",xpath
+
+# URL: "/method4/1/2/3".
+# Result: xpath="/1/2/3".
 
 method4 = vampire.PathInfo(_method4,"xpath")
 
 def _method5(path,param1,param2="default"):
   return "method5()",path,param1,param2
 
+# URL: "/method5/1/2/3?param1=1".
+# Result: path="/1/2/3", param1="1", param2="default".
+
+# URL: "/method5/1/2/3?param1=1&param2=2".
+# Result: path="/1/2/3", param1="1", param2="2".
+
 method5 = vampire.PathInfo(_method5)
 
 def _method6(req,path,param1,param2="default"):
   return "method6()",path,param1,param2
+
+# URL: "/method6/1/2/3?param1=1".
+# Result: path="/1/2/3", param1="1", param2="default".
+
+# URL: "/method6/1/2/3?param1=1&param2=2".
+# Result: path="/1/2/3", param1="1", param2="2".
 
 method6 = vampire.PathInfo(_method6)
 
@@ -54,6 +78,9 @@ class Class1:
 
   def _method1(self,path):
     return "Class1._method1",path
+
+# URL: "/class1/method1/1/2/3".
+# Result: path="/1/2/3".
 
 class1 = Class1()
 
