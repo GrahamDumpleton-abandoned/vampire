@@ -429,7 +429,8 @@ from inside the content handler executed by Vampire.
     path = os.path.splitext(req.filename)[0] + ".psp"
     if os.path.exists(path):
       req.content_type = "text/html"
-      template = psp.PSP(req,filename=path)
+      settings = { "form": req.form }
+      template = psp.PSP(req,filename=path,vars=settings)
       template.run()
       return apache.OK
     return apache.DECLINED
@@ -495,13 +496,13 @@ distinct resources.
 
   # Handler for ".html" request.
 
-  def handler(req,message=""):
+  def handler_html(req):
     path = os.path.splitext(req.filename)[0] + ".psp"
     if os.path.exists(path):
-      if not message: message = "Give Blood!"
       req.content_type = "text/html"
-      template = psp.PSP(req,filename=path)
-      template.run(vars={'message': message })
+      settings = { "form": req.form }
+      template = psp.PSP(req,filename=path,vars=settings)
+      template.run()
       return apache.OK
     return apache.DECLINED
 
@@ -567,6 +568,7 @@ environment of available variables in a templating system.
       settings = {}
       for key,value in config.items("Settings"):
 	settings[key] = value
+      settings["form"] = req.form
       template = psp.PSP(req,filename=path,vars=settings)
       template.run()
       return apache.OK
