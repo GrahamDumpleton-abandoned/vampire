@@ -2,7 +2,7 @@
 License
 =======
 
-Vampire (1.5)
+Vampire
 
 Copyright 2004-2005 DUMPLETON SOFTWARE CONSULTING PTY LIMITED
 
