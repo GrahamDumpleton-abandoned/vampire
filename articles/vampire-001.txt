@@ -663,7 +663,7 @@ not causes problems.
 
   config = vampire.loadConfig(__req__,".vampire")
   directory = config.get("Modules","common")
-  handlers = vampire.importModule("default-handlers",directory)
+  handlers = vampire.importModule("default-handlers",directory,__req__)
 
   def handler_html(req):
     return handlers.handler_html(req)
