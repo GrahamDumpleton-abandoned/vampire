@@ -63,6 +63,12 @@ Python exception::
 it means that mod_python isn't installed after all, or at least not for the
 version of Python you are trying to use.
 
+Note that the fact that import errors are being raised is okay and exactly
+what is expected. This is because it isn't actually possible to use
+mod_python from Python when executed on the command line. What is important
+at this point is what error is displayed, as from that it can be determined
+which version of mod_python you are using.
+
 You can also confirm which version of mod_python is being used by looking
 in the Apache error log file for the mod_python startup message::
 
@@ -144,10 +150,11 @@ should specify "mptest.py". If everything is okay, you should see the
 string "mptest.py" as the response.
 
 If instead of the string "mptest.py" you see the actual source code
-contained in the file, the main Apache configuration may not be enabled so
-as to allow you to specify Apache handlers in a ".htaccess" file. To enable
-this facility, edit your main Apache configuration file and add in an
-appropriate location::
+contained in the file, or your browser asks you to save the response to a
+file and that file contains the source code, the main Apache configuration
+may not be enabled so as to allow you to specify Apache handlers in a
+".htaccess" file. To enable this facility, edit your main Apache
+configuration file and add in an appropriate location::
 
   <Directory /some/directory>
   AllowOverride FileInfo
