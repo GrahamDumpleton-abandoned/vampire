@@ -1,6 +1,6 @@
-=======
-Vampire
-=======
+====================
+Vampire Installation
+====================
 
 To install Vampire, execute::
 
@@ -22,10 +22,17 @@ Online documentation for Vampire can be found at:
 
   http://www.dscpl.com.au/projects/vampire
 
-The source code for the current working copy of Vampire, including some
-examples not included with the actual release, can be viewed at:
+The source code for the latest working copy of Vampire can be viewed at:
 
   http://svn.dscpl.com.au/vampire/trunk
+
+If you know what Subversion_ is and have a Subversion client, you can
+check out the latest working copy of vampire using the command:
+
+  svn co http://svn.dscpl.com.au/vampire/trunk
+
+Please note that although all effort is made to ensure that the latest
+working copy does in fact, it is not gauranteed.
 
 If you have any questions, it is suggested you subscribe to the mod_python
 mailing list and ask your question there. Alternatively, you can contact
@@ -33,3 +40,4 @@ the author directly at "grahamd@dscpl.com.au".
 
 .. _PATCHES: PATCHES.html
 .. _LICENSE: LICENSE.html
+.. _Subversion: http://subversion.tigris.org

@@ -1,3 +1,11 @@
+[Settings]
+
+document_root = %(__config_root__)s
+
+styles_home = %(__baseurl_rel__)s/styles
+website_home = %(__baseurl_rel__)s/../..
+vampire_home = %(__baseurl_rel__)s
+
 [Handlers]
 
 handler_html = %(__config_root__)s/layouts/%(LayoutEngine)s.py

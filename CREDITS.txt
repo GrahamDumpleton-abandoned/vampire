@@ -1,3 +1,7 @@
+===============
+Vampire Credits
+===============
+
 Following people deserve credit for either providing input to Vampire
 in the way of ideas or source code, either explicitly or otherwise:
 

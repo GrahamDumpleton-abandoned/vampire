@@ -11,7 +11,7 @@ def masthead(req):
     banner = banner[1:]
 
   if not banner:
-    return 'GRAHAM DUMPLETON'
+    return 'VAMPIRE'
   else:
     banner = banner.upper()
     remainder = banner.split('/')[-3:]

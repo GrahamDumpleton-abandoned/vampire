@@ -4,22 +4,21 @@ import vampire
 import cgi
 import os
 
-def _search(req,file):
+def _search(req,settings,file):
 
   # Searches for file type associated with request by
   # first looking for file as extension of actual file
   # and then back up the directory hierarchy until the
-  # config root is reached.
+  # document root is reached.
 
   target = os.path.splitext(req.filename)[0] + file
   if os.path.exists(target):
     return target
 
-  config = vampire.loadConfig(req,".vampire")
-  config_root = config.defaults()["__config_root__"]
+  document_root = settings["document_root"]
 
   directory = os.path.dirname(req.filename)
-  while len(directory) >= len(config_root):
+  while len(directory) >= len(document_root):
     target = os.path.join(directory,file)
     if os.path.exists(target):
       return target
@@ -28,7 +27,7 @@ def _search(req,file):
   return None
 
 
-def _hnav(links,defaults):
+def _hnav(links,settings):
 
   output = []
 
@@ -36,7 +35,7 @@ def _hnav(links,defaults):
 
   for label,target in links:
     if target.find('%(') != -1:
-      target = target % defaults
+      target = target % settings
     target = cgi.escape(target)
     label = cgi.escape(label)
 
@@ -48,7 +47,7 @@ def _hnav(links,defaults):
   return "".join(output)
 
 
-def _links(groups,defaults):
+def _links(groups,settings):
 
   output = []
 
@@ -61,7 +60,7 @@ def _links(groups,defaults):
 
     for label,target in links:
       if target.find('%(') != -1:
-	target = target % defaults
+	target = target % settings
       target = cgi.escape(target)
       label = cgi.escape(label)
 
@@ -74,12 +73,15 @@ def _links(groups,defaults):
 
 def layout_html(req,template,**options):
 
-  # Load in configuration defaults for this
+  # Load in configuration settings for this
   # request. These will be used later on.
 
   config = vampire.loadConfig(req,".vampire")
 
-  defaults = config.defaults()
+  settings = {}
+
+  for key,value in config.items("Settings"):
+    settings[key] = value
 
   # Setup masthead.
 
@@ -90,7 +92,7 @@ def layout_html(req,template,**options):
   else:
     module = None
 
-    target = _search(req,"_masthead.py")
+    target = _search(req,settings,"_masthead.py")
 
     if target:
       directory = os.path.dirname(target)
@@ -113,7 +115,7 @@ def layout_html(req,template,**options):
   else:
     module = None
 
-    target = _search(req,"_navbar.py")
+    target = _search(req,settings,"_navbar.py")
 
     if target:
       directory = os.path.dirname(target)
@@ -124,7 +126,7 @@ def layout_html(req,template,**options):
       navbar = module.navbar(req)
 
   if navbar:
-    template.hnav.raw = _hnav(navbar,defaults)
+    template.hnav.raw = _hnav(navbar,settings)
 
   links = []
 
@@ -134,7 +136,7 @@ def layout_html(req,template,**options):
   else:
     module = None
 
-    target = _search(req,"_links.py")
+    target = _search(req,settings,"_links.py")
 
     if target:
       directory = os.path.dirname(target)
@@ -145,7 +147,7 @@ def layout_html(req,template,**options):
       links = module.links(req)
 
   if links:
-    template.vnav.raw = _links(links,defaults)
+    template.vnav.raw = _links(links,settings)
 
   # Setup footer.
 
@@ -156,7 +158,7 @@ def layout_html(req,template,**options):
   else:
     module = None
 
-    target = _search(req,"_footer.py")
+    target = _search(req,settings,"_footer.py")
 
     if target:
       directory = os.path.dirname(target)
@@ -178,7 +180,7 @@ def layout_html(req,template,**options):
     sidebar = options["sidebar"]
 
   else:
-    target = _search(req,"_sidebar.html")
+    target = _search(req,settings,"_sidebar.html")
 
     if target:
       sidebar = vampire.loadTemplate(target,"vampire:node")
@@ -195,19 +197,19 @@ def layout_html(req,template,**options):
   def renderStylesheet(node,data):
     media,href = data
     if href.find('%(') != -1:
-      node.atts["href"] = cgi.escape(href%defaults)
+      node.atts["href"] = cgi.escape(href%settings)
     else:
       node.atts["href"] = cgi.escape(href)
     node.atts["media"] = media
 
   STYLESHEETS_2COLUMN = (
-   ( "screen",	"%(__baseurl_rel__)s/styles/two_column.css" ),
-   ( "print",	"%(__baseurl_rel__)s/styles/print_media.css" ),
+   ( "screen",	"%(styles_home)s/two_column.css" ),
+   ( "print",	"%(styles_home)s/print_media.css" ),
   )
 
   STYLESHEETS_3COLUMN = (
-   ( "screen",	"%(__baseurl_rel__)s/styles/three_column.css" ),
-   ( "print",	"%(__baseurl_rel__)s/styles/print_media.css" ),
+   ( "screen",	"%(styles_home)s/three_column.css" ),
+   ( "print",	"%(styles_home)s/print_media.css" ),
   )
 
   if sidebar:
