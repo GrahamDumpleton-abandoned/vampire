@@ -1,4 +1,13 @@
-# This file exhibits how user authentication can be used.
+# This file exhibits how authentication can be used.
+#
+# Note that auth realms and differing passwords for a
+# user should not be nested within each other as it
+# causes browsers to go into loops trying to reapply
+# authentication information. This may be a general
+# issue with authentication but may also be an issue
+# with how mod_python handles authentication. This is
+# still being investigated and the mod_python scheme may
+# need to be replaced to handle this in a sensible way.
 
 __auth_realm__ = "Top Secret"
 __auth__ = { "mickey": "mouse", "minney": "mouse", "donald": "duck" }
