@@ -11,6 +11,7 @@ in the way of ideas or source code, either explicitly or otherwise:
   within the module caching system, rather than just a single lock on the
   whole module cache. This has the effect of reducing contention on the
   module cache and not unnecessarily blocking new requests while an
-  unrelated module is being imported.
+  unrelated module is being imported. Also influenced the design of the
+  rules system governing the object traversal mechanism.
 
   Graham Dumpleton - I wrote the stuff, can't I get some credit. :-)
