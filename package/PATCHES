@@ -1,0 +1,164 @@
+If using Apache 2.0 and mod_python 3.X with a multithreaded MPM, you need
+to be aware that mod_python is broken. The bugs are present in versions
+at least up to and including 3.1.4 of mod_python.
+
+Included below are two fixes to be applied to the files:
+
+  src/mod_python.c
+  lib/python/mod_python/apache.py
+
+The diffs are with respect to version 3.1.3 of mod_python but should also
+work for version 3.1.4.
+
+The first patch fixes a problem whereby on initial startup under heavy load,
+duplicate interpreters can be created for the same named interpreter. Only
+one will end up being retained, but the others will probably result in a
+memory leak. Further, if special resources are acquired in each instance of
+the interpreter you can end up with redundantly allocated resources. This
+can be a problem if for example the resource is a database connection pool.
+
+The second patch fixes a problem in the module loading and caching system,
+whereby a module can be reloaded multiple times by different threads.
+Theoretically this can happen even when auto reloading is turned off, as
+it could happen on the initial load of a module. The fix isn't the most
+ideal solution to use, but to do it properly requires the module importing
+system to be rewritten.
+
+There are actually a couple of other bugs in mod_python in respect of
+setting up variables denoting the handler directory and interpreter name.
+Where relevant, Vampire provides a workaround for these problems and it
+isn't necessary to patch mod_python for these particular issues. As such
+no patch is provided for those bugs.
+
+For further information on the problems, see past postings on the mod_python
+mailing list at the mod_python web site or the mod_python bugs web site at:
+
+  http://issues.apache.org/jira/browse/MODPYTHON
+
+BTW, the first patch also happens to incorporate a fix to MAC OS X when
+trying to use the version of Python installed with the operating system.
+The change for this should not cause any problems on other systems.
+
+
+*** mod_python.c.dist	Fri Sep 24 15:11:32 2004
+--- mod_python.c	Sun Oct 17 12:06:58 2004
+***************
+*** 31,36 ****
+--- 31,40 ----
+   * (In a Python dictionary) */
+  static PyObject * interpreters = NULL;
+  
++ #ifdef WITH_THREAD
++ static apr_thread_mutex_t* interpreters_lock = 0;
++ #endif
++ 
+  apr_pool_t *child_init_pool = NULL;
+  
+  /**
+***************
+*** 124,129 ****
+--- 128,135 ----
+          name = MAIN_INTERPRETER;
+  
+  #ifdef WITH_THREAD
++     apr_thread_mutex_lock(interpreters_lock);
++ 
+      PyEval_AcquireLock();
+  #endif
+  
+***************
+*** 149,154 ****
+--- 155,162 ----
+  
+  #ifdef WITH_THREAD
+      PyEval_ReleaseLock();
++ 
++     apr_thread_mutex_unlock(interpreters_lock);
+  #endif
+  
+      if (! idata) {
+***************
+*** 469,474 ****
+--- 477,485 ----
+      const char *userdata_key = "python_init";
+      apr_status_t rc;
+  
++     /* fudge for Mac OS X with Apache where Py_IsInitialized() broke */
++     static int initialized = 0;
++ 
+      apr_pool_userdata_get(&data, userdata_key, s->process->pool);
+      if (!data) {
+          apr_pool_userdata_set((const void *)1, userdata_key,
+***************
+*** 490,502 ****
+      }
+  
+      /* initialize global Python interpreter if necessary */
+!     if (! Py_IsInitialized()) 
+      {
+  
+          /* initialze the interpreter */
+          Py_Initialize();
+  
+  #ifdef WITH_THREAD
+          /* create and acquire the interpreter lock */
+          PyEval_InitThreads();
+  #endif
+--- 501,516 ----
+      }
+  
+      /* initialize global Python interpreter if necessary */
+!     if (initialized == 0 || ! Py_IsInitialized()) 
+      {
++         initialized = 1;
+  
+          /* initialze the interpreter */
+          Py_Initialize();
+  
+  #ifdef WITH_THREAD
++         apr_thread_mutex_create(&interpreters_lock,APR_THREAD_MUTEX_UNNESTED,p);
++ 
+          /* create and acquire the interpreter lock */
+          PyEval_InitThreads();
+  #endif
+
+
+
+
+*** apache.py.dist	Sun Oct 17 16:17:01 2004
+--- apache.py	Mon Oct 18 21:58:15 2004
+***************
+*** 27,32 ****
+--- 27,41 ----
+  import types
+  import _apache
+  
++ try:
++   from threading import RLock
++ except:
++   class RLock:
++     def acquire(self): pass
++     def release(self): pass
++ 
++ _lock = RLock()
++ 
+  # a small hack to improve PythonPath performance. This
+  # variable stores the last PythonPath in raw (unevaled) form.
+  _path = None
+***************
+*** 406,411 ****
+--- 415,428 ----
+              # we do not return anything
+  
+  def import_module(module_name, autoreload=1, log=0, path=None):
++   _lock.acquire()
++   try:
++     return _unsafe_import_module(module_name, \
++         autoreload=autoreload,log=log,path=path)
++   finally:
++     _lock.release()
++ 
++ def _unsafe_import_module(module_name, autoreload=1, log=0, path=None):
+      """
+      Get the module to handle the request. If
+      autoreload is on, then the module will be reloaded

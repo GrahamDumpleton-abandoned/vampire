@@ -1,0 +1,385 @@
+Changes in Vampire 1.5
+======================
+
+  - Forgot to add "req" argument to "vampire.importModule()". Did exist
+    on method as it appeared as member function of cache object.
+
+  - When doing redirection to directory index URL, any form parameters
+    were not being appended to the target URL for the redirection.
+
+  - Bogus entry was left in module cache if module failed to load the
+    first time. This could result in not found error or other issues on
+    next access of module.
+
+  - The parameter of a content handler which accepts the request object
+    must now be called "req". The parameter can however be placed anywhere
+    and does not have to be the first parameter. The naming conventions
+    and treatment of form parameters is thus similar to publisher style
+    methods.
+
+  - If "None" is return explicitly or implicitly by a content handler it
+    is taken to have the same meaning as returning "apache.OK".
+
+  - Added equivalent of mod_python.publisher. This is enabled by setting
+    PythonHandler to "vampire::publisher". This implementation of publisher
+    style methods fixes a lot of mod_python.publisher bugs, allows
+    additional forms of object traversal but is also more strict on certain
+    types of traversal and access.
+
+    You should not use "import" or "apache.import_module()" to import
+    application modules when using "vampire::publisher", instead use the
+    "vampire.importModule()" method. Obviously you will then need to deal
+    with the differences in the Vampire module loading and caching system.
+
+  - Rather than use "vampire::publisher" exclusively, publisher style
+    functions can be integrated into basic content handler mechanism.
+    This is done using the "vampire.Publisher()" class. A single object
+    such as a method or basic data type can be exported as:
+
+      page = "<html><body>...</body></html>"
+
+      handler = vampire.Publisher(page)
+
+    If multiple objects and methods need to be exported, they will need
+    to be wrapped in a class:
+
+      class Exported:
+	def __call__(self):
+	  return "Exported.__call__()"
+	def method1(self):
+	  return "Exported.method1()"
+	def method2(self):
+	  return "Exported.method2()"
+
+      handler = vampire.Publisher(Exported())
+
+    There is an equivalent class called "vampire.Handler()" which can be
+    used if rather than publisher style functions, normal content handler
+    style functions are preferred. In the latter, basic Python types can
+    not however be publisher like they can with publisher.
+
+    Note that both these classes can actually be used from outside of
+    Vampire from a standard content handler.
+
+
+Changes in Vampire 1.4
+======================
+
+  - Configuration mechanism no longer squashes key names to lower case as
+    is the default for ConfigParser module supplied with Python. Instead,
+    case sensitivity is preserved.
+
+  - Configuration mechanism will cache config in the request object. This
+    avoids multiple searches if distinct bits of code executing within same
+    context of one request use the same config. Also ensures that all code
+    within that request will always use the same config files and not a
+    slightly modified version which gets reloaded part way through a
+    request.
+
+  - Vampire can now be used to intercept handlers other than that for the
+    PythonHandler directive and it will be directed to a specific module
+    indicated within the handlers section of the Vampire config file. Thus,
+    if in your ".htaccess" file you might have:
+
+      PythonAccessHandler vampire
+
+    In your ".vampire" config file you might then have:
+
+      [Handlers]
+
+      accesshandler = %(__config_root__)s/modules/access-handler.py
+
+    The handler function in the specified file must be the default for the
+    particular directive, it cannot be modified like it can using "::" in
+    the ".htaccess" file.
+
+  - Fixed bug which caused config search to fail when trying to obtain config
+    in a handler phase prior to the phase corresponding to the PythonHandler
+    directive. Would be triggered when request was against a directory.
+
+  - Fixed bug whereby on Python 2.3 and latter where items() exists on the
+    ConfigParser, that it wasn't providing defaults correctly when doing
+    string interpolation, thus causing call to fail if any value in config
+    referenced any of the default values using interpolation syntax.
+
+  - If the __clone__() function of module fails or isn't callable, module
+    will simply be thrown away and no attempt to try and preserve data from
+    old module. An attempt will, as last ditch effort, be made to call
+    __purge__() as indicator to module that it is being purged from the
+    system.
+
+  - The XmlRpcHandler class has been discarded completely. Instead, a much
+    more low level request handler is provided whose job is only to parse
+    the inbound request and then format the response. The actual execution
+    of the request is passed off to a supplied callback. This callback
+    must work out how to then map the request to a specific method.
+
+    This means that in the first instance the support for XML-RPC requests
+    is not as useful and more work is required to use it, but it opens
+    things up so that more powerful things can be done. For example, a
+    means of optionally having the request object also passed through to
+    methods could also be implemented. For example:
+
+      import vampire
+      import types
+
+      config = vampire.loadConfig(__req__,".vampire")
+      modules = config.get("Modules","common")
+      module = vampire.importModule("python-utils",modules)
+
+      def handler(req):
+
+        def _callback(req,name,params):
+          if name[0:1] != "_":
+            if module.__dict__.has_key(name):
+              method = module.__dict__[name]
+              if type(method) == types.FunctionType:
+                if len(method.func_code.co_varnames) != 0:
+                  if method.func_code.co_varnames[0] == "req":
+                    params = list(params)
+                    params.insert(0,req)
+                return method(*params)
+          raise Exception("Method Unavailable")
+
+        return vampire.serviceRequest(req,_callback)
+
+  - Special conventions can now be used in form arguments to denote data
+    which should be translated to dictionaries and list. Specifically:
+
+      Keys (variable names) can have subkeys, with a ``.`` and can be
+      numbered with ``-``, like ``a.b-3=something`` means that the value
+      ``a`` is a dictionary with a key ``b``, and ``b`` is a list, the
+      third(-ish) element with the value ``something``. Numbers are used
+      to sort, missing numbers are ignored.
+
+    The code to achieve this bit of magic courtesy of some code from the
+    FormEncode/Validator package made available by Ian Bicking.
+
+  - A cut down "req" object is now available when the Python code file
+    for a handler is being imported. This will be stored in the module as
+    "__req__". Once importing of the module has been completed it will be
+    deleted out of the module. The cut down "req" object allows access to
+    PythonOption variables using get_options(), other mod_python settings
+    using get_config(), as well as attributes such as "interpreter" etc.
+    The "uri" and "filename" are also supplied such that the cut down "req"
+    object can be used on configuration file lookup during module
+    importing. This is shown in practice in XML-RPC example above.
+
+  - The Vampire module importing and caching mechanism will now log messages
+    about module imports/reimports when PythonDebug option has been
+    enabled. This will though only work for top level handler imports or
+    where the "req" or "__req__" object is provided as appropriate argument
+    to the "importModule()" method.
+
+  - Support for the older predefined value names in configuration mechanism
+    have been dropped. Make sure you use the newer names.
+
+      __root__  --> __config_root__
+      __file__  --> __config_file__
+      __mtime__ --> __config_mtime__
+      __base__  --> __baseurl_abs__
+
+
+Changes in Vampire 1.3
+======================
+
+  - Include a workaround for a bug which is present in mod_python when
+    running on Win32 platform which would have caused search algorithm for
+    config file to fail. Problem with mod_python is that it errornously
+    adds a trailing '\' to the name of the directory where the original
+    PythonHandler directive was declared, when it should have been '/' and
+    should only have been added when a trailing '/' wasn't already present.
+    The remainder of the path as supplied by Apache uses the POSIX path
+    separator and this was being depended upon, but mod_python was breaking
+    that. A separate patch is not provided in PATCHES because a workaround
+    is possible. Bug was posted on the mod_python mailing list, although
+    no one has acknowledged it is a valid problem.
+
+  - The names of the special predefined variables defined within the
+    configuration system and which are available for string interpolation
+    in configuration have changed. New names are as follows:
+
+      __root__  --> __config_root__
+      __file__  --> __config_file__
+      __mtime__ --> __config_mtime__
+      __base__  --> __baseurl_abs__
+
+    Although these are officially the new names, some tricks are done
+    to ensure the old names still work for now. The names are also no
+    longer added to the DEFAULT section of the config object, but are
+    made available for string interpolation in another way. They thus
+    will not appear in any section of the config object if names defined
+    in a section are iterated over.
+
+    The following extra special variables have also now been added.
+
+      __handler_root__ --> Where PythonHandler directive was defined.
+      __baseurl_rel__  --> Base URL relative to the current request.
+
+    Although the names are no longer added into the DEFAULT section of
+    the config file, they can still be accessed using the "defaults()"
+    method of the config object returned by "loadConfig()".
+
+    Any variables defined in a .htaccess file or httpd.conf file using
+    the PythonOption directive are now automatically loaded into the
+    config in a way that they are also available for string interpolation
+    without the need to explicitly specify them using the "vars" variable
+    when getting the value of a configuration option.
+
+    Variables defined in the .htaccess file using the PythonOption
+    directive will themselves have string interpolation performed upon
+    them when used via the configuration mechanism. Thus, one could
+    actually define:
+
+      PythonOption LayoutRoot %(__handler_root__)s
+
+    Then in the configuration file, one can use:
+
+      [Handlers]
+
+      handler_html = %(LayoutRoot)s/layout/handler_html.py
+      handler_pdf = %(LayoutRoot)s/layout/handler_pdf.py
+
+    In this examples, this would be equivalent to having used:
+
+      [Handlers]
+
+      handler_html = %(__handler_root__)s/layout/handler_html.py
+      handler_pdf = %(__handler_root__)s/layout/handler_pdf.py
+
+    Doing it this way though, means that the .htaccess file can be used
+    to set explicit values, or reference back to the dynamic values
+    generated when the search for the config file was performed.
+
+  - When turning on default content handlers using the directive:
+
+      PythonOption VampireDefaultHandlers On
+
+    it is now possible to override the default name of the configuration
+    file used to find the default handlers and what section in that
+    configuration file is consulted. Thus:
+
+      PythonOption VampireHandlersConfig .vampire
+      PythonOption VampireHandlersSection Handlers
+
+    The values ".vampire" and "Handlers" represent the inbuilt defaults,
+    but by setting these, they can be overridden.
+
+
+Changes in Vampire 1.2
+======================
+
+  - Vampire has been updated to ensure that it works correctly with any
+    multithreaded MPM under Apache 2.0.
+
+  - The module reloading mechanism has been changed such that when a
+    module is reloaded, it isn't reloaded on top of the existing version
+    of the module. This is necessary to avoid problems when using a
+    multithreaded MPM under Apache 2.0.
+    
+    If the fact that global data, not explicitly set when a module is first
+    loaded, was being preserved across a reload was being relied upon, you
+    will need to change your code. Specifically, you should add an
+    additional special method to the code file called __clone__().
+    
+    The version of this method in the existing module will be called just
+    prior to the module being reloaded. The argument to the method will be
+    an empty module. The method should copy into the new module, any data
+    present in the existing one that needs to be preserved.
+    
+    If necessary, the method should ensure it acquires any locks that
+    pertain to the data being copied, while copying the data. The actual
+    locks should also be copied across to the new module.
+
+    Note that data values which are being preserved, shouldn't be simple
+    types, such as integers or strings as these will not be correctly
+    shared between the two module instances while both still exist.
+    Simple data should strictly be placed in dictionaries or inside a
+    class object.
+
+  - No longer wrap a form field which identifies an uploaded file in an
+    instance of the class called File. This is no longer done in more
+    recent versions of mod_python.publisher, so try and maintain some
+    compatibility even if don't know what the consequences of doing this
+    are. Maybe it should be done if using older mod_python but not newer.
+
+  - When automatically decoding form values and passing as arguments to
+    a content handler, no longer supply form values the content handler
+    was not expecting. If content handler defines keyword argument list
+    parameter, pass all form values.
+
+
+Changes in Vampire 1.1
+======================
+
+  - It is now mandatory to have the extension type be a part of the
+    handler method name. You only need to define __handle__ if you
+    want to limit the exported list of handlers to a subset of those
+    actually defined in the one file.
+
+  - No longer provide the vampire.table module for processing of csv data.
+    It is preferable that content handlers use Python "csv" module direct
+    as it gives better control of input/output parameters.
+
+  - Basic authentication mechanism now supported for content handlers.
+    This is handled in the same way as authentication and access controls
+    are handled when using the mod_python.publisher module. The
+    authentication method from that module is actually invoked so it better
+    work the same.
+
+  - If a content handler accepts more than one argument, it is now assumed
+    that it is designed to process a form request. As such, any GET/POST
+    form parameters are decoded automatically using FieldStorage class
+    from mod_python.util in the style of mod_python.publisher and where
+    they match parameters of the content handler are passed as arguments.
+
+    Note that the first argument to the content handler will always be the
+    request handler no matter what that argument is called. The method
+    implementation should be the same as any other content handler. That
+    is, there is no change in semantics of the returned value from the
+    function as is the case with mod_python.publisher.
+
+  - Provide vampire.xmlrpc module to assist in making a content handler
+    service XML-RPC requests. This is derived from the SimpleXMLRPCServer
+    class which is supplied with Python so follow its interface but start
+    out with an vampire.XmlRpcHandler instance and call handle_request()
+    with the "req" object.
+
+  - Provide vampire.config module for implementing a search mechanism
+    for configuration files. The specified config file will be searched
+    for starting in the directory the content handler is located in, back
+    up the directory hierarchy, stopping at the directory where the
+    PythonHandler directive was applied.
+    
+    The name of the config file should be specified at the point the search
+    request is made. The format of the config object is that as defined by
+    the Python ConfigParser module. Special variables called __root__,
+    __file__, __base__ and __mtime__ are defined in the DEFAULT section and
+    can be used in interpolation of values. These default variables
+    indicate the root directory the config file is located in, the name of
+    the config file, the path component of the URL which addresses the root
+    directory and the modification time of the config file respectively.
+
+    This config mechanism can be used in conjunction with the PythonOption
+    mechanism used to set variables in a .htaccess or httpd.conf file.
+    Specifically, pass the result of req.get_options() as the "vars"
+    parameter to the get() method when asking for the value for a specific
+    setting. The options set by PythonOption mechanism will therefore be
+    available for use in string interpolation when the value is being
+    expanded.
+
+  - Added a mechanism of defining default content handlers to be used for
+    all requests of a specific file type, defined by extension, which
+    weren't able to be handled by a dedicated content handler. This might
+    be used for example to cascade requests onto the mod_python.psp or
+    mod_python.servlet content handlers or process all HTML files through
+    a templating mechanism to fill in fixed page layout information such
+    as page indexes.
+
+  - Added VampireDirectoryIndex option such that .htaccess or httpd.conf
+    file can be used to define the virtual file to which a request should
+    be redirected when a request is made against a directory. It seems that
+    when using Apache 1.3 it will do this okay for the root directory where
+    Vampire is being used, but not for subdirectories, when this option
+    isn't used, but with Apache 2.0, it does work without this option in
+    either situation.

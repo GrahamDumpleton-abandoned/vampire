@@ -1,0 +1,16 @@
+Following people deserve credit for either providing input to Vampire
+in the way of ideas or source code, either explicitly or otherwise:
+
+  Ian Bicking - Author of code found in the file being distributed as
+  "vampire/forms.py". This file was borrowed with permission from the
+  FormEncode/Validator package. That package as a whole was licenced under
+  the Python Software Foundation Licence and is available from
+  "http://formencode.org".
+
+  Nicolas Lehuen - Provided the initial idea for a two level locking scheme
+  within the module caching system, rather than just a single lock on the
+  whole module cache. This has the effect of reducing contention on the
+  module cache and not unnecessarily blocking new requests while an
+  unrelated module is being imported.
+
+  Graham Dumpleton - I wrote the stuff, can't I get some credit. :-)
