@@ -343,12 +343,12 @@ that the Vampire module loading system needs to be used to explicitly load
 modules which are stored in the document tree.
 
 It is also recommended that both "MultiViews" and "Indexes" be disabled.
-This is necessary because extensions such as mod_mime and mod_index can
-get applied to requests falling beneath the directory which has been set up
-to be managed by Vampire. If "MultiViews" is enabled, Apache can rewrite
-request URLs that it shouldn't and confuse Vampire. If "Indexes" are
-enabled a remote person would be able to view what source code may exist in
-a directory.
+This is necessary because extensions such as mod_negotiation and mod_index
+can get applied to requests falling beneath the directory which has been
+set up to be managed by Vampire. If "MultiViews" is enabled, Apache can
+rewrite request URLs that it shouldn't and confuse Vampire. If "Indexes"
+are enabled a remote person would be able to view what source code may
+exist in a directory.
 
 ::
 
