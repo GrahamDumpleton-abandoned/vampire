@@ -1,5 +1,5 @@
 =======
-CHANGES
+Changes
 =======
 
 Following details changes made in various versions of Vampire which have

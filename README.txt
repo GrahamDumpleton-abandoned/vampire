@@ -1,6 +1,6 @@
-======
-README
-======
+============
+Installation
+============
 
 To install Vampire, execute::
 
@@ -37,10 +37,6 @@ of vampire using the command:
 
 Please note that although all effort is made to ensure that the latest
 working copy does actually work, it is not gauranteed.
-
-If you have any questions, it is suggested you subscribe to the mod_python
-mailing list and ask your question there. Alternatively, you can contact
-the author directly at "grahamd@dscpl.com.au".
 
 .. _PATCHES: PATCHES.html
 .. _LICENSE: LICENSE.html

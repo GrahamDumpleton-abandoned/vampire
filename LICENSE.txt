@@ -1,5 +1,5 @@
 =======
-LICENSE
+License
 =======
 
 Vampire (1.5)

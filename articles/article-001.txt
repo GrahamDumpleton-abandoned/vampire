@@ -1,6 +1,6 @@
-==================================
- Getting Starting With MOD_PYTHON
-==================================
+==========================
+Getting mod_python Working
+==========================
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au

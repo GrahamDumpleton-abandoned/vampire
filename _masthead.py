@@ -11,10 +11,12 @@ def masthead(req):
     banner = banner[1:]
 
   if not banner:
-    return 'VAMPIRE'
+    return 'PROJECTS / VAMPIRE'
+
   else:
+    banner = "VAMPIRE/" + banner
     banner = banner.upper()
-    remainder = banner.split('/')[-3:]
-    banner = '.../' + '/'.join(remainder)
+    banner = banner.split('/')[-3:]
+    banner = '/'.join(banner)
     banner = banner.replace('/',' / ')
     return banner

@@ -16,17 +16,21 @@ try:
 except OSError:
   pass
 else:
-  _links = module._links
+  _links = list(module._links)
 
 _package = []
 
-_package.append(("README","README.html"))
-_package.append(("LICENSE","LICENSE.html"))
-_package.append(("PATCHES","PATCHES.html"))
-_package.append(("CHANGES","CHANGES.html"))
-_package.append(("CREDITS","CREDITS.html"))
+_package.append(("Overview","%(vampire_home)s/index.html"))
+_package.append(("Articles","%(vampire_home)s/articles/index.html"))
+_package.append(("Examples","%(vampire_home)s/examples/index.html"))
+_package.append(("Download","%(website_home)s/downloads.html"))
+_package.append(("Installation","%(vampire_home)s/README.html"))
+_package.append(("License","%(vampire_home)s/LICENSE.html"))
+_package.append(("Patches","%(vampire_home)s/PATCHES.html"))
+_package.append(("Changes","%(vampire_home)s/CHANGES.html"))
+_package.append(("Credits","%(vampire_home)s/CREDITS.html"))
 
-_links.append(("Package",_package))
+_links.append(("Vampire",_package))
 
 def links(req):
   return _links

@@ -1,13 +1,17 @@
-======================
-Miscellaneous Articles
-======================
+========
+Articles
+========
 
-Below are listed various articles related to Vampire and mod_python. As
-time permits I will keep adding to this list.
+Below are listed various articles related to Vampire and mod_python.
 
-`Getting Started With MOD_PYTHON`_ (Updated 06/02/2005)
+`Getting mod_python Working`_ (Updated 06/02/2005)
   This article is intended to assist newbies to mod_python in
   trying to get their first test program under mod_python to
   work.
 
-.. _Getting Started With MOD_PYTHON: article-001.html
+`Introduction to Vampire`_ (Updated 06/03/2005)
+  This article gives a slightly more in depth introduction to
+  the main features provided by Vampire.
+
+.. _Getting MOD_PYTHON Working: article-001.html
+.. _Introduction To Vampire: article-002.html

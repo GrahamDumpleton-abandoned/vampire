@@ -15,7 +15,7 @@ try:
 except OSError:
   pass
 else:
-  _links = module._links
+  _links = list(module._links)
 
 def navbar(req):
   return _links
