@@ -87,6 +87,6 @@ can contact the author directly at "grahamd@dscpl.com.au".
 
 .. _mod_python: http://www.modpython.org
 .. _HTMLTemplate: http://freespace.virgin.net/hamish.sanderson
-.. _license: LICENSE.html
+.. _license: license.html
 .. _articles: articles/index.html
 .. _mod_python mailing list: http://mailman.modpython.org/mailman/listinfo/mod_python

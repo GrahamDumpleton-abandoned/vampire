@@ -330,9 +330,9 @@ Changes in Vampire 1.3
   should only have been added when a trailing '/' wasn't already present.
   The remainder of the path as supplied by Apache uses the POSIX path
   separator and this was being depended upon, but mod_python was breaking
-  that. A separate patch is not provided in PATCHES because a workaround
-  is possible. Bug was posted on the mod_python mailing list, although
-  no one has acknowledged it is a valid problem.
+  that. A separate patch is not provided because a workaround is possible.
+  Bug was posted on the mod_python mailing list, although no one has
+  acknowledged it is a valid problem.
 
 - The names of the special predefined variables defined within the
   configuration system and which are available for string interpolation
