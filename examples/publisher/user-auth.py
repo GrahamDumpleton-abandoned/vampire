@@ -2,7 +2,6 @@
 
 __auth_realm__ = "Top Secret"
 __auth__ = { "mickey": "mouse", "donald": "duck" }
-__access__ = [ "mickey", "donald" ]
 
 # Anyone with access to the module can access method1().
 
