@@ -6,7 +6,7 @@ import os
 # is use the links from the parent web site as well as
 # any which have been added here.
 
-current = os.path.dirname(__req__.filename)
+current = os.path.dirname(__file__)
 parent = os.path.join(current,"../..")
 
 _links = []
