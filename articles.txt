@@ -10,7 +10,7 @@ Below are listed various articles related to Vampire and mod_python.
   work.
 
 `Quick Overview of Vampire`_ (Updated 13/03/2005)
-  This article gives a slightly more in depth overiew of some of
+  This article gives a slightly more in depth overview of some of
   the main features provided by Vampire.
 
 .. _Getting MOD_PYTHON Working: articles/modpython-001.html

@@ -15,9 +15,9 @@ The main features provided by Vampire are:
 
 - A mechanism for having default content handlers triggered for different
   types of resources when no dedicated content handler exists. This
-  enables a handler to be defined once for the processing of special
-  files such as a ".psp" file, thereby enabling easy integration of
-  third party templating systems.
+  enables a handler to be defined once for the processing of special files
+  such as a ".psp" file, thereby enabling easy integration and mixing of
+  third party templating systems even within the same directory.
 
 - Automatic unmarshalling and passing of form data to a basic content
   handler method when a content handler defines extra arguments in addition
@@ -63,7 +63,7 @@ The main features provided by Vampire are:
   parent/child relationships between modules and will automatically
   reimport a parent module when the child module has changed. This avoids
   the constant problem in the standard mod_python module loader whereby
-  Apache has to be restarted after any changes or made, or all files
+  Apache has to be restarted after any changes are made, or all files
   have to be touched to force reloading.
 
 - An application configuration mechanism incorporating a dynamic search

@@ -11,7 +11,7 @@ def masthead(req):
     banner = banner[1:]
 
   if not banner:
-    return 'PROJECTS / VAMPIRE'
+    return 'VAMPIRE'
 
   else:
     banner = "VAMPIRE/" + banner
