@@ -244,7 +244,11 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
   else:
 
-    for i,part in enumerate(parts):
+    i = -1
+
+    for part in parts:
+
+      i = i + 1
 
       # Block anything which fails the filter callback.
 
