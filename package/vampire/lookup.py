@@ -214,50 +214,61 @@ def _execute(req,object):
   args = {}
 
   if not hasattr(req,"form"):
-    req.form = util.FieldStorage(req,keep_blank_values=1)
 
-  # Merge form data into list of possible arguments.
-  # Convert the single item lists back into values.
+    if not req.headers_in.has_key("content-type"):
+      content_type = "application/x-www-form-urlencoded"
+    else:   
+      content_type = req.headers_in["content-type"]
 
-  for field in req.form.list:
-    if field.filename: 
-      value = field
-    else:
-      value = field.value
+    if content_type == "application/x-www-form-urlencoded" or \
+        content_type[:10] == "multipart/":
 
-    if args.has_key(field.name):
-      args[field.name].append(value)
-    else:
-      args[field.name] = [value]
+      req.form = util.FieldStorage(req,keep_blank_values=1)
 
-  for arg in args.keys():
-    if type(args[arg]) == types.ListType:
-      if len(args[arg]) == 1:
-	args[arg] = args[arg][0]
+  if hasattr(req,"form"):
 
-  # Some strange forms can result in fields where the
-  # key value is None. Wipe this out just in case this
-  # happens as can cause problems later.
+    # Merge form data into list of possible arguments.
+    # Convert the single item lists back into values.
 
-  if args.has_key(None):
-    del args[None]
+    for field in req.form.list:
+      if field.filename: 
+	value = field
+      else:
+	value = field.value
 
-  # Magic code which interprets certain naming
-  # conventions in argument names and converts sets of
-  # arguments into lists and dictionaries. Code borrowed
-  # from FormEncode/Validator which can be obtained from
-  # "http://formencode.org/".
+      if args.has_key(field.name):
+	args[field.name].append(value)
+      else:
+	args[field.name] = [value]
 
-  advanced = True
+    for arg in args.keys():
+      if type(args[arg]) == types.ListType:
+	if len(args[arg]) == 1:
+	  args[arg] = args[arg][0]
 
-  options = req.get_options()
-  if options.has_key("VampireStructuredForms"):
-    value = options["VampireStructuredForms"]
-    if value in ["Off","off"]:
-      advanced = False
+    # Some strange forms can result in fields where the
+    # key value is None. Wipe this out just in case this
+    # happens as can cause problems later.
 
-  if advanced:
-    args = forms.variable_decode(args)
+    if args.has_key(None):
+      del args[None]
+
+    # Magic code which interprets certain naming
+    # conventions in argument names and converts sets of
+    # arguments into lists and dictionaries. Code borrowed
+    # from FormEncode/Validator which can be obtained from
+    # "http://formencode.org/".
+
+    advanced = True
+
+    options = req.get_options()
+    if options.has_key("VampireStructuredForms"):
+      value = options["VampireStructuredForms"]
+      if value in ["Off","off"]:
+	advanced = False
+
+    if advanced:
+      args = forms.variable_decode(args)
 
   # Determine names of parameters expected by callable
   # object and whether it also supports keyword argument
@@ -931,15 +942,6 @@ class Publisher:
 	req.vampire["handler"] = "vampire::publisher"
 
 	result = _execute(req,objects[-1])
-
-	result_type = type(result)
-
-        default = rules.get(None)
-
-	traverse,execute,access = rules.get(result_type,default)
-
-	if not access:
-	  raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
 	return _flush(req,result)
 

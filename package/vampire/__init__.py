@@ -66,6 +66,6 @@ except:
 # multithreading enabled.
 
 try:
-  from xmlrpc import serviceRequest
+  from xmlrpc import serviceRequest, Service
 except:
   pass

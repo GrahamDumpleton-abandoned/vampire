@@ -2,7 +2,10 @@
 
 from mod_python import apache
 
+from lookup import _resolve, _authenticate, _params
+
 import xmlrpclib
+import types
 import sys
 
 def serviceRequest(req,callback):
@@ -22,6 +25,8 @@ def serviceRequest(req,callback):
     response = callback(req,method,params)
     response = (response,)
     response = xmlrpclib.dumps(response,methodresponse=1)
+  except apache.SERVER_RETURN:
+    raise
   except xmlrpclib.Fault,fault:
     response = xmlrpclib.dumps(fault)
   except:
@@ -41,3 +46,97 @@ def serviceRequest(req,callback):
   req.write(response)
 
   return apache.OK
+
+
+# Following provides an XML-RPC server implementation
+# which allows traversal of objects in order to resolve
+# a method. First need to define the traversal rules to
+# be used when resolving the method path. If something
+# should not be exposed, it should be prefixed with an
+# underscore.
+
+_xmlrpc_rules = {}
+
+# For all types defined by Python itself, first mark
+# them as not being able to be traversed, executed, or
+# accessed. Because this is so restrictive, we don't
+# actually need to add special cases for modules etc.
+
+for t in types.__dict__.values():
+  if type(t) is types.TypeType:
+    _xmlrpc_rules[t] = (False,False,False)
+
+# Instances of any old style classes are marked as being
+# traversable and potentially executable.
+
+_xmlrpc_rules.update({
+  types.InstanceType: (True,True,False),
+})
+
+# Globally defined functions, builtin functions and
+# methods of a class are executable, but cannot be
+# traversed or accessed. Although builtin functions
+# are executable, it isn't possible to pass request
+# object to them since parameters aren't named.
+
+_xmlrpc_rules.update({
+  types.FunctionType: (False,True,False),
+  types.MethodType:   (False,True,False),
+  types.BuiltinFunctionType: (False,True,False),
+})
+
+# In practice what is left are instances of new style
+# classes and classes implemented in a C extension
+# module. These are defined as being traversable and
+# potentially executable by way of application of a
+# default rule.
+
+_xmlrpc_rules[None] = (True,True,False)
+
+# Now for the service object which processes the XML-RPC
+# request and dispatches the call against the target.
+
+class Service:
+
+  def __init__(self,object):
+    self.__object = object
+
+  def __dispatch(self,req,method,params):
+
+    # Now resolve the path to identify target object.
+
+    parts = method.split('.')
+
+    rules = _xmlrpc_rules
+
+    traverse,execute,access,objects = _resolve(req,self.__object,parts,rules)
+
+    # Execute callable object if possible.
+
+    if objects is not None:
+
+      _authenticate(req,objects)
+
+      if execute:
+	req.vampire["handler"] = "vampire::xmlrpc"
+
+	target = objects[-1]
+
+        if type(target) == types.BuiltinFunctionType:
+	  return target(*params)
+
+	else:
+	  status,flags,expected,defaults = _params(target)
+
+	  if status != apache.OK:
+	    raise xmlrpclib.Fault(1,"Method Unavailble : %s" % method)
+
+	  if expected[:1] == ("req",):
+	    return target(req,*params)
+
+	  return target(*params)
+
+    raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
+
+  def __call__(self,req):
+    return serviceRequest(req,self.__dispatch)

@@ -152,6 +152,15 @@ Changes in Vampire 1.5
     passed the request object. Default parameters can be specified as can a
     varargs parameter.
 
+  - Added "vampire.Service()". This allows one to wrap an object and
+    exports its methods as an XML-RPC service. Traversal works similar to
+    publisher and "vampire.Publisher()". Note that basic data values are
+    not automatically exported, you would need to wrap a function around
+    them which returns the data value. Although data is not automatically
+    exported through an implicit method of the same name, you should
+    still prefix the names of such data with an underscore in case it is
+    decided that such data should be exported automatically in the future.
+
 
 Changes in Vampire 1.4
 ======================
