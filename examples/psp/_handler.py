@@ -21,7 +21,13 @@ def handler_html(req):
 
     config = vampire.loadConfig(req,".vampire")
 
-    template = psp.PSP(req,filename=path,vars=config.defaults())
+    settings = {}
+
+    for key,value in config.items("Settings"):
+      settings[key] = value
+
+    template = psp.PSP(req,filename=path,vars=settings)
+
     template.run()
 
     return apache.OK
@@ -32,5 +38,5 @@ def handler_html(req):
 
 def handler_psp(req):
   if os.path.exists(req.filename):
-    return apache.HTTP_FORBIDDEN
+    return apache.HTTP_NOT_FOUND
   return apache.DECLINED
