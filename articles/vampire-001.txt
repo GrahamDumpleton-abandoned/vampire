@@ -792,6 +792,42 @@ respond with a HTTP internal server error.
 Processing Extra Path Info
 ==========================
 
+When using a basic content handler, any part of the URL which extends
+beyond that which matches the file containing the handler is available for
+use by the handler as part of a mechanism to identify a non file based
+resource. It is this information which is used by mod_python.publisher to
+identify a function to invoke.
+
+Because this information is used in this way, it is not possible when using
+mod_python.publisher for a function itself to make use of such additional
+path information. Vampire removes this limitation through use of a special
+class which can be used to wrap any function which you would like to be
+able to receive and process additional path information beyond that which
+is used to identify the actual function.
+
+::
+
+  def _method1(path):
+    return "method1()",path
+
+  method1 = vampire.PathInfo(_method1)
+
+  def _method2(xpath):
+    return "method2()",xpath
+
+  method2 = vampire.PathInfo(_method2,path="xpath")
+
+  def _method3(path,name):
+    return "method3()",path,name
+
+  method3 = vampire.PathInfo(_method3)
+
+By default any additional path information will be passed to the function
+through the "path" parameter. This may be overridden when constructing the
+wrapper if required. The function may still accept form parameters, however
+any supplied form parameter of the same name as the function parameter
+through which the path information will be passed will be ignored.
+
 
 Implementing Web Services
 =========================
