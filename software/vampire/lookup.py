@@ -79,13 +79,13 @@ def _access(req,object,realm=None,auth=None,access=None):
       i = list(func_code.co_names).index("__auth__")
       auth = func_code.co_consts[i+1]
       if hasattr(auth,"co_name"):
-	auth = new.function(auth,globals())
+	auth = new.function(auth,object.func_globals)
 
     if "__access__" in func_code.co_names:
       i = list(func_code.co_names).index("__access__")
       access = func_code.co_consts[i+1]
       if hasattr(access,"co_name"):
-	access = new.function(access,globals())
+	access = new.function(access,object.func_globals)
 
   else:
     if hasattr(object,"__auth_realm__"):
@@ -99,26 +99,27 @@ def _access(req,object,realm=None,auth=None,access=None):
 
 
 # Following provides authentication checks for a
-# sequence of objects. We don't use that which is
-# provided by mod_python.publisher because it does not
-# work for methods of classes. The mod_python.publisher
-# mechanism also applies authentication at each point in
-# traversal into an object which is wrong and results in
-# different behaviour to how authentication works in
-# Apache. In the worst cases, the mod_python.publisher
-# mechanism can result in browsers going into loops.
-# For most people they wouldn't be aware of the problems
-# in mod_python.publisher, so the improvements here are
-# not actually going to be noticed.
+# sequence of objects using the "basic" authentication
+# mechanism. We don't use that which is provided by
+# mod_python.publisher because it does not work for
+# methods of classes. The mod_python.publisher mechanism
+# also applies authentication at each point in traversal
+# into an object which is wrong and results in different
+# behaviour to how authentication works in Apache. In
+# the worst cases, the mod_python.publisher mechanism
+# can result in browsers going into loops. For most
+# people they wouldn't be aware of the problems in
+# mod_python.publisher, so the improvements here are not
+# actually going to be noticed.
 
-def _authenticate(req,objects):
+def _authenticate_basic(req):
+
+  defaults = req.vampire["defaults"]
+  objects = req.vampire["objects"]
 
   # If authorisation credentials provided, determine if
   # it is an accepted scheme and if it is then extract
-  # user and passwd. Only "basic" authentication scheme
-  # supported when performing object traversal. If
-  # "digest" or some other scheme required, should be
-  # done by means of an "authenhandler".
+  # user and passwd.
 
   user = None
   passwd = None
@@ -143,6 +144,9 @@ def _authenticate(req,objects):
   realm = None
   auth = None
   access = None
+
+  if defaults is not None:
+    realm,auth,access = _access(req,defaults,realm,auth,access)
 
   for object in objects:
     realm,auth,access = _access(req,object,realm,auth,access)
@@ -209,6 +213,50 @@ def _authenticate(req,objects):
 	raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
 
+# Determines if an authentication mechanism has been
+# explicitly provided. If none is explicitly provided,
+# fallback to using "basic" authentication mechanism.
+
+def _authenticate(req):
+
+  # Find most deeply nested "__login__" method.
+
+  login = req.vampire["__login__"]
+  objects = req.vampire["objects"]
+
+  if not login:
+    login = _authenticate_basic
+
+  for object in objects:
+
+    func_code = None
+
+    object_type = type(object)
+
+    if object_type == types.FunctionType:
+      func_code = object.func_code
+    elif object_type == types.MethodType:
+      func_code = object.im_func.func_code
+
+    if func_code:
+
+      if "__login__" in func_code.co_names:
+	i = list(func_code.co_names).index("__login__")
+	login = func_code.co_consts[i+1]
+	if hasattr(login,"co_name"):
+	  login = new.function(login,object.func_globals)
+
+    else:
+      if hasattr(object,"__login__"):
+	login = object.__login__
+
+  if login:
+    result = _execute(req,login,lazy=True)
+
+    if result is not None and result != apache.OK:
+      raise apache.HTTP_SERVER_RESPONSE, result
+
+
 # Access to and traversal of objects is controlled by
 # the following method. The method must be supplied a
 # set of rules keyed by object type. In the rule which
@@ -245,9 +293,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
   else:
 
     i = -1
-
     for part in parts:
-
       i = i + 1
 
       # Block anything which fails the filter callback.
@@ -356,7 +402,7 @@ def _params(object):
 # specially, with the request object being passed in
 # using that parameter.
 
-def _execute(req,object):
+def _execute(req,object,lazy=True):
 
   args = {}
 
@@ -369,67 +415,78 @@ def _execute(req,object):
   if status != apache.OK:
     raise apache.SERVER_RETURN, status
 
-  # Decode form parameters if appropriate content type
-  # and callable object specifies parameters other than
-  # that for request object.
+  # Only need to attempt to decode form parameters if
+  # they haven't been done before.
 
-  if not hasattr(req,"form") and (flags & 0x08 or \
-      (len(expected) == 1 and not "req" in expected) or len(expected)):
+  if not req.vampire.has_key("parameters"):
 
-    if not req.headers_in.has_key("content-type"):
-      content_type = "application/x-www-form-urlencoded"
-    else:   
-      content_type = req.headers_in["content-type"]
+    # Decode form parameters if appropriate content type
+    # and callable object specifies parameters other than
+    # that for request object.
 
-    if content_type == "application/x-www-form-urlencoded" or \
-        content_type[:10] == "multipart/":
+    if not hasattr(req,"form") and (not lazy or \
+	(flags & 0x08) or ((len(expected) > 1) or \
+	(len(expected) == 1 and not "req" in expected))):
 
-      req.form = util.FieldStorage(req,keep_blank_values=1)
+      if not req.headers_in.has_key("content-type"):
+	content_type = "application/x-www-form-urlencoded"
+      else:   
+	content_type = req.headers_in["content-type"]
 
-  if hasattr(req,"form"):
+      if content_type == "application/x-www-form-urlencoded" or \
+	  content_type[:10] == "multipart/":
 
-    # Merge form data into list of possible arguments.
-    # Convert the single item lists back into values.
+	req.form = util.FieldStorage(req,keep_blank_values=1)
 
-    for field in req.form.list:
-      if field.filename: 
-	value = field
-      else:
-	value = field.value
+    if hasattr(req,"form"):
 
-      if args.has_key(field.name):
-	args[field.name].append(value)
-      else:
-	args[field.name] = [value]
+      # Merge form data into list of possible arguments.
+      # Convert the single item lists back into values.
 
-    for arg in args.keys():
-      if type(args[arg]) == types.ListType:
-	if len(args[arg]) == 1:
-	  args[arg] = args[arg][0]
+      for field in req.form.list:
+	if field.filename: 
+	  value = field
+	else:
+	  value = field.value
 
-    # Some strange forms can result in fields where the
-    # key value is None. Wipe this out just in case this
-    # happens as can cause problems later.
+	if args.has_key(field.name):
+	  args[field.name].append(value)
+	else:
+	  args[field.name] = [value]
 
-    if args.has_key(None):
-      del args[None]
+      for arg in args.keys():
+	if type(args[arg]) == types.ListType:
+	  if len(args[arg]) == 1:
+	    args[arg] = args[arg][0]
 
-    # Magic code which interprets certain naming
-    # conventions in argument names and converts sets of
-    # arguments into lists and dictionaries. Code borrowed
-    # from FormEncode/Validator which can be obtained from
-    # "http://formencode.org/".
+      # Some strange forms can result in fields where the
+      # key value is None. Wipe this out just in case this
+      # happens as can cause problems later.
 
-    advanced = True
+      if args.has_key(None):
+	del args[None]
 
-    options = req.get_options()
-    if options.has_key("VampireStructuredForms"):
-      value = options["VampireStructuredForms"]
-      if value in ["Off","off"]:
-	advanced = False
+      # Magic code which interprets certain naming
+      # conventions in argument names and converts sets of
+      # arguments into lists and dictionaries. Code borrowed
+      # from FormEncode/Validator which can be obtained from
+      # "http://formencode.org/".
 
-    if advanced:
-      args = forms.variable_decode(args)
+      advanced = True
+
+      options = req.get_options()
+      if options.has_key("VampireStructuredForms"):
+	value = options["VampireStructuredForms"]
+	if value in ["Off","off"]:
+	  advanced = False
+
+      if advanced:
+	args = forms.variable_decode(args)
+
+      req.vampire["parameters"] = dict(args)
+
+  else:
+    args.update(req.vampire["parameters"])
 
   # Add request object set of input form parameters.
 
@@ -593,7 +650,7 @@ def _handler(req):
   # does, only then check try and authenticate actual
   # access.
 
-  objects = None
+  objects = []
   status = apache.HTTP_NOT_FOUND
 
   rules = _handler_rules
@@ -603,46 +660,103 @@ def _handler(req):
       status,traverse,execute,access,objects = _resolve(
           req,module,[method],rules)
 
-  # Look for a default handler if no dedicated handler.
+  # Look for any default handlers.
 
-  if status != apache.OK:
-    options = req.get_options()
-    if options.has_key("VampireDefaultHandlers"):
-      if options["VampireDefaultHandlers"] in ["On","on"]:
-	file = ".vampire"
-        if options.has_key("VampireHandlersConfig"):
-	  file = options["VampireHandlersConfig"]
-	config = _configCache.loadConfig(req,file)
-	section = "Handlers"
-        if options.has_key("VampireHandlersSection"):
-	  section = options["VampireHandlersSection"]
-	if config.has_section(section):
-	  file = None
-	  if config.has_option(section,method):
-	    file = config.get(section,method)
-	  if file != None:
-	    if os.path.splitext(file)[1] != ".py":
-	      return apache.HTTP_INTERNAL_SERVER_ERROR
-	    module = _import(req,file)
-	    if module:
-	      status,traverse,execute,access,objects = _resolve(
-	          req,module,[method],rules)
+  req.vampire["__login__"] = None
+  req.vampire["defaults"] = None
 
-  # Authenticate all the objects that were traversed
-  # even if we did not find a target handler.
+  options = req.get_options()
+  if options.has_key("VampireDefaultHandlers"):
+    if options["VampireDefaultHandlers"] in ["On","on"]:
+      file = ".vampire"
+      if options.has_key("VampireHandlersConfig"):
+	file = options["VampireHandlersConfig"]
+      config = _configCache.loadConfig(req,file)
+      section = "Handlers"
+      if options.has_key("VampireHandlersSection"):
+	section = options["VampireHandlersSection"]
 
-  if objects is not None:
-    _authenticate(req,objects)
+      # Section defined for default handlers.
+
+      if config.has_section(section):
+
+        # Look for module of default handlers.
+
+	file = None
+	if config.has_option(section,"defaults"):
+	  file = config.get(section,"defaults")
+	if file != None:
+	  if os.path.splitext(file)[1] != ".py":
+	    return apache.HTTP_INTERNAL_SERVER_ERROR
+	  req.vampire["defaults"] = _import(req,file)
+
+	# Look for default login handler in module of
+	# default handlers to override the inbuilt basic
+	# authentication login handler.
+
+	if req.vampire["defaults"]:
+	  module = req.vampire["defaults"]
+	  if hasattr(module,"__login__"):
+	    req.vampire["__login__"] = getattr(module,"__login__")
+
+	# Look for explicitly defined default login
+	# handler. These can still be overridden by
+	# "__login__" function present within objects
+	# which are traversed.
+
+	file = None
+	if config.has_option(section,"__login__"):
+	  file = config.get(section,"__login__")
+	if file != None:
+	  if os.path.splitext(file)[1] != ".py":
+	    return apache.HTTP_INTERNAL_SERVER_ERROR
+	  module = _import(req,file)
+	  if module:
+	    if hasattr(module,"__login__"):
+	      req.vampire["__login__"] = getattr(module,"__login__")
+
+	# If a specific content handler wasn't already
+	# found for the actual request, see if default
+	# content handler has been specified.
+
+	if status != apache.OK:
+
+	  # First look in module of default handlers.
+
+	  if req.vampire["defaults"]:
+	    status,traverse,execute,access,objects = _resolve(
+		req,req.vampire["defaults"],[method],rules)
+
+	  # Now check for an explicitly defined handler.
+
+	  if objects == []:
+	    file = None
+	    if config.has_option(section,method):
+	      file = config.get(section,method)
+	    if file != None:
+	      if os.path.splitext(file)[1] != ".py":
+		return apache.HTTP_INTERNAL_SERVER_ERROR
+	      module = _import(req,file)
+	      if module:
+		status,traverse,execute,access,objects = _resolve(
+		    req,module,[method],rules)
+
+  req.vampire["objects"] = objects
+
+  # Perform authentication even if we did not find an
+  # acceptable handler.
+
+  _authenticate(req)
 
   # Return control to Apache if we were unable to find
-  # an appropriate handler to execute.
+  # an acceptable handler to execute.
 
   if status != apache.OK:
     return apache.DECLINED
 
   # Execute the content handler which was found.
 
-  result = _execute(req,objects[-1])
+  result = _execute(req,objects[-1],lazy=True)
 
   # To try and make standard content handlers and
   # publisher style handlers interchangeable, allow a
@@ -849,7 +963,11 @@ def _publisher(req):
   # Authenticate all the objects that were traversed
   # even if we did not find a target handler.
 
-  _authenticate(req,objects)
+  req.vampire["__login__"] = None
+  req.vampire["defaults"] = None
+  req.vampire["objects"] = objects
+
+  _authenticate(req)
 
   # Execute callable object or translate object into
   # response as appropriate.
@@ -857,7 +975,7 @@ def _publisher(req):
   if status == apache.OK:
 
     if execute:
-      result = _execute(req,objects[-1])
+      result = _execute(req,objects[-1],lazy=False)
 
       return _flush(req,result)
 
@@ -1017,11 +1135,13 @@ class Handler:
     # be wrongly applied when falling back to Apache and
     # letting it serve up physical file.
 
-    _authenticate(req,objects)
+    req.vampire["objects"].extend(objects)
+
+    _authenticate(req)
 
     # Execute the content handler which was found.
 
-    result = _execute(req,objects[-1])
+    result = _execute(req,objects[-1],lazy=True)
 
     # To try and make standard content handlers and
     # publisher style handlers interchangeable, allow a
@@ -1107,7 +1227,9 @@ class Publisher:
     # Authenticate all the objects that were traversed
     # even if we did not find a target handler.
 
-    _authenticate(req,objects)
+    req.vampire["objects"].extend(objects)
+
+    _authenticate(req)
 
     # Execute callable object or translate object into
     # response as appropriate.
@@ -1117,7 +1239,7 @@ class Publisher:
       if execute:
 	req.vampire["handler"] = "vampire::publisher"
 
-	result = _execute(req,objects[-1])
+	result = _execute(req,objects[-1],lazy=False)
 
 	return _flush(req,result)
 

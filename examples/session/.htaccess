@@ -1,0 +1,5 @@
+SetHandler python-program
+PythonHandler vampire
+PythonDebug On
+
+PythonOption VampireDefaultHandlers On

@@ -1,6 +1,6 @@
 # COPYRIGHT 2004-2005 DUMPLETON SOFTWARE CONSULTING PTY LIMITED
 
-__version__ = "1.5"
+__version__ = "1.6"
 
 from lookup import _handler, _publisher, _select
 from lookup import Handler, Publisher, PathInfo, PathArgs

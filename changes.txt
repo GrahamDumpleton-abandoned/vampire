@@ -7,6 +7,45 @@ Changes
 Following details changes made in various versions of Vampire which have
 been made available.
 
+.. warning::
+  The current officially released version of Vampire is 1.5. Features
+  described here for Vampire 1.6 are only available by checking out
+  the source code from the Vampire source code repository directly.
+
+Changes in Vampire 1.6
+======================
+
+- In the "Handlers" section of the Vampire configuration, is now possible
+  to say "defaults" and refer to a Python code file in which Vampire should
+  look for all handlers. A handler specified explicitly in the Vampire
+  configuration takes precedence over one existing in the code file
+  referenced by the "defaults" setting::
+
+    [Handlers]
+
+    defaults = %(__config_root__)s/_defaults.py
+    handler_html = %(__config_root__)s/_handler_html.py
+
+  If the "defaults" setting is specified and you want to apply HTTP basic
+  authentication across a whole directory, the "__auth_realm__", "__auth__"
+  and "__access__" hooks can be specified in the code file which has been
+  referenced.
+
+- Added means of overriding the basic authentication mechanism and instead
+  use an alternative login mechanism such as sessions and form based login.
+  The special method which needs to be defined for this is "__login__()".
+  It may be specified in any scope where authentication hooks for HTTP
+  basic authentication could be specified with the addition that it may
+  also be used in the "Handlers" section of the Vampire configuration to
+  reference a specific Python code file::
+
+    [Handlers]
+
+    __login__ = %(__config_root__)s/login.py
+
+  See the "examples/session" directory for a working example.
+
+
 Changes in Vampire 1.5
 ======================
 

@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name="vampire",
-    version="1.5",
+    version="1.6",
     license="BSD",
     packages=["vampire",],
     description="Content handler for mod_python.",

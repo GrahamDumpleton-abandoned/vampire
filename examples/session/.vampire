@@ -1,0 +1,8 @@
+[Login]
+
+login = %(__baseurl_rel__)s/login.html
+index = %(__baseurl_rel__)s/index.html
+
+[Handlers]
+
+__login__ = %(__config_root__)s/login.py
