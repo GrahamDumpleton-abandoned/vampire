@@ -1,0 +1,184 @@
+==========================
+Apache Configuration Files
+==========================
+
+:Author: Graham Dumpleton
+:Contact: grahamd@dscpl.com.au
+:Updated: 24/03/2005
+
+.. contents:: 
+
+
+This article provides instructions on how to configure Apache to make
+use of Vampire.
+
+
+Enabling Use Of Vampire
+=======================
+
+To enable use of Vampire in its mode as an enhanced dispatch system for
+basic content handlers, add the following Apache directives into the main
+server configuration file.
+
+::
+
+  <Directory /some/directory>
+    SetHandler python-program
+    PythonHandler vampire
+    PythonDebug On
+  </Directory>
+
+Substitute "/some/directory" with the name of the actual directory
+containing the files which are to be managed by Vampire. "The PythonDebug"
+directive is recommended during development but should be set to "Off" in a
+production system to avoid revealing internal details of any Python code
+when an error occurs.
+
+The above will work for both versions 2.7 and 3.1 of mod_python. In version
+3.1, the name of the mod_python handler reference has actually been
+changed. If you have no need to support older versions of mod_python you
+can use "mod_python" instead of "python-program" with the "SetHandler"
+directive.
+
+If you are going to enable use of Vampire from within a ".htaccess" file
+instead of the main server configuration file, you will not need the
+enclosing "<Directory>" tag. In this case the directory the settings apply
+to is that in which the ".htaccess" file is located.
+
+::
+
+  SetHandler python-program
+  PythonHandler vampire
+  PythonDebug On
+
+If using a ".htaccess" file, you will however need to make sure the
+"AllowOverride" directive applicable to this directory has at least
+"FileInfo" specified. If this isn't specified Apache will reject the
+"SetHandler" directive and any request against the directory will result in
+an internal server error response. This override ability has to be set
+within the main server configuration files.
+
+::
+
+  AllowOverride FileInfo
+
+It is also necessary to ensure that the "MultiViews" option is not enabled
+for the directory. This is necessary as otherwise the mod_negotiation
+Apache extension will be applied to requests and Apache may as a result
+rewrite request URLs that it shouldn't and confuse Vampire.
+
+::
+
+  Options -MultiViews
+
+Finally, it is also recommended that "Indexes" not be enabled for the
+directory. If "Indexes" are enabled a remote person would be able to view
+what source code files may exist in a directory even if they can't access
+the contents of the files themselves.
+
+::
+
+  Options -Indexes
+
+Note that if using the main server configuration file, Vampire should not
+be enabled at global scope, nor enclosed only within a "<Location>" tag. If
+this were done, the Vampire configuration mechanism will not work correctly
+and the general operation of Vampire may also be affected.
+
+After having made any changes to the main server configuration files you
+must restart Apache, otherwise the changes will not be picked up.
+
+
+Fixing Of The Python Path
+=========================
+
+When the "PythonHandler" directive is specified for a directory, mod_python
+will add that directory to the beginning of the Python module search path.
+This can be problematic because it means that if you choose a name for a
+resource which matches that of a standard Python module, any code which
+attempts to import the standard module may incorrectly pick up the Python
+code file corresponding to your resource.
+
+Because Vampire implements its own module loading system which doesn't rely
+on "__import__" or on "sys.path", it is highly recommended that the
+modification of the Python module search path to include the directory
+where "PythonHandler" was applied be disabled. This can be done by using
+the "PythonPath" directive to fix the path to the current value of the
+Python module search path.
+
+::
+
+  PythonPath 'sys.path'
+
+Note that once this is set for a directory, this fixed path is inherited by
+any subdirectories, even those which may set "PythonHandler" to make use of
+some extension for mod_python other than Vampire and even if defined in the
+scope of a different interpreter. As other systems may depend on the
+directory where the "PythonHandler" directive is applied being added to the
+path, you should avoid if possible nesting use of different mod_python
+extensions within each other.
+
+You may also find that fixing the path cannot be done when using certain
+third party templating systems in conjunction with Vampire. This is the
+case with the Cheetah templating system, where it generates code which uses
+the Python "import" statement that cannot be substituted with alternate
+code that makes use of the Vampire module importing mechanism. This fact
+means that one also can't benefit in this case from the ability of the
+Vampire module importing mechanism to automatically reload modules when the
+code is changed.
+
+
+Default Directory Index
+=======================
+
+If using Apache 1.3, setting "DirectoryIndex" to a specific resource to be
+used when a directory is accessed works, albeit with the caveat that the
+target file must exist. If the resource is actually a virtual resource
+created on demand by a content handler, this means one will need to create
+a dummy file as a place marker for the resource to ensure that mod_dir
+works correctly.
+
+When using Apache 2.0, the "DirectoryIndex" directive does not get applied
+at all to directories being managed by a handler such as Vampire. As a
+result, Vampire provides its own means of redirecting requests against a
+directory to a specific resource. This is enabled by using the
+"PythonOption" directive to set a value for the "VampireDirectoryIndex"
+option.
+
+::
+
+  PythonOption VampireDirectoryIndex index.html
+
+When using this feature however, unlike the "DirectoryIndex" directive, you
+can only specify a single target resource. It is not possible to supply a
+list of resources with the first one found being used.
+
+If the version of mod_python being used supports internal redirects within
+Apache, that mechanism will be used to redirect the request to the
+specified resource. If internal redirects aren't supported by the version
+of mod_python being used, then a HTTP redirect response is returned and the
+browser is expected to deal with it.
+
+Note that options set using the "PythonOption" directive are inherited by
+subdirectories beneath the directory where the option is set. This means
+that you do not have to set the option for every single directory, only the
+common parent directory. If different subdirectories needed to use a
+different resource, then each directory should set "VampireDirectoryIndex"
+themselves. If it was necessary to eliminate the inherited value of the
+option, it should be set to ".".
+
+::
+
+  PythonOption VampireDirectoryIndex .
+
+It is necessary to use "." as mod_python has a bug in it which doesn't
+allow you to unset an option or set it to an empty value.
+
+If using Apache 1.3 and the "DirectoryIndex" directive, there doesn't seem
+to be any way at all of disabling it within a subdirectory once set in the
+context of a parent directory.
+
+When using default directory index files, you should avoid having any
+corresponding handler accept form parameters. This is because form
+parameters submitted using the POST method will not survive the internal
+redirect performed by Apache to add the trailing slash to a directory.
