@@ -13,5 +13,5 @@ Below are listed various articles related to Vampire and mod_python.
   This article gives a slightly more in depth overiew of some of
   the main features provided by Vampire.
 
-.. _Getting MOD_PYTHON Working: articles/article-001.html
-.. _Quick Overview of Vampire: articles/article-002.html
+.. _Getting MOD_PYTHON Working: articles/modpython-001.html
+.. _Quick Overview of Vampire: articles/vampire-001.html
