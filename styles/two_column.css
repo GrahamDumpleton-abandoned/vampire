@@ -1,0 +1,8 @@
+@import url(skidoo_too.css);
+@import url(docutils.css);
+
+/* Following turns it into two columns. */
+
+#rightColumn { display: none; }
+#SOWrap { margin: 0; }
+#innerColumnContainer, #outerColumnContainer { border-right-width: 0; }
