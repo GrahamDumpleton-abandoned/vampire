@@ -78,16 +78,15 @@ The main features provided by Vampire are:
 - A template loading and caching system for the third party web templating
   engine called HTMLTemplate_.
 
-Vampire is being made available under a BSD style license, the details of
-which can be found in the LICENSE_ file. For further information on its use,
-check out the supplied articles_. If you have any questions about Vampire,
-it is suggested you subscribe to the `mod_python mailing list`_ and ask
-your question there. Alternatively, you can contact the author directly at
-"grahamd@dscpl.com.au".
+Vampire is being made available under a BSD style license_. For further
+information about Vampire, check out the supplied articles_. If you have
+any questions about Vampire, it is suggested you subscribe to the
+`mod_python mailing list`_ and ask your question there. Alternatively, you
+can contact the author directly at "grahamd@dscpl.com.au".
 
 
 .. _mod_python: http://www.modpython.org
 .. _HTMLTemplate: http://freespace.virgin.net/hamish.sanderson
-.. _LICENSE: LICENSE.html
+.. _license: LICENSE.html
 .. _articles: articles/index.html
 .. _mod_python mailing list: http://mailman.modpython.org/mailman/listinfo/mod_python

@@ -11,12 +11,12 @@ To install Vampire, execute::
 The "install" phase may need to be done as "root", using the "sudo"
 command or other means as may be appropriate for your system.
 
-Make sure you read the PATCHES_ file to see if you may need to patch the
-version of mod_python you are using. The patches are recommended if you
-are working with a multithread MPM for Apache.
+Make sure you consult the patches_ file to see if you may need to patch the
+version of mod_python you are using. The patches are recommended if you are
+working with a multithread MPM for Apache.
 
 The package is being made available under a BSD style license, the details
-of which can be found in the LICENSE_ file.
+of which can be found in the license_ file.
 
 Online copies of documentation for Vampire can be found at:
 
@@ -38,6 +38,6 @@ of vampire using the command:
 Please note that although all effort is made to ensure that the latest
 working copy does actually work, it is not gauranteed.
 
-.. _PATCHES: PATCHES.html
-.. _LICENSE: LICENSE.html
+.. _patches: patches.html
+.. _license: license.html
 .. _Subversion: http://subversion.tigris.org
