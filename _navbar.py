@@ -2,8 +2,8 @@ import vampire
 import os
 
 # Following determines if this is being run within the
-# context of the parent web site for Vampire, and if it
-# is use the navigation bar from the parent web site.
+# context of the parent web site, and if it is use the
+# navigation bar from the parent web site.
 
 current = os.path.dirname(__file__)
 parent = os.path.join(current,"../..")

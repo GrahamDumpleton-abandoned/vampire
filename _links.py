@@ -2,9 +2,9 @@ import vampire
 import os
 
 # Following determines if this is being run within the
-# context of the parent web site for Vampire, and if it
-# is use the links from the parent web site as well as
-# any which have been added here.
+# context of the parent web site, and if it is use the
+# links from the parent web site as well as any which
+# have been added here.
 
 current = os.path.dirname(__file__)
 parent = os.path.join(current,"../..")
