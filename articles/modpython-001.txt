@@ -293,4 +293,4 @@ procedure before things started not working.
 
 .. _mod_python: http://www.modpython.org
 .. _mod_python FAQ: http://www.modpython.org/FAQ/faqw.py
-.. _mod_python mailing list: http://www.modpython.org/pipermail/mod_python
+.. _mod_python mailing list: http://mailman.modpython.org/mailman/listinfo/mod_python

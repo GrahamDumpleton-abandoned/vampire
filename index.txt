@@ -19,7 +19,7 @@ The source code for the latest working copy of Vampire can be viewed at:
   http://svn.dscpl.com.au/vampire/trunk
 
 If you have a subversion_ client, you can check out the latest working copy
-of vampire using the command:
+of Vampire using the command:
 
   svn co http://svn.dscpl.com.au/vampire/trunk
 
