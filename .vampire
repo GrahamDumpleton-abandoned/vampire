@@ -1,0 +1,3 @@
+[Handlers]
+
+handler_html = %(__config_root__)s/layouts/%(LayoutEngine)s.py

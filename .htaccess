@@ -21,6 +21,11 @@ PythonDebug On
 # Stop the directory being added to path.
 PythonPath 'sys.path'
 
+# Default layout mechanism used to render these pages.
+PythonOption VampireDefaultHandlers On
+PythonOption VampireDirectoryIndex index.html
+PythonOption LayoutEngine skidoo
+
 # Block access to configuration file.
 <Files ~ "^\.vampire">
 Order allow,deny
