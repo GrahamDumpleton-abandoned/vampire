@@ -855,16 +855,22 @@ class Handler:
     status,traverse,execute,access,objects = _resolve(
         req,self.__object,parts,rules)
 
-    # Authenticate all the objects that were traversed
-    # even if we did not find a target handler.
-
-    _authenticate(req,objects)
-
     # Return control to Apache if we were unable to find
     # an appropriate handler to execute.
 
     if status != apache.OK:
       return apache.DECLINED
+
+    # Authenticate all the objects that were traversed.
+    # At this point for a handler, this would at most be
+    # the module and the handler object itself. As no
+    # deeper arbitrary traversal is done here, don't do
+    # any authentication if no target object is found.
+    # If we did, authentication applying to module would
+    # be wrongly applied when falling back to Apache and
+    # letting it serve up physical file.
+
+    _authenticate(req,objects)
 
     # Execute the content handler which was found.
 
