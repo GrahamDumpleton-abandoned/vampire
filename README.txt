@@ -1,6 +1,6 @@
-====================
-Vampire Installation
-====================
+======
+README
+======
 
 To install Vampire, execute::
 
@@ -18,21 +18,25 @@ are working with a multithread MPM for Apache.
 The package is being made available under a BSD style license, the details
 of which can be found in the LICENSE_ file.
 
-Online documentation for Vampire can be found at:
+Online copies of documentation for Vampire can be found at:
 
   http://www.dscpl.com.au/projects/vampire
+
+Official releases of Vampire can be downloaded from:
+
+  http://www.dscpl.com.au/downloads.html
 
 The source code for the latest working copy of Vampire can be viewed at:
 
   http://svn.dscpl.com.au/vampire/trunk
 
-If you know what Subversion_ is and have a Subversion client, you can
-check out the latest working copy of vampire using the command:
+If you have a Subversion_ client, you can check out the latest working copy
+of vampire using the command:
 
   svn co http://svn.dscpl.com.au/vampire/trunk
 
 Please note that although all effort is made to ensure that the latest
-working copy does in fact, it is not gauranteed.
+working copy does actually work, it is not gauranteed.
 
 If you have any questions, it is suggested you subscribe to the mod_python
 mailing list and ask your question there. Alternatively, you can contact

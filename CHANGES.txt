@@ -1,6 +1,6 @@
-===============
-Vampire Changes
-===============
+=======
+CHANGES
+=======
 
 Following details changes made in various versions of Vampire which have
 been made available.
