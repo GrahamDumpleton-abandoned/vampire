@@ -18,8 +18,15 @@ PythonHandler vampire
 # Display of exception tracebacks and import messages.
 PythonDebug On
 
+# Ideally PythonPath should be set to 'sys.path' so that
+# nothing in the document tree can be imported using the
+# standard Python "import" statement. However the
+# example which demonstrates use of Cheetah templates
+# cannot be made to use the Vampire import mechanism, so
+# can't do this here. :-(
+
 # Stop the directory being added to path.
-PythonPath 'sys.path'
+#PythonPath 'sys.path'
 
 # Default layout mechanism used to render these pages.
 PythonOption VampireDefaultHandlers On
