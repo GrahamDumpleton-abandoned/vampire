@@ -1,0 +1,9 @@
+[Handlers]
+
+# Location of the default content handlers. This is only
+# consulted when the "VampireDefaultHandlers" option is
+# set to "On" using the "PythonOption" setting in the
+# "httpd.conf" or ".htaccess" files.
+
+handler_pdf = %(__config_root__)s/_handler.py
+handler_rml = %(__config_root__)s/_handler.py
