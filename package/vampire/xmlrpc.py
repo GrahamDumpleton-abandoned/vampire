@@ -64,7 +64,14 @@ _xmlrpc_rules = {}
 
 for t in types.__dict__.values():
   if type(t) is types.TypeType:
-    _xmlrpc_rules[t] = (False,False,False)
+    #_xmlrpc_rules[t] = (False,False,False)
+    _xmlrpc_rules[t] = (False,False,True)
+
+_xmlrpc_rules.update({
+  types.ModuleType: (False,False,False),
+  types.ClassType: (False,False,False),
+  types.TypeType: (False,False,False),
+})
 
 # Instances of any old style classes are marked as being
 # traversable and potentially executable.
@@ -135,6 +142,9 @@ class Service:
 	    return target(req,*params)
 
 	  return target(*params)
+
+      elif access:
+	return objects[-1]
 
     raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
 

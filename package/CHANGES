@@ -153,13 +153,45 @@ Changes in Vampire 1.5
     varargs parameter.
 
   - Added "vampire.Service()". This allows one to wrap an object and
-    exports its methods as an XML-RPC service. Traversal works similar to
-    publisher and "vampire.Publisher()". Note that basic data values are
-    not automatically exported, you would need to wrap a function around
-    them which returns the data value. Although data is not automatically
-    exported through an implicit method of the same name, you should
-    still prefix the names of such data with an underscore in case it is
-    decided that such data should be exported automatically in the future.
+    exports its methods and data as an XML-RPC service. Traversal works
+    similar to publisher and "vampire.Publisher()". Note that data will be
+    exported and accessible as if it were wrapped by an implicit function.
+    In this case the number of arguments supplied is irrelevant. If you
+    don't want data to be exposed, prefix the name of the variable with an
+    underscore.
+
+      import vampire
+	  
+      class Object1:
+	
+	def method1(self):
+	  return "Object1.method1()"
+	
+      class Object2:
+
+	def __init__(self):
+	  self.object1 = Object1()
+	  self.string1 = "Object2.string1"
+
+	def method1(self):
+	  return "Object2.method1()"
+
+	def method2(self,req):
+	  return "Object2.method2()",req.uri
+
+	def method3(self,data):
+	  return "Object3.method3()",data
+
+	def method4(self,req,data):
+	  return "Object4.method4()",req.uri,data
+
+      _object2 = Object2()
+
+      handler = vampire.Service(_object2)
+
+    If the first parameter of a function is "req", it will be passed the
+    special mod_python request object with the XML-RPC parameters passed
+    as the remaining parameters.
 
 
 Changes in Vampire 1.4
