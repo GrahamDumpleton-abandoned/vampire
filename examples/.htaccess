@@ -11,7 +11,7 @@ Options -MultiViews
 # Disable Indexes so directory contents aren't exposed.
 Options -Indexes
 
-# Pass all requests through Vampire.
+# Pass all requests through Vampire handler.
 SetHandler python-program
 PythonHandler vampire
 
