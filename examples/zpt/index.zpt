@@ -1,0 +1,8 @@
+<html metal:use-macro="here/layout/macros/pagelayout">
+<head>
+   <title metal:fill-slot="title">My Template Title</title>
+</head>
+<body metal:fill-slot="body">
+Template Content
+</body>
+</html>

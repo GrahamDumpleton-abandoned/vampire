@@ -1,0 +1,9 @@
+<html metal:define-macro="pagelayout">
+<head>
+   <title metal:define-slot="title">Page Layout Title</title>
+   <link rel="stylesheet" href="mystyles.css">
+</head>
+<body metal:define-slot="body">
+Page Layout Macro
+</body>
+</html>
