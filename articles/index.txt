@@ -10,4 +10,4 @@ time permits I will keep adding to this list.
   trying to get their first test program under mod_python to
   work.
 
-.. _Getting Started With MOD_PYTHON: articles-002.html
+.. _Getting Started With MOD_PYTHON: article-001.html
