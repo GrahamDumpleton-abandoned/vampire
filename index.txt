@@ -6,87 +6,30 @@ Vampire is an extension module for mod_python_, which provides a more
 flexible dispatch mechanism for basic content handlers, as well as an
 alternative implementation of the mod_python.publisher module.
 
-The main features provided by Vampire are:
+For further information about Vampire, check out the supplied articles_. If
+you have any questions about Vampire, it is suggested you subscribe to the
+`mod_python mailing list`_ and ask your question there.
 
-- A basic content handler selection mechanism which allows unique content
-  handlers to be associated with distinct resources in a directory. The
-  standard mod_python handler mechanism only allows one content handler to
-  be associated with a whole directory.
+Official releases of Vampire can be downloaded from:
 
-- A mechanism for having default content handlers triggered for different
-  types of resources when no dedicated content handler exists. This
-  enables a handler to be defined once for the processing of special files
-  such as a ".psp" file, thereby enabling easy integration and mixing of
-  third party templating systems even within the same directory.
+  http://www.dscpl.com.au/downloads.html
 
-- Automatic unmarshalling and passing of form data to a basic content
-  handler method when a content handler defines extra arguments in addition
-  to that of the request object. Previously this was only available to
-  users of the mod_python.publisher module.
+The source code for the latest working copy of Vampire can be viewed at:
 
-- An extension to the form parameter handling mechanism which through use
-  of appropriate naming conventions, enables form parameters to be
-  converted into structured types such as lists and dictionaries where
-  appropriate.
+  http://svn.dscpl.com.au/vampire/trunk
 
-- A user authentication mechanism for basic content handlers. Previously
-  this was only available to users of the mod_python.publisher module.
+If you have a subversion_ client, you can check out the latest working copy
+of vampire using the command:
 
-- A drop in replacement to the mod_python.publisher module implementation
-  which is distributed with mod_python. This implementation addresses many
-  bugs which are present within the standard version as well as providing
-  extra enhancements such as the ability to traverse into instances of new
-  style classes. This alternative implementation also provides the same
-  functionality when either mod_python 2.7.X or 3.1.X is used where as that
-  supplied with mod_python behaves differently in each version.
+  svn co http://svn.dscpl.com.au/vampire/trunk
 
-- A version of the publisher mechanism implemented as a wrapper class which
-  can be selectively applied within the context of a basic content handler.
-  This allows for the mixing of the basic content handler mechanism and the
-  publisher mechanism within the one directory.
-
-- A special wrapper which can be applied to methods exported by the
-  publisher mechanism, which allows additional path information to be
-  supplied, with the path being passed in as a single parameter.
-
-- A special wrapper which can be applied to methods exported by the
-  publisher mechanism, which allows additional path information to be
-  supplied, with the path being split into components and passed as
-  separate parameters.
-
-- A publisher like traversal mechanism for basic content handlers. This
-  means that a single file can process requests for different resources
-  just like publisher, but where the calling semantics are those of a
-  basic content handler.
-
-- An improved module importing and caching system which can track
-  parent/child relationships between modules and will automatically
-  reimport a parent module when the child module has changed. This avoids
-  the constant problem in the standard mod_python module loader whereby
-  Apache has to be restarted after any changes are made, or all files
-  have to be touched to force reloading.
-
-- An application configuration mechanism incorporating a dynamic search
-  capability for finding an appropriate configuration file within a parent
-  directory without the need to hard code relative paths into code.
-
-- A special handler for servicing XML-RPC requests and mapping them into
-  code associated with your application. This makes it possible to also
-  write external scripts which can interact with your application and turn
-  it into a web service.
-
-- A template loading and caching system for the third party web templating
-  engine called HTMLTemplate_.
-
-Vampire is being made available under a BSD style license_. For further
-information about Vampire, check out the supplied articles_. If you have
-any questions about Vampire, it is suggested you subscribe to the
-`mod_python mailing list`_ and ask your question there. Alternatively, you
-can contact the author directly at "grahamd@dscpl.com.au".
+Vampire is made available under a BSD style license_.
 
 
 .. _mod_python: http://www.modpython.org
 .. _HTMLTemplate: http://freespace.virgin.net/hamish.sanderson
+.. _subversion: http://subversion.tigris.org
+.. _patches: patches.html
 .. _license: license.html
-.. _articles: articles/index.html
+.. _articles: articles.html
 .. _mod_python mailing list: http://mailman.modpython.org/mailman/listinfo/mod_python

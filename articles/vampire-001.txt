@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 13/03/2005
+:Updated: 15/03/2005
 
 .. contents::
 
@@ -49,13 +49,13 @@ mechanisms of Apache are used in returning the content of the file, thus
 ensuring there is no significant loss in performance for normal files.
 
 In addition to expanding on the basic content handler mechanism, Vampire
-also provides a drop in replacement for mod_python.publisher. Some aspects
-of this replacement for mod_python.publisher are however a little different
-to the original. These differences derive however from the fact that the
-Vampire version fixes many bugs in the original and also addresses some of
-its shortcomings and limitations. In order to do this, it wasn't practical
-to maintain 100 percent compatibility as that would have mean't preserving
-what could be seen as incorrect behaviour.
+also provides a drop in replacement for mod_python.publisher. Some obscure
+corners of this replacement for mod_python.publisher are however a little
+different to the original. These differences derive however from the fact
+that the Vampire version fixes many bugs in the original and also addresses
+some of its shortcomings and limitations. In order to do this, it wasn't
+practical to maintain 100 percent compatibility as that would have mean't
+preserving what could be seen as incorrect behaviour.
 
 Most important of all to note is that Vampire is not a framework in itself.
 Its prime purpose is to make the basic mechanisms available through using
@@ -82,7 +82,7 @@ mod_python, Vampire also supplies a number of other useful features which can
 help to ease the construction of mod_python based web applications and web
 services. The full list of the major features provided by Vampire are:
 
-- A basic content handler selection mechanism which allows unique content
+- A extended content handler selection mechanism which allows unique content
   handlers to be associated with distinct resources in a directory. The
   standard mod_python handler mechanism only allows one content handler to
   be associated with a whole directory.
