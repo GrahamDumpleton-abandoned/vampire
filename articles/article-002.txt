@@ -1,10 +1,10 @@
-==========================
-An Introduction to Vampire
-==========================
+=========================
+Quick Overview of Vampire
+=========================
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 25/02/2005
+:Updated: 13/03/2005
 
 .. contents::
 
@@ -13,16 +13,18 @@ This article provides an introduction to Vampire, giving an overview of its
 major features along with basic examples of use.
 
 
-Major Features of Vampire
-=========================
+Vampire is Not a Framework
+==========================
 
-Vampire builds on top of mod_python, an Apache module that embeds the
+Vampire builds on top of mod_python_, an Apache module that embeds the
 Python interpreter within the Apache server. Using mod_python it is
 possible to intercept any phase of Apache's handling of a HTTP request and
 have Python code executed in order to generate the desired result for that
-phase of processing. Vampire implements a mechanism for selecting between
-multiple content handlers during the content delivery phase of servicing a
-HTTP request.
+phase of processing. The standard mod_python handler mechanism only allows
+one content handler to be associated with a whole directory when handling
+the content delivery phase of servicing a HTTP request. Vampire implements
+a mechanism for selecting between multiple content handlers associated with
+distinct resources within a directory.
 
 Vampire can be seen as an extension of the "AddHandler" and "SetHandler"
 directives which are normally used to dictate which content handler is used
@@ -46,50 +48,30 @@ case where special Python code needs to be executed, the basic handling
 mechanisms of Apache are used in returning the content of the file, thus
 ensuring there is no significant loss in performance for normal files.
 
-In addition to providing an extended content handler selection mechanism
-for mod_python, Vampire also supplies a number of other useful features
-which can help to simplify the construction of mod_python based web
-applications and web services. The full list of major features provided by
-Vampire are:
+In addition to expanding on the basic content handler mechanism, Vampire
+also provides a drop in replacement for mod_python.publisher. Some aspects
+of this replacement for mod_python.publisher are however a little different
+to the original. These differences derive however from the fact that the
+Vampire version fixes many bugs in the original and also addresses some of
+its shortcomings and limitations. In order to do this, it wasn't practical
+to maintain 100 percent compatibility as that would have mean't preserving
+what could be seen as incorrect behaviour.
 
-- A content handler selection mechanism which allows unique content handlers
-  to be associated with individual resources. Default content handlers may
-  also be defined which will be triggered for specific types of resources
-  when no dedicated content handler exists for a resource.
+Most important of all to note is that Vampire is not a framework. Its prime
+purpose is to make the basic mechanisms available through using mod_python
+more flexible. Vampire does not try to enforce on you a particular approach
+to implementing an application nor does it try and dictate a particular
+solution for performing page templating. In fact, it is relatively straight
+forward to integrate the use of frameworks such as PSP and mpservlets_.
+Similarly, it is relatively straight forward to adopt and use other page
+templating systems such as HTMLTemplate_ and Cheetah_. In fact, using
+HTMLTemplate is made really easy by virtue of Vampire integrating a
+template loading and caching system for that system.
 
-- A module importing and caching system which can track parent/child
-  relationships between modules and will automatically reimport a parent
-  module when the child module has changed, thus avoiding the need to
-  restart Apache.
-
-- Automatic unmarshalling and passing of form data to a content handler
-  method when a content handler defines extra arguments in addition to that
-  of the request object. Through use of appropriate naming conventions,
-  form parameters will also be converted into lists and dictionaries as
-  appropriate.
-
-- A user authentication mechanism for individual content handlers,
-  implemented in the same style as that provided by the
-  mod_python.publisher module.
-
-- An application configuration mechanism incorporating a dynamic search
-  capability for finding an appropriate configuration file within a parent
-  directory without the need to hard code relative paths into code.
-
-- A handler for servicing XML-RPC requests and mapping them into code
-  associated with your application, thus making it possible to also write
-  external scripts which can interact with your application and turn it
-  into a web service.
-
-- A template loading and caching system for the third party web templating
-  engine called HTMLTemplate.
-
-Although Vampire provides some support for the HTMLTemplate web templating
-engine, you are not locked into using that package to produce the content
-of your web pages. The main intent of Vampire is to make it easier to use
-dedicated content handlers. As such, you can with minimal effort still use
-any of the available web templating systems for mod_python such as
-mod_python.psp or mod_python.servlet.
+.. _mod_python: http://www.modpython.org
+.. _mpservlets: http://home.comcast.net/~d.popowich/mpservlets
+.. _HTMLTemplate: http://freespace.virgin.net/hamish.sanderson/htmltemplate.html
+.. _Cheetah: http://www.cheetahtemplate.org
 
 
 Philosophy Behind Vampire
@@ -142,7 +124,7 @@ determine the target method for handling of a request.
 
 Now it can be argued that since a response includes a definition of the
 content type anyway, that the extension appearing on a request is
-irrelevant and this is one of the basic ideas underlying the REST
+irrelevant and this is one of the basic ideas underlying the REST_
 architecture. If an extension is used however, it is believed that it is
 still conceptually preferable that it relate to the type of content being
 returned and not the implementation mechanism used to create that content.
@@ -162,6 +144,8 @@ each have their own content handler stored in a file specific to the
 resource. Only where a resource can be represented in multiple formats,
 would the file associated with that resource contain more than one content
 handler, one for each data format in which the resource is available.
+
+.. _REST: http://www.ics.uci.edu/~fielding/pubs/dissertation/rest_arch_style.htm
 
 
 How Vampire Actually Works
@@ -266,15 +250,10 @@ When defining a content handler for mod_python, the handler method would
 nearly always accept at least a single argument corresponding to the
 request object. The name of this argument must be called "req" and will be
 needed in order to access details in respect of a request and also provides
-the means to send back a response to the request.
-
-Like in mod_python.publisher, Vampire enhances the content handler
-mechanism such that if additional arguments are defined, any form
-parameters will be automatically decoded and passed to the corresponding
-argument. This though goes a step further than mod_python.publisher and
-provided that certaining naming conventions for form parameters are
-adhered to, form parameters can be automatically converted into structured
-types such as lists and dictionaries.
+the means to send back a response to the request. Similar to how
+mod_python.publisher works, Vampire enhances the content handler mechanism
+such that if additional arguments are defined, any form parameters will be
+automatically decoded and passed to the corresponding argument.
 
 ::
 
@@ -288,6 +267,29 @@ types such as lists and dictionaries.
     req.send_http_header()
     req.write(message)
     return apache.OK
+
+Vampire does however take the automatic decoding of form parameters a step
+beyond what is provided by mod_python.publisher. Namely, provided that
+certain naming conventions for form parameters are adhered to, form
+parameters can also be automatically converted into structured types such
+as lists and dictionaries.
+
+The naming convention used here is that if a set of form parameters should
+be converted into a list, they should be named as "name-1", "name-2", etc.
+For this case, the value associated with each form parameter with "name"
+prefix will be placed into a list and will passed to the function parameter
+called "name".
+
+Dictionaries will be constructed if a "." is used within the name of a form
+parameter, thereby creating a naming hierarchy. For example, a form parameter
+with name "parent.child" will result in a dictionary being passed to the
+function parameter called "parent", where the dictionary holds the value of
+the form parameter indexed by "child".
+
+Multiple elements may be placed into a dictionary by sharing the same
+parent node name. Dictionaries can also be made to hold lists of values and
+lists of values can also be made to hold dictionaries through appropriate
+use of the "." and "-" designations in the names of form parameters.
 
 
 Using Templating Systems
@@ -347,150 +349,14 @@ request is made and a corresponding ".psp" file exists.
 Even if a default content handler for an extension is defined, a specific
 content handler defined in a Python code file corresponding to the resource
 still takes precendence. You might therefore still override the processing
-for a specific resource in order to take more control.
+for a specific resource in order to take more control over how the
+environment is setup before triggering the execution of the specific
+templating system.
 
-::
-
-  from mod_python import apache, psp
-
-  import os
-
-  # Handler for ".html" request.
-
-  def handler_html(req,message=""):
-    path = os.path.splitext(req.filename)[0] + ".psp"
-    if os.path.exists(path):
-      if not message: message = "Give Blood!"
-      req.content_type = "text/html"
-      template = psp.PSP(req,filename=path)
-      template.run(vars={'message': message })
-      return apache.OK
-    return apache.DECLINED
-
-As well as being able to be integrated with mod_python.psp, it is quite
-straight forward to also integrate mod_python.servlet. The only catch
-is that it is necessary to duplicate a small amount of code which would
-normally appear in the "handler()" method of mod_python.servlet.
-
-::
-
-  from mod_python import apache
-  from mod_python.servlet import HTMLPage
-
-  class Servlet(HTMLPage):
-	  
-    title = "Hello World!"
-	      
-    def write_content(self):
-      self.writeln("Hello World!")
-
-  def handler_html(req):
-    _servlet = Servlet()
-    _servlet.req = req
-
-    try:
-      _servlet.auth()
-      _servlet.prep()
-      if not _servlet.respond():
-	return apache.HTTP_NO_CONTENT
-      _servlet.wrapup()
-
-    finally:
-      _servlet._finally()
-
-    return apache.OK
-
-Replicating this code is necessary to bypass the module importing and
-caching system of mod_python.servlet as Vampire has already loaded the
-servlet and it is therefore not required. The code also allows an alternate
-extension to that of ".mps" to be used. Apart from that, all existing
-functionality of the mod_python.servlet infrastructure would more or less
-be used in the same way.
-
-In general, it shouldn't be too difficult to make use of any third party
-templating system which can already be used with mod_python directly.
-Vampire does not dictate that you must use a specific templating system.
-
-That said, Vampire does provide some direct support for the HTMLTemplate
-module in the form of a template loading and caching system. The beauty of
-HTMLTemplate is that there is a nice clean separation between the view
-represented by the HTML and the actual mechanism used to fill out that
-view. Specifically, there is no code embedded within the HTML at all, nor
-are there any call outs from the HTML.
-
-::
-
-  <body>
-  <head>
-  <title>Python Config</title>
-  </head>
-  <body>
-  <h1>Python Config</h1>
-  <p>
-  <table>
-  <thead>
-  <tr>
-  <th>Key</th>
-  <th>Value</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr vampire:node="rep:item">
-  <td vampire:node="con:key"></td>
-  <td vampire:node="con:value"></td>
-  </tr>
-  </tbody>
-  </table>
-  </p>
-  </body>
-
-Having loaded a template, all that is the required is for the content
-handler to fill in the data within the HTML and render the template
-to produce the response.
-
-::
-
-  from mod_python import apache
-
-  import os
-  import sys
-
-  import vampire
-
-  # Handler for ".html" request.
-
-  def handler_html(req):
-
-    # Load the page template.
-
-    if not os.path.exists(req.filename):
-      return apache.DECLINED
-
-    template = vampire.loadTemplate(req.filename,"vampire:node")
-
-    # Fill in the page content.
-
-    options = req.get_config()
-
-    def renderItem(node,key):
-      node.key.content = key
-      node.value.content = options[key]
-
-    keys = list(options.keys())
-    keys.sort()
-
-    template.item.repeat(renderItem,keys)
-
-    # Return the rendered page content.
-
-    req.content_type = "text/html"
-    req.headers_out['Pragma'] = 'no-cache' 
-    req.headers_out['Cache-Control'] = 'no-cache' 
-    req.headers_out['Expires'] = '-1' 
-    req.send_http_header()
-    req.write(template.render())
-
-    return apache.OK
+Similar or slightly different techniques to that described aboved can be
+employed to integrate any other third party templating system which you may
+wish to use. Such a task should be relatively straight forward, especially
+if the package has already been setup to be used with the mod_python.
 
 
 User Authentication Hooks
@@ -601,3 +467,11 @@ using Vampire and will automatically force a reload of the content handler
 and the child module, thereby avoiding the need to restart Apache in most
 circumstances without needing to explicitly touch files to update their
 modification times.
+
+
+Configuring an Application
+==========================
+
+
+New Publishing Framework
+========================
