@@ -1,0 +1,7 @@
+# Enable default content handlers.
+PythonOption VampireDefaultHandlers On
+
+# Block access to any default handlers.
+<Files _*>
+deny from all
+</Files>
