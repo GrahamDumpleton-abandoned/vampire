@@ -158,35 +158,41 @@ def _params(object):
 
     if object_type is types.FunctionType:
       fc = object.func_code
+      defaults = object.func_defaults
       expected = fc.co_varnames[0:fc.co_argcount]
 
     elif object_type is types.MethodType:
       fc = object.im_func.func_code
+      defaults = object.im_func.func_defaults
       expected = fc.co_varnames[1:fc.co_argcount]
 
     elif object_type is types.ClassType:
       fc = object.__init__.im_func.func_code
+      defaults = object.__init__.im_func.func_defaults
       expected = fc.co_varnames[1:fc.co_argcount]
 
     elif hasattr(object,"__call__"):
       fc = object.__call__.im_func.func_code
+      defaults = object.__call__.im_func.func_defaults
       expected = fc.co_varnames[1:fc.co_argcount]
 
     elif hasattr(object,"func_code"):
       fc = object.func_code
+      defaults = object.func_defaults
       expected = fc.co_varnames[0:fc.co_argcount]
 
     elif hasattr(object,"im_func"):
       fc = object.im_func.func_code
+      defaults = object.im_func.func_defaults
       expected = fc.co_varnames[1:fc.co_argcount]
 
   if fc is None:
-    return (apache.HTTP_INTERNAL_SERVER_ERROR,None,None)
+    return (apache.HTTP_INTERNAL_SERVER_ERROR,None,None,None)
 
-  if fc.co_flags & 0x08:
-    return (apache.OK,True,expected)
+  if defaults is None:
+    defaults = []
 
-  return (apache.OK,False,expected)
+  return (apache.OK,fc.co_flags,expected,defaults)
 
 
 # Following executes a callable object. Any form
@@ -254,14 +260,14 @@ def _execute(req,object):
   # at the end to ensure it cannot be overridden by a
   # form parameter.
 
-  status,kwargs,expected = _params(object)
+  status,flags,expected,defaults = _params(object)
 
   if status != apache.OK:
     raise apache.SERVER_RETURN, status
 
   args["req"] = req
 
-  if kwargs == False:
+  if not flags & 0x08:
     for name in args.keys():
       if name not in expected:
 	del args[name]
@@ -926,3 +932,107 @@ class Publisher:
 	return _flush(req,objects[-1])
 
     raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+
+class PathInfo:
+
+  def __init__(self,callback,name="path",path=[]):
+
+    self.__callback = callback
+    self.__name = name
+    self.__path = path
+
+  def __call__(self,req,**args):
+
+    status,flags,expected,defaults = _params(self.__callback)
+
+    if status != apache.OK:
+      raise apache.SERVER_RETURN, status
+
+    args[self.__name] = '/'.join([""]+self.__path)
+    args["req"] = req
+
+    if not flags & 0x08:
+      for name in args.keys():
+        if name not in expected:
+          del args[name]
+
+    return self.__callback(**args)
+
+  def __getattr__(self,name):
+
+    if name[:1] != '_':
+      return PathInfo(self.__callback,self.__name,self.__path+[name])
+
+    raise AttributeError(name)
+
+
+class PathArgs:
+
+  def __init__(self,callback,parent=None,path=[]):
+
+    self.__callback = callback
+    self.__path = path
+
+    if parent is not None:
+      self.__expected = parent.__expected
+      self.__minargs = parent.__minargs
+      self.__maxargs = parent.__maxargs
+      self.__varargs = parent.__varargs
+    else:
+      self.__expected = None
+      self.__minargs = None
+      self.__maxargs = None
+      self.__varargs = None
+
+  def __setup(self):
+
+    status,flags,expected,defaults = _params(self.__callback)
+
+    if status != apache.OK:
+      raise apache.SERVER_RETURN, status
+
+    self.__expected = expected
+    self.__maxargs = len(expected)
+    self.__minargs = self.__maxargs - len(defaults)
+    self.__varargs = (flags & 0x04)
+
+  def __call__(self,req):
+
+    if self.__expected is None:
+      self.__setup()
+
+    if self.__expected[:1] == ("req",):
+
+      if len(self.__path) < (self.__minargs-1):
+	raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+      return self.__callback(req,*self.__path)
+
+    else:
+
+      if len(self.__path) < self.__minargs:
+	raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+      return self.__callback(*self.__path)
+
+  def __getattr__(self,name):
+
+    if name[:1] != '_':
+
+      if self.__expected is None:
+        self.__setup()
+
+      if not self.__varargs:
+
+        if self.__expected[:1] == ("req",) and \
+	    len(self.__path) == (self.__maxargs-1):
+	  raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+	elif len(self.__path) == self.__maxargs:
+	  raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+
+      path = self.__path + [name]
+      return PathArgs(self.__callback,self,path)
+
+    raise AttributeError(name)

@@ -3,7 +3,7 @@
 __version__ = "1.5"
 
 from lookup import _handler, _publisher, _select
-from lookup import Handler, Publisher
+from lookup import Handler, Publisher, PathInfo, PathArgs
 
 handler = _handler
 publisher = _publisher

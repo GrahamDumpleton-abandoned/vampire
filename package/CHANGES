@@ -70,6 +70,89 @@ Changes in Vampire 1.5
     vampire::publisher handler to avoid form parameters being interpreted
     strangely.
 
+  - Added "vampire.PathInfo()". This can be used to wrap methods when using
+    "vampire::publisher", "vampire.Publisher()" or "vampire.Handler()". The
+    effect of wrapping the method is that any additional path beyond that
+    that would have matched the method will be accumulated as additional
+    path information and passed to the method in a single parameter in URL
+    path form. Both global methods and methods of classes can be wrapped.
+    By default the additional path information will be passed through the
+    "path" parameter. Alternatively the name of the parameter to use can be
+    specified when constructing the wrapper.
+
+      # For "/class1/method1/1/2/3", path will be set to "/1/2/3".
+      # For "/class1/method2/1/2/3", xpath will be set to "/1/2/3".
+
+      class Class:
+	def __init__(self): 
+	  self.method1 = vampire.PathInfo(self._method1)
+	  self.method2 = vampire.PathInfo(self._method2,"xpath")
+	def _method1(self,path):
+	  return "Class._method1",path
+	def _method2(self,req,xpath):
+	  return "Class._method2",xpath
+
+      class1 = Class()
+
+      # For "/method1/1/2/3", path will be set to "/1/2/3".
+
+      def _method1(path):
+	return "method1()",path
+
+      method1 = vampire.PathInfo(_method1)
+
+      # For "/method2/1/2/3", path will be set to "/1/2/3".
+
+      def _method2(req,path):
+	return "_method2()",path
+
+      method2 = vampire.PathInfo(_method2)
+
+    Any wrapped method can still accept the "req" object or any other form
+    parameters provided with the request. The path information when passed
+    to the wrapped method will override any form parameter of the same
+    name. Additional form parameters can still define default values.
+
+  - Added "vampire.PathArgs()". This can be used to wrap methods when using
+    "vampire::publisher", "vampire.Publisher()" or "vampire.Handler()". The
+    effect of wrapping the method is that any additional path beyond that
+    that would have matched the method will be accumulated as additional
+    path information and passed to the method with each component passed
+    as separate parameters. Both global methods and methods of classes can
+    be wrapped.
+
+      # For "/method1/2005/12", day="2005", mon="12", day="0".
+      # For "/method1/2005/12/25", day="2005", mon="12", day="25".
+
+      def _method1(year,mon,day="0"):
+	return "_method1",year,mon,day
+
+      method1 = vampire.PathArgs(_method1)
+
+      # For "/method2/2005/12", day="2005", mon="12", day="0".
+      # For "/method2/2005/12/25", day="2005", mon="12", day="25".
+
+      def _method2(req,year,mon,day="0"):
+	return "_method2",year,mon,day
+
+      method2 = vampire.PathArgs(_method2)
+
+      # For "/method3/2005/12", day="2005", mon="12", day="0", va=().
+      # For "/method3/2005/12/25", day="2005", mon="12", day="25", va=().
+      # For "/method3/2005/12/25/0", day="2005", mon="12", day="25", va=(0,).
+
+      def _method3(req,year,mon,day="0",*va):
+	return "_method3",year,mon,day,va
+
+      method3 = vampire.PathArgs(_method3)
+
+    Because each component of the additional path information is passed
+    as a separate parameter, there can only be as much additional path
+    information as the parameters allow. Note that any form parameters will
+    be ignored, but if the first parameter is called "req" it will still be
+    passed the request object. Default parameters can be specified as can a
+    varargs parameter.
+
 
 Changes in Vampire 1.4
 ======================
