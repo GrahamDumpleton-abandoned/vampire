@@ -134,8 +134,9 @@ import os
 import cgi
 import types
 
+import vampire
+
 from vampire.lookup import _resolve,_params,_publisher_rules
-from vampire.cache import importModule
 
 index = """
 <html>
@@ -183,7 +184,7 @@ def browse(req,name="",object="",**kw):
 
   directory = os.path.dirname(req.filename)
 
-  target = importModule(os.path.split(name)[1],directory)
+  target = vampire.importModule(os.path.split(name)[1],directory)
 
   root = target
 
