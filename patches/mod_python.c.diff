@@ -1,0 +1,82 @@
+*** mod_python.c.dist	Fri Sep 24 15:11:32 2004
+--- mod_python.c	Sun Oct 17 12:06:58 2004
+***************
+*** 31,36 ****
+--- 31,40 ----
+   * (In a Python dictionary) */
+  static PyObject * interpreters = NULL;
+  
++ #ifdef WITH_THREAD
++ static apr_thread_mutex_t* interpreters_lock = 0;
++ #endif
++ 
+  apr_pool_t *child_init_pool = NULL;
+  
+  /**
+***************
+*** 124,129 ****
+--- 128,135 ----
+          name = MAIN_INTERPRETER;
+  
+  #ifdef WITH_THREAD
++     apr_thread_mutex_lock(interpreters_lock);
++ 
+      PyEval_AcquireLock();
+  #endif
+  
+***************
+*** 149,154 ****
+--- 155,162 ----
+  
+  #ifdef WITH_THREAD
+      PyEval_ReleaseLock();
++ 
++     apr_thread_mutex_unlock(interpreters_lock);
+  #endif
+  
+      if (! idata) {
+***************
+*** 469,474 ****
+--- 477,485 ----
+      const char *userdata_key = "python_init";
+      apr_status_t rc;
+  
++     /* fudge for Mac OS X with Apache where Py_IsInitialized() broke */
++     static int initialized = 0;
++ 
+      apr_pool_userdata_get(&data, userdata_key, s->process->pool);
+      if (!data) {
+          apr_pool_userdata_set((const void *)1, userdata_key,
+***************
+*** 490,502 ****
+      }
+  
+      /* initialize global Python interpreter if necessary */
+!     if (! Py_IsInitialized()) 
+      {
+  
+          /* initialze the interpreter */
+          Py_Initialize();
+  
+  #ifdef WITH_THREAD
+          /* create and acquire the interpreter lock */
+          PyEval_InitThreads();
+  #endif
+--- 501,516 ----
+      }
+  
+      /* initialize global Python interpreter if necessary */
+!     if (initialized == 0 || ! Py_IsInitialized()) 
+      {
++         initialized = 1;
+  
+          /* initialze the interpreter */
+          Py_Initialize();
+  
+  #ifdef WITH_THREAD
++         apr_thread_mutex_create(&interpreters_lock,APR_THREAD_MUTEX_UNNESTED,p);
++ 
+          /* create and acquire the interpreter lock */
+          PyEval_InitThreads();
+  #endif
+

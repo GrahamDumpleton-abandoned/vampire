@@ -1,0 +1,38 @@
+*** apache.py.dist	Sun Oct 17 16:17:01 2004
+--- apache.py	Mon Oct 18 21:58:15 2004
+***************
+*** 27,32 ****
+--- 27,41 ----
+  import types
+  import _apache
+  
++ try:
++   from threading import RLock
++ except:
++   class RLock:
++     def acquire(self): pass
++     def release(self): pass
++ 
++ _lock = RLock()
++ 
+  # a small hack to improve PythonPath performance. This
+  # variable stores the last PythonPath in raw (unevaled) form.
+  _path = None
+***************
+*** 406,411 ****
+--- 415,428 ----
+              # we do not return anything
+  
+  def import_module(module_name, autoreload=1, log=0, path=None):
++   _lock.acquire()
++   try:
++     return _unsafe_import_module(module_name, \
++         autoreload=autoreload,log=log,path=path)
++   finally:
++     _lock.release()
++ 
++ def _unsafe_import_module(module_name, autoreload=1, log=0, path=None):
+      """
+      Get the module to handle the request. If
+      autoreload is on, then the module will be reloaded
+
