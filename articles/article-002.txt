@@ -1,6 +1,6 @@
-=======================
-Introduction to Vampire
-=======================
+==========================
+An Introduction to Vampire
+==========================
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au

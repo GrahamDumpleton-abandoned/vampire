@@ -9,9 +9,9 @@ Below are listed various articles related to Vampire and mod_python.
   trying to get their first test program under mod_python to
   work.
 
-`Introduction to Vampire`_ (Updated 06/03/2005)
+`An Introduction to Vampire`_ (Updated 06/03/2005)
   This article gives a slightly more in depth introduction to
   the main features provided by Vampire.
 
 .. _Getting MOD_PYTHON Working: article-001.html
-.. _Introduction To Vampire: article-002.html
+.. _An Introduction To Vampire: article-002.html
