@@ -60,7 +60,7 @@ def _import(req,file):
 
 def _authenticate(req,objects):
 
-  realm,user,passwd = (None,None,None)
+  realm,user,passwd = ("unknown",None,None)
 
   for object in objects:
     realm,user,passwd = publisher.process_auth(req,object,realm,user,passwd)
