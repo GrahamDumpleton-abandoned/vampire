@@ -33,7 +33,7 @@ def method2():
 # as of mod_python 3.1.4 it doesn't support methods for
 # authentication within MethodType and Vampire uses the
 # authentication routine from mod_python rather than
-# using its own as this stage.
+# using its own at this stage.
 
 class Object1:
 
