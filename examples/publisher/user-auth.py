@@ -32,8 +32,7 @@ class Object1:
 
   # Only "minney" can access "method4()".
   #
-  # Note that mod_python.publisher as of mod_python
-  # version 3.1.4 doesn't support methods for
+  # Note that mod_python.publisher doesn't support
   # authentication within methods of a class. Vampire
   # fixes this and thus why "__access__" in this context
   # does actually restrict access to just "minney".
