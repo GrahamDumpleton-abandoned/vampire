@@ -26,6 +26,9 @@ def handler_html(req):
     for key,value in config.items("Settings"):
       settings[key] = value
 
+    if hasattr(req,"form"):
+      settings["form"] = req.form
+
     template = psp.PSP(req,filename=path,vars=settings)
 
     template.run()
