@@ -1,0 +1,98 @@
+====
+TODO
+====
+
+Following items are being considered for future version of Vampire.
+
+- Lift restriction in "vampire::publisher" and "vampire.Publisher()" whereby
+  only GET and POST requests can be handled. This restriction currently
+  exists because that is what mod_python.publisher does.
+
+  What is being considered is to support a similar mechanism to the user
+  authentication and access hooks used by mod_python.publisher. This
+  would involve the ability to define a list object or function with the
+  name "__allow_methods__" which would override the default as to what HTTP
+  request method types that a handler supports.
+
+  For example, if "vampire::publisher" were being used, either of the
+  following could be defined at file scope::
+
+    # List of allowed methods.
+    __allow_methods__ = ["GET","POST"]
+
+    # Function dictating if method is allowed.
+    def __allow_methods__(req,method):
+      return method in ["GET","POST"]
+
+  Similarly, it would be able to be defined at class scope using any
+  of the follow approaches::
+
+    class Object:
+
+      # List of allowed methods.
+      __allow_methods__ = ["GET","POST"]
+
+      def __init__(self):
+	# List of allowed methods.
+	self.__allow_methods__ = ["GET","POST"]
+
+      # Function dictating if method is allowed.
+      def __allow_methods__(self,req,method):
+	return method in ["GET","POST"]
+
+  In practice, the definition of what is an allowed method at file scope or
+  class scope would probably be too broad. Instead it should be defined on
+  a case by case basis. Because it isn't possible to peak inside a function
+  or method to look at data values which are of a list type, a nested
+  function would need to be used::
+
+    def publisher():
+
+      # Function dictating if method is allowed.
+      def __allow_methods__(req,method):
+	return method in ["GET","POST"]
+
+      return "CONTENT"
+
+    class Object:
+
+      def publisher():
+
+	# Function dictating if method is allowed.
+	def __allow_methods__(req,method):
+	  return method in ["GET","POST"]
+
+	return "CONTENT"
+
+  Addition of the feature would allow publishers to implement additional
+  methods such as "PUT" and "DELETE", thereby lifting the restriction that
+  only "GET" and "POST" can be handled.
+
+- Investigate how an option can be provided to turn off automatic module
+  reloading for the Vampire module loading and caching system.
+
+  In mod_python itself module reloading is turned off by using the option
+  "PythonAutoReload". This mechanism is however unreliable because it can
+  can be set to different values in different parts of the document tree.
+  Further, explicit use of the "apache.import_module()" function doesn't
+  consult this option. Instead, it is expected that the caller supply
+  through a parameter whether module reloading is enabled or not.
+  
+  Thus for the module loading system in mod_python, a request to load a
+  module via a request through one part of the document tree may cause a
+  automatic reload whereas through another part of the document tree it may
+  not. This can cause inconsistencies as far as expectations as to what
+  version of a module is loaded.
+
+  The only reliable mechanism would be to allow module reloading to be on
+  or off for the complete lifetime of a particular interpreter. In other
+  words, automatic module reloading should be off from the point the
+  interpreter is created until the process is terminated.
+  
+  The only way of achieving this would be for the "PythonImport" directive
+  to be used to load a special module from which a call is made to disable
+  automatic module reloading from that point onwards. If at the point the
+  call was made a module has already been loaded, one may well have to leave
+  automatic reloading on. In other words, it would have to be called prior to
+  the very first module being loaded or it has no affect in disabling of
+  automatic module reloading.

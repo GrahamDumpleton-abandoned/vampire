@@ -723,14 +723,6 @@ _publisher_rules[None] = (True,True,False)
 
 def _publisher(req):
 
-  # Create a working area in request object if it
-  # doesn't exist already.
-
-  if not hasattr(req,"vampire"):
-    req.vampire = {}
-
-  req.vampire["handler"] = "vampire::publisher"
-
   # The mod_python.publisher code only allows GET and
   # POST. Don't know why it couldn't permit other types
   # of requests, but then it is mean't to be simplistic.
@@ -740,6 +732,14 @@ def _publisher(req):
 
   if req.method not in ["GET","POST"]:
     raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
+
+  # Create a working area in request object if it
+  # doesn't exist already.
+
+  if not hasattr(req,"vampire"):
+    req.vampire = {}
+
+  req.vampire["handler"] = "vampire::publisher"
 
   # Derive the name of the actual module which will be
   # loaded. In mod_python.publisher you can't actually
@@ -1036,6 +1036,16 @@ class Publisher:
     self.__object = object
 
   def __call__(self,req):
+
+    # The mod_python.publisher code only allows GET and
+    # POST. Don't know why it couldn't permit other types
+    # of requests, but then it is mean't to be simplistic.
+
+    if hasattr(req,"allow_methods"):
+      req.allow_methods(["GET","POST"])
+
+    if req.method not in ["GET","POST"]:
+      raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
 
     # Check to see if this is actually being executed
     # from outside of Vampire. In that case, we need to

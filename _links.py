@@ -28,6 +28,7 @@ _package.append(("License","%(vampire_home)s/license.html"))
 _package.append(("Patches","%(vampire_home)s/patches.html"))
 _package.append(("Changes","%(vampire_home)s/changes.html"))
 _package.append(("Credits","%(vampire_home)s/credits.html"))
+_package.append(("TODO","%(vampire_home)s/todo.html"))
 
 _links.append(("Vampire",_package))
 
