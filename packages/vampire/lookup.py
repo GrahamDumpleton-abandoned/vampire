@@ -88,7 +88,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
   default = rules.get(None)
 
-  # This mmethod can be called with either "None" or a
+  # This method can be called with either "None" or a
   # list of path elements. If "None" is supplied then
   # simply apply the rules directly against the object
   # only.
@@ -213,7 +213,21 @@ def _execute(req,object):
 
   args = {}
 
-  if not hasattr(req,"form"):
+  # Determine names of parameters expected by callable
+  # object and whether it also supports variable argument
+  # list or keyword argument list.
+
+  status,flags,expected,defaults = _params(object)
+
+  if status != apache.OK:
+    raise apache.SERVER_RETURN, status
+
+  # Decode form parameters if appropriate content type
+  # and callable object specifies parameters other than
+  # that for request object.
+
+  if not hasattr(req,"form") and (flags & 0x08 or \
+      (len(expected) == 1 and not "req" in expected) or len(expected)):
 
     if not req.headers_in.has_key("content-type"):
       content_type = "application/x-www-form-urlencoded"
@@ -270,20 +284,13 @@ def _execute(req,object):
     if advanced:
       args = forms.variable_decode(args)
 
-  # Determine names of parameters expected by callable
-  # object and whether it also supports keyword argument
-  # list for remainder. If it doesn't support keyword
-  # argument list, filter out form parameters that don't
-  # match any input parameter. Only set "req" parameter
-  # at the end to ensure it cannot be overridden by a
-  # form parameter.
-
-  status,flags,expected,defaults = _params(object)
-
-  if status != apache.OK:
-    raise apache.SERVER_RETURN, status
+  # Add request object set of input form parameters.
 
   args["req"] = req
+
+  # If callable object doesn't support keyword argument
+  # list, filter out form parameters that don't match
+  # any input parameter.
 
   if not flags & 0x08:
     for name in args.keys():

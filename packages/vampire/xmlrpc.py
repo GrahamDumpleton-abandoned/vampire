@@ -45,8 +45,6 @@ def serviceRequest(req,callback):
 
   req.write(response)
 
-  return apache.OK
-
 
 # Following provides an XML-RPC server implementation
 # which allows traversal of objects in order to resolve
@@ -108,7 +106,7 @@ class Service:
   def __init__(self,object):
     self.__object = object
 
-  def __dispatch(self,req,method,params):
+  def _dispatch(self,req,method,params):
 
     # Now resolve the path to identify target object.
 
@@ -149,4 +147,4 @@ class Service:
     raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
 
   def __call__(self,req):
-    return serviceRequest(req,self.__dispatch)
+    return serviceRequest(req,self._dispatch)
