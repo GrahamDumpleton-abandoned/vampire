@@ -238,8 +238,8 @@ def _execute(req,object):
   advanced = True
 
   options = req.get_options()
-  if options.has_key("VampireAdvancedForms"):
-    value = options["VampireAdvancedForms"]
+  if options.has_key("VampireStructuredForms"):
+    value = options["VampireStructuredForms"]
     if value in ["Off","off"]:
       advanced = False
 
@@ -354,6 +354,13 @@ def _handler(req):
   if not hasattr(req,"vampire"):
     req.vampire = {}
 
+  # Record in request object which handler is servicing
+  # the request. This can be used by a handler to
+  # accomodate being able to be called as a handler or
+  # publisher type method.
+
+  req.vampire["handler"] = "vampire::handler"
+
   # Translate a request against a directory to a request
   # against a specified index file.
 
@@ -445,13 +452,6 @@ def _handler(req):
 
   _authenticate(req,objects)
 
-  # Record in request object which handler is servicing
-  # the request. This can be used by a handler to
-  # accomodate being able to be called as a handler or
-  # publisher type method.
-
-  req.vampire["handler"] = "vampire::handler"
-
   # Execute the content handler which was found.
 
   result = _execute(req,objects[-1])
@@ -515,6 +515,7 @@ _publisher_rules.update({
   types.DictType:     (False,False,True),
   types.StringType:   (False,False,True),
   types.UnicodeType:  (False,False,True),
+  types.BufferType:   (False,False,True),
   types.BooleanType:  (False,False,True),
   types.IntType:      (False,False,True),
   types.LongType:     (False,False,True),
@@ -540,6 +541,8 @@ def _publisher(req):
 
   if not hasattr(req,"vampire"):
     req.vampire = {}
+
+  req.vampire["handler"] = "vampire::publisher"
 
   # The mod_python.publisher code only allows GET and
   # POST. Don't know why it couldn't permit other types
@@ -659,8 +662,6 @@ def _publisher(req):
     _authenticate(req,objects)
 
     if execute:
-      req.vampire["handler"] = "vampire::publisher"
-
       result = _execute(req,objects[-1])
 
       result_type = type(result)
