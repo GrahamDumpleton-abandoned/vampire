@@ -106,7 +106,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
       # Block anything which fails the filter callback.
 
       if not filter(req,part,object):
-	return (False,False,False,None)
+	return (apache.HTTP_FORBIDDEN,False,False,False,objects)
 
       # Block everything when no such object exists.
 
@@ -114,7 +114,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 	object = getattr(object,part)
 	object_type = type(object)
       except AttributeError:
-	return (False,False,False,None)
+	return (apache.HTTP_NOT_FOUND,False,False,False,objects)
 
       # Extend list of traversed objects in the path.
 
@@ -129,7 +129,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
       if i < (len(parts)-1):
 	if not traverse:
-	  return (False,False,False,None)
+	  return (apache.HTTP_FORBIDDEN,False,False,False,objects)
 
   # Even if the rule says that the last object is
   # potentially executable it doesn't necessarily mean
@@ -145,7 +145,7 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
   access = not traverse and access
 
-  return (traverse,execute,access,objects)
+  return (apache.OK,traverse,execute,access,objects)
 
 
 # Following method determines the set of parameters
@@ -447,15 +447,18 @@ def _handler(req):
   # access.
 
   objects = None
+  status = apache.HTTP_NOT_FOUND
+
   rules = _handler_rules
 
   if module:
     if not hasattr(module,"__handle__") or extn in module.__handle__:
-      traverse,execute,access,objects = _resolve(req,module,[method],rules)
+      status,traverse,execute,access,objects = _resolve(
+          req,module,[method],rules)
 
   # Look for a default handler if no dedicated handler.
 
-  if objects is None:
+  if status != apache.OK:
     options = req.get_options()
     if options.has_key("VampireDefaultHandlers"):
       if options["VampireDefaultHandlers"] in ["On","on"]:
@@ -475,22 +478,20 @@ def _handler(req):
 	      return apache.HTTP_INTERNAL_SERVER_ERROR
 	    module = _import(req,file)
 	    if module:
-	      traverse,execute,access,objects = _resolve(req,
-	          module,[method],rules)
+	      status,traverse,execute,access,objects = _resolve(
+	          req,module,[method],rules)
+
+  # Authenticate all the objects that were traversed
+  # even if we did not find a target handler.
+
+  if objects is not None:
+    _authenticate(req,objects)
 
   # Return control to Apache if we were unable to find
   # an appropriate handler to execute.
 
-  if objects is None:
+  if status != apache.OK:
     return apache.DECLINED
-
-  # Only now authenticate all the objects that had to be
-  # traversed to reach the target handler. By doing it at
-  # this point, we can pass back control to Apache when
-  # we can't handle the request without errornously
-  # triggering any unecessary authentication first.
-
-  _authenticate(req,objects)
 
   # Execute the content handler which was found.
 
@@ -696,14 +697,17 @@ def _publisher(req):
   rules = _publisher_rules
   parts = func_path.split('/')
 
-  traverse,execute,access,objects = _resolve(req,module,parts,rules)
+  status,traverse,execute,access,objects = _resolve(req,module,parts,rules)
+
+  # Authenticate all the objects that were traversed
+  # even if we did not find a target handler.
+
+  _authenticate(req,objects)
 
   # Execute callable object or translate object into
   # response as appropriate.
 
-  if objects is not None:
-
-    _authenticate(req,objects)
+  if status == apache.OK:
 
     if execute:
       result = _execute(req,objects[-1])
@@ -848,21 +852,19 @@ class Handler:
 
     rules = _handler_rules
 
-    traverse,execute,access,objects = _resolve(req,self.__object,parts,rules)
+    status,traverse,execute,access,objects = _resolve(
+        req,self.__object,parts,rules)
+
+    # Authenticate all the objects that were traversed
+    # even if we did not find a target handler.
+
+    _authenticate(req,objects)
 
     # Return control to Apache if we were unable to find
     # an appropriate handler to execute.
 
-    if objects is None:
+    if status != apache.OK:
       return apache.DECLINED
-
-    # Only now authenticate all the objects that had to be
-    # traversed to reach the target handler. By doing it at
-    # this point, we can pass back control to Apache when
-    # we can't handle the request without errornously
-    # triggering any unecessary authentication first.
-
-    _authenticate(req,objects)
 
     # Execute the content handler which was found.
 
@@ -936,14 +938,18 @@ class Publisher:
 
     rules = _publisher_rules
 
-    traverse,execute,access,objects = _resolve(req,self.__object,parts,rules)
+    status,traverse,execute,access,objects = _resolve(
+        req,self.__object,parts,rules)
+
+    # Authenticate all the objects that were traversed
+    # even if we did not find a target handler.
+
+    _authenticate(req,objects)
 
     # Execute callable object or translate object into
     # response as appropriate.
 
-    if objects is not None:
-
-      _authenticate(req,objects)
+    if status == apache.OK:
 
       if execute:
 	req.vampire["handler"] = "vampire::publisher"

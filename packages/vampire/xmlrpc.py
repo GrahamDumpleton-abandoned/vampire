@@ -114,13 +114,14 @@ class Service:
 
     rules = _xmlrpc_rules
 
-    traverse,execute,access,objects = _resolve(req,self.__object,parts,rules)
+    status,traverse,execute,access,objects = _resolve(
+        req,self.__object,parts,rules)
+
+    _authenticate(req,objects)
 
     # Execute callable object if possible.
 
-    if objects is not None:
-
-      _authenticate(req,objects)
+    if status == apache.OK:
 
       if execute:
 	req.vampire["handler"] = "vampire::xmlrpc"

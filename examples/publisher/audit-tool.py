@@ -251,7 +251,8 @@ def browse(req,name="",object="",**kw):
     req.write("</td>\n")
 
     parts = subobject.split('/')
-    traverse,execute,access,subinstance = _resolve(req,root,parts,rules)
+    status,traverse,execute,access,subinstance = _resolve(
+        req,root,parts,rules)
 
     if not traverse and not execute and not access:
       req.write("<td>\n")
