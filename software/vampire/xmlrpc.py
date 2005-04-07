@@ -117,7 +117,9 @@ class Service:
     status,traverse,execute,access,objects = _resolve(
         req,self.__object,parts,rules)
 
-    _authenticate(req,objects)
+    req.vampire["objects"].extend(objects)
+
+    _authenticate(req)
 
     # Execute callable object if possible.
 
