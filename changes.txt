@@ -16,6 +16,21 @@ been made available.
 Changes in Vampire 1.6
 ======================
 
+- Fixed bug in module loading and caching system which could result in
+  deadlock occuring under heavy thread load when imported modules did
+  further subimports.
+
+- The special "__req__" variable which is explicitly defined in the global
+  variables of a module for the life of performing the module import and
+  then removed, is now the full "req" object pertaining to the request
+  which has caused the module import. Previously it was a cut down version
+  of the original request object. Problem is that although is was possible
+  to call "__req__.server.register_cleanup()", it required the full
+  original request object as argument and the cutdown version wasn't good
+  enough. The "__req__" object should not be abused, ie., one shouldn't be
+  doing anything with it during a module import that would affect the
+  actual response being sent.
+
 - In the "Handlers" section of the Vampire configuration, is now possible
   to say "defaults" and refer to a Python code file in which Vampire should
   look for all handlers. A handler specified explicitly in the Vampire

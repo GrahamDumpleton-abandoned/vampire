@@ -144,6 +144,7 @@ class _ModuleCache:
     cache = None
     try:
       cache,reload = self._retrieveModule(name,label,file)
+      cache.lock.acquire()
       if reload:
 	module = imp.new_module(label)
 	module.__file__ = file
@@ -174,8 +175,8 @@ class _ModuleCache:
 	  if log:
 	    msg = "vampire: Importing module '%s'" % file
 	    apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
-	if req != None:
-	  req = _Request(req)
+	#if req != None:
+	#  req = _Request(req)
 	module.__req__ = req
 	try:
 	  execfile(file,module.__dict__)
@@ -217,7 +218,6 @@ class _ModuleCache:
 	mtime = os.path.getmtime(file)
 	cache = _ModuleInfo(name,label,file,mtime)
 	self._cache[label] = cache
-	cache.lock.acquire()
 	return (cache,True)
 
       # Grab entry from cache.
@@ -231,11 +231,9 @@ class _ModuleCache:
 	# We return currently cached module
 	# and avoid a reload. Defunct module
 	# would need to be purged later.
-	cache.lock.acquire()
 	return (cache,False)
       if mtime != cache.mtime:
 	cache.mtime = mtime
-	cache.lock.acquire()
 	return (cache,True)
 
       # Check if children have changed or have
@@ -255,14 +253,12 @@ class _ModuleCache:
 
 	      # Child has been reloaded.
 	      if temp.generation > cache.generation:
-		cache.lock.acquire()
 		return (cache,True)
 
 	      try:
 		mtime = os.path.getmtime(temp.file)
 		# Child has been modified.
 		if mtime != temp.mtime:
-		  cache.lock.acquire()
 		  return (cache,True)
 	      except:
 		# Module must have been removed. Don't
@@ -272,12 +268,10 @@ class _ModuleCache:
 
 	      dependencies.extend(temp.children)
 	    else:
-	      cache.lock.acquire()
 	      return (cache,True)
 
 	    visited[next] = 1
 
-      cache.lock.acquire()
       return (cache,False)
 
     finally:
@@ -286,7 +280,7 @@ class _ModuleCache:
   def _moduleLabel(self,file):
     # The label is used in the __name__ field of
     # the module and then used in determining
-    # child module imports. Thus hasn't to be
+    # child module imports. Thus needs to be
     # unique. We don't really want to use a
     # module name which is a filesystem path.
     # Hope MD5 hex digest is okay.

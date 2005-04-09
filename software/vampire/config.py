@@ -23,14 +23,14 @@ class _Config:
   def __init__(self,config,defaults,req):
     self._config = config
     self._defaults = defaults
-    self._req = req
+    self._options = req.get_options()
 
   def __getattr__(self,name):
     return getattr(self._config,name)
 
   def get(self,section,option,raw=0,vars=None):
     temp = {}
-    temp.update(self._req.get_options())
+    temp.update(self._options)
     if vars: temp.update(vars)
     temp.update(self._defaults)
     return self._config.get(section,option,raw=raw,vars=temp)
@@ -47,7 +47,7 @@ class _Config:
 
     def items(self,section,raw=0,vars=None):
       temp = {}
-      temp.update(self._req.get_options())
+      temp.update(self._options)
       if vars: temp.update(vars)
       temp.update(self._defaults)
       return self._config.items(section,raw=raw,vars=temp)
