@@ -2,6 +2,8 @@
 
 __version__ = "1.6"
 
+from mod_python import apache
+
 from lookup import _handler, _publisher, _select
 from lookup import Handler, Publisher, PathInfo, PathArgs
 
@@ -11,17 +13,24 @@ publisher = _publisher
 # Setup redirections for all handlers except for
 # the PythonHandler directive.
 
-#def postreadrequesthandler(req):
-#  return _select(req,"postreadrequesthandler")
-#
-#def transhandler(req):
-#  return _select(req,"transhandler")
-#
-#def headerparserhandler(req):
-#  return _select(req,"headerparserhandler")
-#
-#def inithandler(req):
-#  return _select(req,"inithandler")
+def connectionhandler(conn):
+  pass
+
+def postreadrequesthandler(req):
+  # return _select(req,"postreadrequesthandler")
+  return apache.OK
+
+def transhandler(req):
+  # return _select(req,"transhandler")
+  return apache.OK
+
+def headerparserhandler(req):
+  # return _select(req,"headerparserhandler")
+  return apache.OK
+
+def inithandler(req):
+  # return _select(req,"inithandler")
+  return apache.OK
 
 def accesshandler(req):
   return _select(req,"accesshandler")
