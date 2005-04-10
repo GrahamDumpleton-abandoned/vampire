@@ -11,10 +11,12 @@ handler = _handler
 publisher = _publisher
 
 # Setup redirections for all handlers except for
-# the PythonHandler directive.
+# the PythonHandler directive. Some are actually
+# redudant and don't do anything. Need them here
+# though to get around "PythonHandlerModule" bug.
 
 def connectionhandler(conn):
-  pass
+  return apache.OK
 
 def postreadrequesthandler(req):
   # return _select(req,"postreadrequesthandler")
