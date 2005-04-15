@@ -130,6 +130,11 @@ Following items are being considered for future version of Vampire.
   handlers, it would also be consulted if the setting for a specific
   error value is not set explicitly.
 
+  If a single handler was required for all errors, then would also be
+  possible to define "errorhandler" without an error number suffix::
+
+    errorhandler = %(__config_root__)s/_error.py
+
   When the error handler is called, it would be called with the "req"
   object passed to the original content handler which generated the error.
   This would be the exact same object. That is, an internal redirect would
@@ -137,13 +142,15 @@ Following items are being considered for future version of Vampire.
   parameters would still be accessible.
 
   The error number would be stored in the "req" object as "req.status"
-  when the error handler is called. If the error handler doesn't have a
-  return value, ie., the default of "None", the original error number is
-  preserved. The original error status will also be preserved if
-  "apache.OK" is returned. If any error number is returned or raised as an
-  exception then it will override the original error status value.
-
+  when the error handler is called. After rendering an appropriate page
+  the error handler would have to return "apache.OK", or as per Vampire
+  convention it could just return "None" or no return value at all. If
+  "apache.DECLINED" were returned, the original error status would be
+  propogated back and Apache would be left to render the error page. If
+  any other error were returned or raised, that would be propogated up
+  and allowed to replace the original error.
+  
   Note that the above wouldn't apply to "vampire::publisher" as it is
   outside of what the original mod_python.publisher was capable of doing.
   If using "vampire.Publisher()" within the context of a standard
-  Vampire content handler, the feature would be available.
+  Vampire content handler, the feature would then be available.
