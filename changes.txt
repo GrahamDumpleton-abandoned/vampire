@@ -59,7 +59,33 @@ Changes in Vampire 1.6
 
     __login__ = %(__config_root__)s/login.py
 
-  See the "examples/session" directory for a working example.
+  A working example can be found in the "examples/session" directory.
+
+- Enhanced implementation dealing with lazy evaluation of form parameters.
+  What this means is that if there is no need to actually decode form
+  parameters then it will not be done. This avoids problems whereby a
+  handler which wasn't interested in the form parameters wants to use a
+  third party templating package that expects to have first go at
+  parsing the form parameters. Ie., a package that doesn't look to see
+  if "req.form" has already been set.
+
+  Note that in order to be compatible with mod_python.publisher, the
+  "vampire::publisher" equivalent doesn't perform lazy evaluation of form
+  parameters but always parses them even if not required. This ensures that
+  code written for mod_python.publisher that expects "req.form" to be set
+  will still work. If you you migrate to using "vampire.Publisher()"
+  however, in that case lazy evaluation will be done.
+
+  If a handler doesn't accept form parameters as arguments, but internal
+  to the handler you want to force form parsing and access the resultant
+  form parameters, you can use::
+
+    args = vampire.processForm(req)
+
+  The result will be a dictionary containing the form parameters. A side
+  effect of this will be that "req.form" will be set. Note that the Vampire
+  extension for structured form parameter naming will be applied unless
+  disabled.
 
 
 Changes in Vampire 1.5

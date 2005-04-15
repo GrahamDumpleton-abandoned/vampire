@@ -4,11 +4,12 @@ __version__ = "1.6"
 
 from mod_python import apache
 
-from lookup import _handler, _publisher, _select
+from lookup import _handler, _publisher, _select, _form
 from lookup import Handler, Publisher, PathInfo, PathArgs
 
 handler = _handler
 publisher = _publisher
+processForm = _form
 
 # Setup redirections for all handlers except for
 # the PythonHandler directive. Some are actually

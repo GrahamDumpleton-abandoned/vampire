@@ -395,50 +395,43 @@ def _params(object):
   return (apache.OK,func_code.co_flags,expected,defaults)
 
 
-# Following executes a callable object. Any form
-# parameters are automatically decoded and as
-# appropriate are passed to the callable object when it
-# is executed. The "req" parameter is always treated
-# specially, with the request object being passed in
-# using that parameter.
+# Following decodes any form parameters if appropriate
+# for type of request method and input content type.
+# Where a target object is supplied or flag indicating
+# if lazy argument evaluation should be done, actual
+# decoding of form parameters will only be done if it
+# is actually required.
 
-def _execute(req,object,lazy=True):
+def _form(req):
 
-  args = {}
+  # Create a working area in request object if it
+  # doesn't exist already.
 
-  # Determine names of parameters expected by callable
-  # object and whether it also supports variable argument
-  # list or keyword argument list.
-
-  status,flags,expected,defaults = _params(object)
-
-  if status != apache.OK:
-    raise apache.SERVER_RETURN, status
+  if not hasattr(req,"vampire"):
+    req.vampire = {}
 
   # Only need to attempt to decode form parameters if
   # they haven't been done before.
 
   if not req.vampire.has_key("parameters"):
 
-    # Decode form parameters if appropriate content type
-    # and callable object specifies parameters other than
-    # that for request object.
+    # Decode form parameters if appropriate content type.
 
-    if not hasattr(req,"form") and (not lazy or \
-	(flags & 0x08) or ((len(expected) > 1) or \
-	(len(expected) == 1 and not "req" in expected))):
+    if not req.headers_in.has_key("content-type"):
+      content_type = "application/x-www-form-urlencoded"
+    else:   
+      content_type = req.headers_in["content-type"]
 
-      if not req.headers_in.has_key("content-type"):
-	content_type = "application/x-www-form-urlencoded"
-      else:   
-	content_type = req.headers_in["content-type"]
+    if content_type == "application/x-www-form-urlencoded" or \
+	content_type[:10] == "multipart/":
 
-      if content_type == "application/x-www-form-urlencoded" or \
-	  content_type[:10] == "multipart/":
+      req.form = util.FieldStorage(req,keep_blank_values=1)
 
-	req.form = util.FieldStorage(req,keep_blank_values=1)
+    # Process raw form parameters.
 
     if hasattr(req,"form"):
+
+      args = {}
 
       # Merge form data into list of possible arguments.
       # Convert the single item lists back into values.
@@ -483,10 +476,43 @@ def _execute(req,object,lazy=True):
       if advanced:
 	args = forms.variable_decode(args)
 
-      req.vampire["parameters"] = dict(args)
+      req.vampire["parameters"] = args
+
+      return dict(args)
 
   else:
-    args.update(req.vampire["parameters"])
+    return dict(req.vampire["parameters"])
+
+  return {}
+
+
+# Following executes a callable object. Any form
+# parameters are automatically decoded and as
+# appropriate are passed to the callable object when it
+# is executed. The "req" parameter is always treated
+# specially, with the request object being passed in
+# using that parameter.
+
+def _execute(req,object,lazy=True):
+
+  # Determine names of parameters expected by callable
+  # object and whether it also supports variable argument
+  # list or keyword argument list.
+
+  status,flags,expected,defaults = _params(object)
+
+  if status != apache.OK:
+    raise apache.SERVER_RETURN, status
+
+  # If callable object requires form parameters to be
+  # supplied or lazy form parsing is disabled, force
+  # parsing of form parameters.
+
+  args = {}
+
+  if (not lazy) or (flags & 0x08) or ((len(expected) > 1) or \
+      (len(expected) == 1 and not "req" in expected)):
+    args = _form(req)
 
   # Add request object set of input form parameters.
 
@@ -1239,7 +1265,7 @@ class Publisher:
       if execute:
 	req.vampire["handler"] = "vampire::publisher"
 
-	result = _execute(req,objects[-1],lazy=False)
+	result = _execute(req,objects[-1],lazy=True)
 
 	return _flush(req,result)
 
