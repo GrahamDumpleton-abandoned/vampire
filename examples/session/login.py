@@ -10,17 +10,15 @@ import os
 _users = { "mickey": "mouse" }
 
 
-# The "__login__()" method is special and overrides for
-# this file the user login authentication mechanism.
-# That is, it replaces use of the basic authentication
-# mechanism with a session based mechanism with login
-# being done through a HTML form. Because it is also
-# referenced by the "__login__" setting in the
-# "Handlers" section of the Vampire configuration it
-# actually then also gets applied to all requests within
-# the directory.
+# The "loginhandler()" method is special and overrides
+# the user login authentication mechanism. That is, it
+# replaces use of the basic authentication mechanism
+# with a session based mechanism with login being done
+# through a HTML form. Note that it is necessary for it
+# to be specified in the Vampire configuration file in
+# order for it to be used.
 
-def __login__(req):
+def loginhandler(req):
 
   # Load the session object.
 
@@ -56,11 +54,12 @@ def __login__(req):
 
 def handler_html(req,event="Login",username=None,password=None):
 
-  # This version of "__login__()" actually overrides
-  # that specified above because it is attached to the
-  # actual handler for the resource being requested.
-  # Its presence therefore ensures that authentication
-  # isn't required to access the login page.
+  # The "__login__()" method overrides the more general
+  # login manager specified by the "loginhandler()"
+  # method above because it is attached to the actual
+  # handler for the resource being requested. Its
+  # presence therefore ensures that authentication isn't
+  # required to access the login page.
 
   def __login__(req):
 

@@ -722,8 +722,8 @@ def _handler(req):
 
 	if req.vampire["defaults"]:
 	  module = req.vampire["defaults"]
-	  if hasattr(module,"__login__"):
-	    req.vampire["__login__"] = getattr(module,"__login__")
+	  if hasattr(module,"loginhandler"):
+	    req.vampire["__login__"] = getattr(module,"loginhandler")
 
 	# Look for explicitly defined default login
 	# handler. These can still be overridden by
@@ -731,15 +731,15 @@ def _handler(req):
 	# which are traversed.
 
 	file = None
-	if config.has_option(section,"__login__"):
-	  file = config.get(section,"__login__")
+	if config.has_option(section,"loginhandler"):
+	  file = config.get(section,"loginhandler")
 	if file != None:
 	  if os.path.splitext(file)[1] != ".py":
 	    return apache.HTTP_INTERNAL_SERVER_ERROR
 	  module = _import(req,file)
 	  if module:
-	    if hasattr(module,"__login__"):
-	      req.vampire["__login__"] = getattr(module,"__login__")
+	    if hasattr(module,"loginhandler"):
+	      req.vampire["__login__"] = getattr(module,"loginhandler")
 
 	# If a specific content handler wasn't already
 	# found for the actual request, see if default

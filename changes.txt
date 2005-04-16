@@ -49,17 +49,18 @@ Changes in Vampire 1.6
 
 - Added means of overriding the basic authentication mechanism and instead
   use an alternative login mechanism such as sessions and form based login.
-  The special method which needs to be defined for this is "__login__()".
-  It may be specified in any scope where authentication hooks for HTTP
-  basic authentication could be specified with the addition that it may
-  also be used in the "Handlers" section of the Vampire configuration to
-  reference a specific Python code file::
+  The handler which needs to be defined for this is "loginhandler()"::
 
     [Handlers]
 
-    __login__ = %(__config_root__)s/login.py
+    loginhandler = %(__config_root__)s/login.py
 
-  A working example can be found in the "examples/session" directory.
+  The "loginhandler()" may also appear in code file specified by "defaults".
+
+  The global handler may be overridden within a specific file, object or
+  function scope by defining a "__login__()" method. This allows the login
+  manager to be disabled completely for the login page itself or other
+  resources where login or session management wouldn't be required.
 
 - Enhanced implementation dealing with lazy evaluation of form parameters.
   What this means is that if there is no need to actually decode form
