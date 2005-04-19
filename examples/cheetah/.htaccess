@@ -24,6 +24,9 @@ PythonDebug On
 # Enable default content handlers.
 PythonOption VampireDefaultHandlers On
 
+# Specify directory index file.
+PythonOption VampireDirectoryIndex index.html
+
 # Block access to configuration file.
 <Files ~ "^\.vampire">
 Order allow,deny
