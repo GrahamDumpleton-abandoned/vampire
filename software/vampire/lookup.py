@@ -686,8 +686,6 @@ def _handler(req):
       status,traverse,execute,access,objects = _resolve(
           req,module,[method],rules)
 
-  req.log_error(str(objects))
-
   # Look for any default handlers.
 
   req.vampire["__login__"] = None
