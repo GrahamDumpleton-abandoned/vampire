@@ -686,6 +686,8 @@ def _handler(req):
       status,traverse,execute,access,objects = _resolve(
           req,module,[method],rules)
 
+  req.log_error(str(objects))
+
   # Look for any default handlers.
 
   req.vampire["__login__"] = None
@@ -755,7 +757,7 @@ def _handler(req):
 
 	  # Now check for an explicitly defined handler.
 
-	  if objects == []:
+	  if len(objects) <= 1:
 	    file = None
 	    if config.has_option(section,method):
 	      file = config.get(section,method)
