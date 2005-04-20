@@ -240,6 +240,57 @@ the equivalent of having set::
   PythonOption VampireHandlersSection Handlers
 
 
+PHP Files In Same Directory
+===========================
+
+When the use of mod_python has been configured using the "SetHandler"
+directive, if a handler declines to service the request and passes it back
+to Apache, Apache will only apply its default handler. This means that if
+the request is for a PHP file, the raw content of that PHP file will be
+returned as the response. That is, the content of the PHP file will not be
+processed through the Apache PHP module.
+
+If using the "SetHandler" directive to enable use of mod_python, but still
+needing to support use of PHP in the same directory, you will need to
+selectively disable use of mod_python for a request with a ".php" extension.
+This can be achieved by using the following Apache configuration::
+
+  <Directory /some/directory>
+    SetHandler python-program
+    PythonHandler vampire
+    <Files *.php>
+    SetHandler None
+    </Files>
+  </Directory>
+
+This technique could also be used if you have a lot of graphics files
+present in a directory and where a mod_python handler isn't actually being
+used to generate them. By avoiding invocation of mod_python you avoid it
+doing any unnecessary processing::
+
+  <Directory /some/directory>
+    SetHandler python-program
+    PythonHandler vampire
+    <Files ~ "\.(php|gif|jpe?g|png)$">
+    SetHandler None
+    </Files>
+  </Directory>
+
+If mod_python is only being used to generate content for certain types of
+resources, instead of using "SetHandler" it is also possible to instead use
+the "AddHandler" directive. Thus, if the only requests which needed to be
+passed through mod_python were those with a ".html" extension, it would be
+possible to use::
+
+  <Directory /some/directory>
+    AddHandler python-program .html
+    PythonHandler vampire
+  </Directory>
+
+Because only ".html" requests are processed by mod_python, any requests for
+PHP files with a ".php" extension will work fine.
+
+
 Enabling Publisher Support
 ==========================
 
@@ -252,6 +303,11 @@ the mod_python.publisher version.
 ::
 
   PythonHandler vampire::publisher
+
+As with the original mod_python.publisher, either the "SetHandler" or
+"AddHandler" directives can be used to enable generation of content for a
+request by mod_python. Either a ".py" extension or no extension at all may
+also be specified as appropriate.
 
 Because Vampire provides an extended mechanism for interpreting form
 parameters, it may be necessary to modify the names of form parameters
