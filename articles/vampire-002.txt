@@ -184,6 +184,62 @@ parameters submitted using the POST method will not survive the internal
 redirect performed by Apache to add the trailing slash to a directory.
 
 
+Enabling Default Handlers
+=========================
+
+For each request, Vampire will look for a content handler to execute to
+generate a response. If it cannot find one, the request is passed back to
+Apache for handling. If Apache finds a physical file matching the requested
+resource, it will then return the raw contents of that file as the response
+to the request.
+
+Normally, each resource where a generated response is required needs to
+have a unique content handler. If however you have many resources where
+the code is the same and only the input differs, then a default handler
+can be used.
+
+Because of the additional overhead involved in checking for a default
+handler, this feature is usually switched off. To enable checks for default
+handlers, the Python option "VampireDefaultHandlers" should be set to "On"::
+
+  PythonOption VampireDefaultHandlers On
+
+With this feature enabled, if a handler specific to a resource cannot be
+found, instead of immediately passing the request back to Apache, an
+additional check is performed to see if a default handler is defined for
+that resource type. The type of resource is determined by looking at any
+extension present in the last part of the URL.
+
+The actual location of any default handlers need to be specified in the
+Vampire configuration file. By default the name of this file would be
+".vampire" and it would be placed into the root directory for which use of
+Vampire is enabled. A typical entry within this file would be::
+
+  [Handlers]
+
+  handler_html = %(__config_root__)s/_handlers.py
+
+This indicates that if a request for a resource arrives where the URL used
+an extension of ".html", and there was not a dedicated content handler for
+the resource, that the "handler_html()" function contained within the
+"_handlers.py" Python code file should be executed to handle the request.
+
+The value reference of "%(__config_root__)s" is special and is replaced
+with the name of the directory where the Vampire configuration file was
+found. This means that absolute pathnames do not have to be encoded into
+the configuration file.
+
+The default name of ".vampire" for the configuration file can be overridden
+by setting the Python option "VampireHandlersConfig". The default name of
+the section within the configuration file which is consulted for the
+location of default handlers can be overridden by setting the Python option
+"VampireHandlersSection". The two default values for these settings are
+the equivalent of having set::
+
+  PythonOption VampireHandlersConfig .vampire
+  PythonOption VampireHandlersSection Handlers
+
+
 Enabling Publisher Support
 ==========================
 
