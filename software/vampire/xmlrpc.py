@@ -56,14 +56,20 @@ def serviceRequest(req,callback):
 _xmlrpc_rules = {}
 
 # For all types defined by Python itself, first mark
-# them as not being able to be traversed, executed, or
-# accessed. Because this is so restrictive, we don't
-# actually need to add special cases for modules etc.
+# them as not being able to be traversed or executed,
+# but allow them to be accessed. Allowing access is a
+# short cut so that the value of a basic data type can
+# be returned without having to wrap access to it in a
+# method. If a basic data type can't be marshalled as
+# XML-RPC data, it will fail at that point.
 
 for t in types.__dict__.values():
   if type(t) is types.TypeType:
-    #_xmlrpc_rules[t] = (False,False,False)
     _xmlrpc_rules[t] = (False,False,True)
+
+# Although module and class types can't be marshalled
+# ensure that no attempt is even made to do so by
+# explicitly blocking access to them.
 
 _xmlrpc_rules.update({
   types.ModuleType: (False,False,False),
@@ -80,9 +86,7 @@ _xmlrpc_rules.update({
 
 # Globally defined functions, builtin functions and
 # methods of a class are executable, but cannot be
-# traversed or accessed. Although builtin functions
-# are executable, it isn't possible to pass request
-# object to them since parameters aren't named.
+# traversed or accessed.
 
 _xmlrpc_rules.update({
   types.FunctionType: (False,True,False),
