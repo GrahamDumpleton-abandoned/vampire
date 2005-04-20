@@ -672,9 +672,7 @@ def _handler(req):
   module = _import(req,file)
 
   # If we have already found a valid module, first check
-  # to see if it provides an appropriate handler. If it
-  # does, only then check try and authenticate actual
-  # access.
+  # to see if it provides an appropriate handler.
 
   objects = []
   status = apache.HTTP_NOT_FOUND
