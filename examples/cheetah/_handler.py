@@ -1,5 +1,6 @@
 from mod_python import apache
 
+import vampire
 import os
 
 
@@ -46,7 +47,7 @@ def handler_html(req):
   # being imported is thrown back to the user. Error
   # also results if by chance the target just vanished.
 
-  module = apache.import_module(module_name,path=[directory])
+  module = vampire.importModule(module_name,directory)
 
   # Ensure that there is a class defined in the module
   # of the appropriate name.
