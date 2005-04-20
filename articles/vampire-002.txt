@@ -255,26 +255,22 @@ needing to support use of PHP in the same directory, you will need to
 selectively disable use of mod_python for a request with a ".php" extension.
 This can be achieved by using the following Apache configuration::
 
-  <Directory /some/directory>
-    SetHandler python-program
-    PythonHandler vampire
-    <Files *.php>
-    SetHandler None
-    </Files>
-  </Directory>
+  SetHandler python-program
+  PythonHandler vampire
+  <Files *.php>
+  SetHandler None
+  </Files>
 
 This technique could also be used if you have a lot of graphics files
 present in a directory and where a mod_python handler isn't actually being
 used to generate them. By avoiding invocation of mod_python you avoid it
 doing any unnecessary processing::
 
-  <Directory /some/directory>
-    SetHandler python-program
-    PythonHandler vampire
-    <Files ~ "\.(php|gif|jpe?g|png)$">
-    SetHandler None
-    </Files>
-  </Directory>
+  SetHandler python-program
+  PythonHandler vampire
+  <Files ~ "\.(php|gif|jpe?g|png)$">
+  SetHandler None
+  </Files>
 
 If mod_python is only being used to generate content for certain types of
 resources, instead of using "SetHandler" it is also possible to instead use
@@ -282,13 +278,24 @@ the "AddHandler" directive. Thus, if the only requests which needed to be
 passed through mod_python were those with a ".html" extension, it would be
 possible to use::
 
-  <Directory /some/directory>
-    AddHandler python-program .html
-    PythonHandler vampire
-  </Directory>
+  AddHandler python-program .html
+  PythonHandler vampire
 
 Because only ".html" requests are processed by mod_python, any requests for
 PHP files with a ".php" extension will work fine.
+
+Note that since not all requests are processed by mod_python, the checks
+that exist in Vampire to prevent access to Python code files will not be
+triggered. Therefore, if using "AddHandler" it is highly recommended to
+block direct access to ".py" and ".pyc" files, as well as other files such
+as configuration files::
+
+  <Files ~ "\.(py|pyc)$">
+  deny from all
+  </Files>
+  <Files .vampire>
+  deny from all
+  </Files>
 
 
 Enabling Publisher Support
