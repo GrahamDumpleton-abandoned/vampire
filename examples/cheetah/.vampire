@@ -24,3 +24,12 @@ handler_html = %(__config_root__)s/_handler.py
 # Handler which blocks access to raw Cheetah files.
 
 handler_tmpl = %(__config_root__)s/_handler.py
+
+[Settings]
+
+# Examples of some user defined settings for use in pages.
+
+images = %(__baseurl_abs__)s/images
+styles = %(__baseurl_abs__)s/styles
+
+mailhost = localhost
