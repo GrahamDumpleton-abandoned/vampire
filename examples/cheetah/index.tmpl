@@ -5,4 +5,17 @@
 Index Page
 #end def
 
-<p>Index Content</p>
+#set $defaults = $req.config.defaults
+#set $baseurl = $defaults["__baseurl_rel__"]
+
+<p><a href="$baseurl/defaults.html">Config Defaults</a></p>
+<p><a href="$baseurl/fields.html">Form Values</a></p>
+
+<h2>Form Samples</h2>
+
+<p><a href="$baseurl/fields.html?a=b">a=b</a></p>
+<p><a href="$baseurl/fields.html?a=b&c=d">a=b&c=d</a></p>
+<p><a href="$baseurl/fields.html?a.b=c&a.b=d">a.b=c&a.b=d</a></p>
+<p><a href="$baseurl/fields.html?a-1=b&a-2=c">a-1=b&a-2=c</a></p>
+<p><a href="$baseurl/fields.html?a.b-1=c&a.b-2=d">a.b-1=c&a.b-2=d</a></p>
+<p><a href="$baseurl/fields.html?a-1.c=d&a-2.e=f">a-1.c=d&a-2.e=f</a></p>

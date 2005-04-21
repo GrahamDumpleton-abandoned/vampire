@@ -23,7 +23,7 @@ import os
 # is okay though. In summary, if you change anything
 # that is a base class, you would need to restart Apache.
 
-def handler(req):
+def handler(req,**fields):
 
   # We only want to treat request as being a possible
   # request for a Cheetah generated template file if
@@ -55,9 +55,37 @@ def handler(req):
   if not hasattr(module,module_name):
     return apache.DECLINED
 
-  # Create instance of the class and setup request object.
+  # Create instance of the class.
 
   tmpl = getattr(module,module_name)()
+
+  # Cache any decoded form parameters in an obvious
+  # place so they are available. Note that the actual
+  # mod_python form object is also cached as "req.form"
+  # but the decoded form parameters would preferably be
+  # used. By default decoded form parameters follow
+  # structured naming convention supported by Vampire.
+  # If this naming convention isn't wanted, it would
+  # need to be disabled in the Apache configuration.
+
+  req.fields = fields
+
+  # Cache the Vampire configuration object in an obvious
+  # place as well. Use the same one as defined the
+  # default handlers which would have triggered use of
+  # this handler in the first place.
+
+  options = req.get_options()
+
+  file = ".vampire"
+  if options.has_key("VampireHandlersConfig"):
+    file = options["VampireHandlersConfig"]
+  config = vampire.loadConfig(req,file)
+
+  req.config = config
+
+  # Make request object available within the template.
+  
   tmpl.req = req
 
   # Set type of content being returned if not set.
