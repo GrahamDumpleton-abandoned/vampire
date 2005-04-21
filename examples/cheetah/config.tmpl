@@ -1,0 +1,35 @@
+#extends _layout
+#implements body
+
+#def title
+Vampire Config
+#end def
+
+#set $config = $req.config
+#set $sections = $config.sections
+#silent $sections.sort()
+#set $raw = $req.fields.get("raw",None)
+
+#for $section in $sections
+<p>
+<h2>$section</h2>
+<table>
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+<tbody>
+#set $fields = $config.options($section)
+#silent $fields.sort()
+#for $field in $fields
+<tr>
+<td>$field</td>
+<td>$config.get($section,$field,raw=$raw)</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>
+#end for
