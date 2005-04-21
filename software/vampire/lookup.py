@@ -117,28 +117,6 @@ def _authenticate_basic(req):
   defaults = req.vampire["defaults"]
   objects = req.vampire["objects"]
 
-  # If authorisation credentials provided, determine if
-  # it is an accepted scheme and if it is then extract
-  # user and passwd.
-
-  user = None
-  passwd = None
-
-  if req.headers_in.has_key("Authorization"):
-    try:
-      header = req.headers_in["Authorization"]
-      scheme,credentials = header.split(" ",1)
-      credentials = credentials.strip()
-
-      scheme = scheme.lower()
-      if scheme == "basic":
-	credentials = base64.decodestring(credentials)
-	user,passwd = string.split(credentials,":",1)
-      else:
-	raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
-    except:
-      raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
-
   # Determine most nested authentication data or hooks.
 
   realm = None
@@ -151,66 +129,94 @@ def _authenticate_basic(req):
   for object in objects:
     realm,auth,access = _access(req,object,realm,auth,access)
 
-  if auth is not None:
+  if auth is not None or access is not None:
 
-    # If realm is not defined, raise a server error.
-    # This is different to mod_python.publisher which
-    # sets the realm to "unknown", but raising an error
-    # seems to be more consistent with how Apache does
-    # authentication.
+    # If authorisation credentials provided, determine if
+    # it is an accepted scheme and if it is then extract
+    # user and passwd.
 
-    if realm is None:
-      raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+    user = None
+    passwd = None
 
-    # User needed if authentication being performed.
+    if req.headers_in.has_key("Authorization"):
+      try:
+	header = req.headers_in["Authorization"]
+	scheme,credentials = header.split(None,1)
+	credentials = credentials.strip()
 
-    if not user:
-      s = 'Basic realm="%s"' % realm
-      req.err_headers_out["WWW-Authenticate"] = s
-      raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+	scheme = scheme.lower()
+	if scheme == "basic":
+	  credentials = base64.decodestring(credentials)
+	  user,passwd = string.split(credentials,":",1)
+	else:
+	  raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
+      except:
+	raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
 
-    # Perform actual authentication checks.
+    # Perform authentication check.
 
-    if callable(auth):
-      result = auth(req,user,passwd)
-    else:
-      if type(auth) is types.DictionaryType:
-	result = auth.has_key(user) and auth[user] == passwd
-      else: 
-	result = auth
+    if auth is not None:
 
-    if not result:
-      s = 'Basic realm="%s"' % realm
-      req.err_headers_out["WWW-Authenticate"] = s
-      raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+      # If realm is not defined, raise a server error.
+      # This is different to mod_python.publisher which
+      # sets the realm to "unknown", but raising an error
+      # seems to be more consistent with how Apache does
+      # authentication.
 
-  if access is not None:
+      if realm is None:
+	raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
-    # Perform actual access checks.
+      # User needed if authentication being performed.
 
-    if callable(access): 
-      result = access(req,user)
-    else:
-      if type(access) in (types.ListType,types.TupleType):
-	result = user in access
-      else:
-	result = access
-
-    # If access check failed, and authentication was
-    # performed with actual user details being checked,
-    # as opposed to any user being allowed, must provide
-    # ability to reauthenticate with a different user
-    # and not just return forbidden. This isn't done
-    # correctly in mod_python.publisher.
-
-    if not result:
-      if auth is not None and (callable(auth) or \
-          type(auth) == types.DictionaryType):
+      if not user:
 	s = 'Basic realm="%s"' % realm
 	req.err_headers_out["WWW-Authenticate"] = s
 	raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+
+      # Perform actual authentication checks.
+
+      if callable(auth):
+	result = auth(req,user,passwd)
       else:
-	raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
+	if type(auth) is types.DictionaryType:
+	  result = auth.has_key(user) and auth[user] == passwd
+	else: 
+	  result = auth
+
+      if not result:
+	s = 'Basic realm="%s"' % realm
+	req.err_headers_out["WWW-Authenticate"] = s
+	raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+
+    # Perform access check.
+
+    if access is not None:
+
+      # Perform actual access checks.
+
+      if callable(access): 
+	result = access(req,user)
+      else:
+	if type(access) in (types.ListType,types.TupleType):
+	  result = user in access
+	else:
+	  result = access
+
+      # If access check failed, and authentication was
+      # performed with actual user details being checked,
+      # as opposed to any user being allowed, must provide
+      # ability to reauthenticate with a different user
+      # and not just return forbidden. This isn't done
+      # correctly in mod_python.publisher.
+
+      if not result:
+	if auth is not None and (callable(auth) or \
+	    type(auth) == types.DictionaryType):
+	  s = 'Basic realm="%s"' % realm
+	  req.err_headers_out["WWW-Authenticate"] = s
+	  raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+	else:
+	  raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
 
 # Determines if an authentication mechanism has been
