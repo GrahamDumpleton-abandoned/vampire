@@ -8,7 +8,7 @@ import vampire
 
 # Default handler.
 
-def handler_html(req,file=".vampire",mode="fill"):
+def handler_html(req,file=".vampire",raw=None):
 
   # Load the page template.
 
@@ -50,10 +50,7 @@ def handler_html(req,file=".vampire",mode="fill"):
 
   def renderConfig(node,key,section):
     node.key.content = key
-    if mode != "raw":
-      node.value.content = config.get(section,key)
-    else:
-      node.value.content = config.get(section,key,raw=1)
+    node.value.content = config.get(section,key,raw=raw)
 
   def renderSection(node,section):
     node.name.content = section
