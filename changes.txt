@@ -20,6 +20,15 @@ Changes in Vampire 1.6
   deadlock occuring under heavy thread load when imported modules did
   further subimports.
 
+- Fixed bug where getting Apache to perform Digest authentication would
+  cause a bad request error to be returned by Vampire. This was caused
+  by Vampire decoding Authorization header even when no authentication
+  or access hooks defined. Now delay decoding Authorization header till
+  point that it has been determined that it needs to actually be done.
+  One can still only use __auth__ and __access__ with Basic authentication
+  but at least now you can have Digest authentication performed by
+  Apache and Vampire will not get in the way.
+
 - The special "__req__" variable which is explicitly defined in the global
   variables of a module for the life of performing the module import and
   then removed, is now the full "req" object pertaining to the request
