@@ -1,8 +1,26 @@
 [Handlers]
 
-# Location of the default content handlers. This is only
-# consulted when the "VampireDefaultHandlers" option is
-# set to "On" using the "PythonOption" setting in the
-# "httpd.conf" or ".htaccess" files.
+# Location of the default content handlers. These are
+# only consulted when the "VampireDefaultHandlers"
+# option is set to "On" using the "PythonOption" setting
+# in the "httpd.conf" or ".htaccess" files.
+
+
+# If you want to use REST style URLs, ie., no actual
+# extension on the request, ensure that setting for
+# "handler" is uncommented.
+
+# handler = %(__config_root__)s/_handler.py
+
+# If you want to use requests with a ".html" extension,
+# ensure that setting for "handler_html" is uncommented.
+# It is recommended that only one of either "handler" or
+# "handler_html" be active at the same time as you would
+# not want both styles of URLs to work as it would be
+# potentially confusing.
 
 handler_html = %(__config_root__)s/_handler.py
+
+# Handler which blocks access to raw Cheetah files.
+
+handler_tmpl = %(__config_root__)s/_handler.py

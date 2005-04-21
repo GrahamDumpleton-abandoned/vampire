@@ -24,8 +24,12 @@ PythonDebug On
 # Enable default content handlers.
 PythonOption VampireDefaultHandlers On
 
-# Specify directory index file.
+# Specify directory index file.Which you use depends
+# on whether using ".html" extension in requests or
+# REST style URLs. Which is dictated by settings in
+# the Vampire configuration file.
 PythonOption VampireDirectoryIndex index.html
+#PythonOption VampireDirectoryIndex index
 
 # Block access to configuration file.
 <Files ~ "^\.vampire">
@@ -35,6 +39,11 @@ deny from all
 
 # Block access to any default handlers.
 <Files _*>
+deny from all
+</Files>
+
+# Block access to raw Cheetah template files.
+<Files *.tmpl>
 deny from all
 </Files>
 

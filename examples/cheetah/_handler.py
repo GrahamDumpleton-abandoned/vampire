@@ -23,7 +23,7 @@ import os
 # is okay though. In summary, if you change anything
 # that is a base class, you would need to restart Apache.
 
-def handler_html(req):
+def handler(req):
 
   # We only want to treat request as being a possible
   # request for a Cheetah generated template file if
@@ -60,9 +60,13 @@ def handler_html(req):
   tmpl = getattr(module,module_name)()
   tmpl.req = req
 
+  # Set type of content being returned if not set.
+
+  if not req._content_type_set:
+    req.content_type = "text/html"
+
   # Now generate the actual content and return it.
 
-  req.content_type = "text/html"
   req.send_http_header()
 
   req.write(tmpl.respond())
@@ -70,9 +74,18 @@ def handler_html(req):
   return apache.OK
 
 
-# Default handler for raw Cheetah files.
+# Also link handler to that for ".html" requests. Which
+# is used and thus whether REST style URLs are used or
+# requests with a ".html" extension is dictated by how
+# settings are defined in the Vampire configuration
+# file.
 
-def handler_psp(req):
+handler_html = handler
+
+
+# Block access to raw Cheetah files.
+
+def handler_tmpl(req):
   if os.path.exists(req.filename):
     return apache.HTTP_NOT_FOUND
   return apache.DECLINED
