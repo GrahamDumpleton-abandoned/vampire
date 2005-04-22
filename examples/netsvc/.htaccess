@@ -1,0 +1,14 @@
+SetHandler python-program
+PythonHandler vampire
+
+PythonLogHandler vampire::loghandler
+
+# Block access to any special handlers.
+<Files _*>
+deny from all
+</Files>
+
+# Block access to database.
+<Files test.>
+deny from all
+</Files>

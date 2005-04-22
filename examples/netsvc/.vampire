@@ -1,0 +1,10 @@
+[Exchange]
+
+host = localhost
+port = 11111
+delay = 10.0
+
+[Handlers]
+
+accesshandler = %(__config_root__)s/_logger.py
+loghandler = %(__config_root__)s/_logger.py
