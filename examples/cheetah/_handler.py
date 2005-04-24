@@ -8,20 +8,33 @@ import os
 # "tmpl" files have been compiled manually using
 # "cheetah-compile". It does not invoke compilation.
 #
-# Also note that since Cheetah compiles in all the
-# import statements explicitly, there doesn't seem to be
-# any way to have it use the Vampire import mechanism
-# instead when extending another Cheetah class. You thus
-# cannot benefit from all the automatic reloading
-# mechanisms that the Vampire import mechanism provides.
-# All this also means that you should never define the
-# PythonPath directive so as to fix it to "sys.path" as
-# is recommended when using Vampire if you want to
-# extend from Python classes stored in the document
-# tree. This is because none of the Python style imports
-# will then work. The auto reloading of pages themselves
-# is okay though. In summary, if you change anything
-# that is a base class, you would need to restart Apache.
+# For correct operation of the Vampire mechanism for
+# automatic reloading of modified modules, the Apache
+# configuration file options:
+#
+#   PythonPath 'sys.path'
+#   PythonOption VampireImportHooks On
+#
+# should be specified. This will ensure that base
+# templates which are extended and then modified,
+# will correctly result in derived templates being
+# reloaded.
+#
+# By default this will only work where the base template
+# was in the same directory as the derived. If located
+# elsewhere, the Vampire configuration file should be
+# updated to specify where base templates are stored by
+# setting the "path" setting within the "Modules"
+# section of configuration. For example:
+#
+#  [Modules]
+#
+#    layouts = %(__config_root__)s/layouts
+#
+#    path = %(layouts)s
+#
+# If multiple search directories are specified, they
+# should be separated by ":".
 
 def handler(req,**fields):
 
