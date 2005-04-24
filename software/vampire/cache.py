@@ -10,6 +10,11 @@ import string
 import types
 import sys
 
+import config 
+
+_configCache = config.ConfigCache()
+
+
 try:
   from threading import Lock
 except:
@@ -298,3 +303,80 @@ def ModuleCache():
 
 def importModule(name,path,req=None):
   return _moduleCache.importModule(name,path,req)
+
+
+# Following replaces the standard Python __import__ hook
+# with one which has some knowledge of Vampire and its
+# module importing system. When "import" is used from a
+# module which has been imported using the Vampire
+# module importing system, a check will be made to see
+# if the requested module resides in the same directory
+# as the parent or in Vampires module path. If it is,
+# the Vampire module importing system will be used to
+# import it instead of the standard Python import system.
+
+import __builtin__
+
+__oldimport__ = None
+
+def _search(name,path,req):
+  for directory in path:
+    target = os.path.join(directory,name) + ".py"
+    if os.path.exists(target):
+      return importModule(name,directory,req)
+
+def _import(name,globals=None,locals=None,fromlist=None):
+  module = None
+
+  # Only consider using Vampire import mechanism
+  # if request object is present as "__req__" and
+  # use of import hooks has been enabled.
+
+  if globals and globals.has_key("__req__"):
+    req = globals["__req__"]
+    options = req.get_options()
+    if options.has_key("VampireImportHooks"):
+      if options["VampireImportHooks"] in ["On","on"]:
+
+	# Check directory in which parent is located.
+
+	directory = os.path.split(globals["__file__"])[0]
+	module = _search(name,[directory],req)
+
+	# If not in the parents own directory, check
+	# along the Vampire module search path.
+
+	if not module:
+	  file = ".vampire"
+	  if options.has_key("VampireHandlersConfig"):
+	    file = options["VampireHandlersConfig"]
+	  config = _configCache.loadConfig(req,file)
+	  section = "Modules"
+	  if options.has_key("VampireModulesSection"):
+	    section = options["VampireModulesSection"]
+	  path = None
+	  if config.has_option(section,"path"):
+	    path = config.get(section,"path").split(':')
+	  if path:
+	    module = _search(name,path,req)
+
+    # If "from list" is specified, need to explicitly put
+    # a reference to the module in the parent so that the
+    # autoreloading mechanisms of Vampire actually works.
+
+    if module and fromlist:
+      globals[module.__name__] = module
+
+  # Default to standard Python import mechanism.
+
+  if not module:
+    return __oldimport__(name,globals,locals,fromlist)
+
+  return module
+
+
+# Substitute standard Python import mechamism.
+
+if type(__builtin__.__import__) == types.BuiltinFunctionType:
+  __oldimport__ = __builtin__.__import__
+  __builtin__.__import__ = _import

@@ -1,3 +1,12 @@
+[Modules]
+
+# Where modules will be searched for if module can't be
+# found in same directory as parent. If still can't be
+# found, default to using standard Python import
+# mechanism.
+
+path = %(__config_root__)s
+
 [Handlers]
 
 # Location of the default content handlers. These are

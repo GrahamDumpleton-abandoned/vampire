@@ -47,7 +47,7 @@ def handler(req,**fields):
   # being imported is thrown back to the user. Error
   # also results if by chance the target just vanished.
 
-  module = vampire.importModule(module_name,directory)
+  module = vampire.importModule(module_name,directory,req)
 
   # Ensure that there is a class defined in the module
   # of the appropriate name.

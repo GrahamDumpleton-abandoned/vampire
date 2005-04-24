@@ -7,11 +7,85 @@ Changes
 Following details changes made in various versions of Vampire which have
 been made available.
 
-.. ::
-    The current officially released version of Vampire is 1.6. Features
-    described here for Vampire 1.7 are only available by checking out
-    the development copy of the source code from the Vampire source code
-    repository directly.
+.. warning ::
+  The current officially released version of Vampire is 1.6. Features
+  described here for Vampire 1.7 are only available by checking out
+  the development copy of the source code from the Vampire source code
+  repository directly.
+
+
+Changes in Vampire 1.7
+======================
+
+- Added mechanism whereby Python import mechanism is partly overridden
+  such that although the standard Python "import" statement is used, under
+  the covers, the Vampire import mechanism is used to load a module.
+
+  The consequences of this are that module imports at global scope in a
+  module containing a handler, instead of being written as::
+
+    import os
+    import vampire
+    directory = os.path.split(__file__)[0]
+    mymodule = vampire.importModule("mymodule",directory,__req__)
+
+  can be written in more traditional form of::
+
+    import mymodule
+
+  Because the Vampire import mechanism is actually being used, a change in
+  the imported module will automatically result in the handler module being
+  reimported as necessary when a request arrives, even though the handler
+  module itself wasn't changed.
+
+  To enable this feature it is necessary to enable it within the Apache
+  configuration by using the "PythonOption" directive to set the
+  "VampireImportHooks" option to "On"::
+
+    PythonOption VampireImportHooks On
+
+  By default, only the directory the handler module is contained within
+  will be searched for the target module. If the target module is found,
+  then "vampire.importModule()" will be used to load it. If the target
+  module cannot be found, the standard Python import mechanism will be used
+  which would result in a search within directories defined by "sys.path".
+
+  Additional directories to search before falling back to using the
+  standard Python import mechanism, can be specified using the Vampire
+  configuration file. This should be done by specifying a "path" setting
+  within the "Modules" section::
+
+    [Modules]
+
+    modules = %(__config_root__)s/modules
+    layouts = %(__config_root__)s/layouts
+
+    path = %(modules)s:%(layouts)s
+
+  Multiple directories to search should be seperated by ":". The string
+  interpolation feature of the configuration file can be used to refer to
+  other value settings within the same section.
+
+  Note that the above mechanism will not currently come into play for
+  imports which are done within an executing handler, only those defined at
+  global scope. Explicit calls to "vampire.importModule()" would still need
+  to be used within a executing handler.
+
+  The above mechanism should be used if using Cheetah templates and
+  automatic reloading of top level templates is required when only the
+  template they extend has been changed. This is because Cheetah explicitly
+  compiles into code the use of "import" and it cannot be replaced with
+  calls to "vampire.importModule()".
+
+  If this feature is used, it is highly recommended that "sys.path" be fixed
+  so as not to include any directories with the document tree. This can
+  be done by using::
+
+    PythonPath 'sys.path'
+
+  in the Apache configuration for the top level directory where the Python
+  handlers for mod_python are setup.
+
 
 Changes in Vampire 1.6
 ======================

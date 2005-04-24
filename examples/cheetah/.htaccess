@@ -19,7 +19,11 @@ PythonHandler vampire
 PythonDebug On
 
 # Stop the directory being added to path.
-#PythonPath 'sys.path'
+PythonPath 'sys.path'
+
+# Enable mapping "import" to Vampire module loading
+# and caching mechanism where it can be used.
+PythonOption VampireImportHooks On
 
 # Enable default content handlers.
 PythonOption VampireDefaultHandlers On
