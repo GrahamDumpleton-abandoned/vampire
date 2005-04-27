@@ -58,9 +58,9 @@ Changes in Vampire 1.7
     [Modules]
 
     modules = %(__config_root__)s/modules
-    layouts = %(__config_root__)s/layouts
+    templates = %(__config_root__)s/templates
 
-    path = %(modules)s:%(layouts)s
+    path = %(modules)s:%(templates)s
 
   Multiple directories to search should be seperated by ":". The string
   interpolation feature of the configuration file can be used to refer to

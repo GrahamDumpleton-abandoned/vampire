@@ -4,7 +4,7 @@ Apache Configuration Files
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 20/04/2005
+:Updated: 27/04/2005
 
 .. contents:: 
 
@@ -87,45 +87,6 @@ and the general operation of Vampire may also be affected.
 
 After having made any changes to the main server configuration files you
 must restart Apache, otherwise the changes will not be picked up.
-
-
-Fixing Of The Python Path
-=========================
-
-When the "PythonHandler" directive is specified for a directory, mod_python
-will add that directory to the beginning of the Python module search path.
-This can be problematic because it means that if you choose a name for a
-resource which matches that of a standard Python module, any code which
-attempts to import the standard module may incorrectly pick up the Python
-code file corresponding to your resource.
-
-Because Vampire implements its own module loading system which doesn't rely
-on "__import__" or on "sys.path", it is highly recommended that the
-modification of the Python module search path to include the directory
-where "PythonHandler" was applied be disabled. This can be done by using
-the "PythonPath" directive to fix the path to the current value of the
-Python module search path.
-
-::
-
-  PythonPath 'sys.path'
-
-Note that once this is set for a directory, this fixed path is inherited by
-any subdirectories, even those which may set "PythonHandler" to make use of
-some extension for mod_python other than Vampire and even if defined in the
-scope of a different interpreter. As other systems may depend on the
-directory where the "PythonHandler" directive is applied being added to the
-path, you should avoid if possible nesting use of different mod_python
-extensions within each other.
-
-You may also find that fixing the path cannot be done when using certain
-third party templating systems in conjunction with Vampire. This is the
-case with the Cheetah templating system, where it generates code which uses
-the Python "import" statement that cannot be substituted with alternate
-code that makes use of the Vampire module importing mechanism. This fact
-means that one also can't benefit in this case from the ability of the
-Vampire module importing mechanism to automatically reload modules when the
-code is changed.
 
 
 Default Directory Index
@@ -238,6 +199,98 @@ the equivalent of having set::
 
   PythonOption VampireHandlersConfig .vampire
   PythonOption VampireHandlersSection Handlers
+
+
+Python Module Search Path
+=========================
+
+When the "PythonHandler" directive is specified for a directory, mod_python
+will add that directory to the beginning of the Python module search path.
+This can be problematic because it means that if you choose a name for a
+resource which matches that of a standard Python module, any code which
+attempts to import the standard module may incorrectly pick up the Python
+code file corresponding to your resource.
+
+Because Vampire implements its own module loading system which doesn't rely
+on the standard Python "__import__" function or on "sys.path", it is highly
+recommended that the modification of the Python module search path to
+include the directory where "PythonHandler" was applied be disabled. This
+can be done by using the "PythonPath" directive to fix the path to the
+current value of the Python module search path.
+
+::
+
+  PythonPath 'sys.path'
+
+Note that once this is set for a directory, this fixed path is inherited by
+any subdirectories, even those which may set "PythonHandler" again. Thus
+once set, it cannot be changed within a subdirectory even if within the
+context of a different Python interpreter.
+
+Because some third party packages are dependent on being able to use the
+standard Python "import" statement and cannot be made to use the Vampire
+module loading system directly, fixing the path in this way may cause
+such a package to fail. This is the case where the Cheetah_ templates
+package is being used in conjunction with Vampire.
+
+To counter this, Vampire can optionally install an import hook which will
+cause the Python "import" statement to make use of the Vampire module
+loading system under certain circumstances. To enable this feature, it is
+necessary to set the Python option "VampireImportHooks" to "On".
+
+::
+
+  PythonOption VampireImportHooks On
+
+The Vampire module loading system will be triggered for the "import"
+statement if the request to import the module is performed at global scope
+from a module which was previously imported using the Vampire module
+loading system, and the module to be imported is located in the same
+directory as the code file in which the "import" statement is contained.
+
+If the desired module is not in the same directory, a search of directories
+specified by "sys.path" will be done, however the the standard Python
+import system and not the Vampire module loading system will still be used
+to load the module.
+
+Where additional modules which form a part of the web application are
+contained in a separate directory, Vampire can be configured to search
+those additional directories in addition to the directory the original code
+file is located in. The list of directories to search needs to be defined
+within the "Modules" section of the Vampire configuration file. The name of
+the variable to set is "path".
+
+::
+
+  [Modules]
+
+  modules = %(__config_root__)s/modules
+  templates = %(__config_root__)s/templates
+
+  path = %(modules)s:%(templates)s
+
+If multiple directories are specified, they must be separated by a ":".
+Using the string interpolation feature of the configuration file, other
+variables defined in that section of the configuration file can be
+referenced, as can the default variables.
+
+The default name of the configuration file which is consulted in relation
+to this specific feature can be overridden by setting the Python option
+"VampireModulesConfig". The default name of the section within the
+configuration file which is consulted for the module search path can be
+overridden by setting the Python option "VampireModulesSection". The two
+default values for these settings are the equivalent of having set::
+
+  PythonOption VampireModulesConfig .vampire
+  PythonOption VampireModulesSection Modules
+
+Note that the list of directories should not include any directories which
+also appear in the standard Python module search path as defined by
+"sys.path". The mechanism will also not work where a module is actually a
+package. Any application specific modules should therefore not be
+structured as packages.
+
+.. _Cheetah: http://www.cheetahtemplate.org/
 
 
 PHP Files In Same Directory
