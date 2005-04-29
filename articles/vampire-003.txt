@@ -1,0 +1,179 @@
+==========================
+Processing Form Parameters
+==========================
+
+:Author: Graham Dumpleton
+:Contact: grahamd@dscpl.com.au
+:Updated: 29/04/2005
+
+.. contents::
+
+
+This article details the support Vampire provides to assist in processing
+HTML form parameters.
+
+
+Content Handler Arguments
+=========================
+
+A traditional content handler in mod_python must accept a single argument.
+The name of the argument is not important but by convention is usually
+named "req". The argument will be passed the mod_python request object.
+It is by using the request object that a handler is able to deliver a
+response back to the client which generated the original request. If a
+request provides form parameters, the handler would need to use the
+"FieldStorage" class supplied with mod_python to process the request object
+and obtain the form parameter values.
+
+::
+
+  from mod_python import apache
+  from mod_python import util
+
+  def handler(req):
+    form = util.FieldStorage(req,keep_blank_values=1)
+    user = form.get("user",None)
+    req.content_type = "text/plain"
+    req.send_http_header()
+    req.write("user=%s\n"%user)
+    return apache.OK
+
+In Vampire, the manner in which arguments are defined and used in content
+handlers is not the same as traditional content handlers. Instead, it is
+more akin to how arguments are used in published functions when using
+mod_python.publisher. That is, the argument which accepts the request
+object must be called "req". Further, where a request is providing form
+parameters, the form parameters will be automatically decoded and passed
+through an argument of the same name.
+
+::
+
+  from mod_python import apache
+  from mod_python import util
+
+  def handler(req,user=None):
+    req.content_type = "text/plain"
+    req.send_http_header()
+    req.write("user=%s\n"%user)
+    return apache.OK
+
+Where there can exist multiple form parameters, the handler would define an
+argument corresponding to each. The order of the arguments is not
+important. It is not even necessary that the "req" argument be the first
+argument, although it is recommended. If it is necessary to catch all form
+parameters, including any aren't expected, a keyword argument list argument
+can be specified.
+
+::
+
+  from mod_python import apache
+  from mod_python import util
+
+  def handler(req,user=None,passwd=None,**params):
+    req.content_type = "text/plain"
+    req.send_http_header()
+    req.write("user=%s\n"%user)
+    req.write("passwd=%s\n"%passwd)
+    for name in params.keys():
+      req.write("%s=%s\n"%(name,params[name]))
+    return apache.OK
+
+Although the treatment of arguments and automatic processing of form
+parameters is the same as if using mod_python.publisher, the code within
+the body of the content handler still needs to be written as for a
+traditional content handler.
+
+The only difference is that where with a traditional content handler
+"apache.OK" must be returned to indicate the handler was successful, in
+Vampire this is optional and returning of "None" or no explicit return
+value has the same effect. In a traditional content handler, if you allow
+"None" to be returned implicitly or explicitly, mod_python will raise a
+HTTP internal server error as a response.
+
+
+Structured Form Parameters
+==========================
+
+Traditionally, the value of any form parameter is usually a single string
+value. The one exception to this is where the same form parameter name may
+be repeated more than once in the input. In this case, the value will be a
+list, where each successive element in the list is the value to which the
+form parameter was set each time it appeared in the input.
+
+::
+
+  /form?name=value --> name="value"
+  /form?name=value1&name=value2 --> name=["value1","value2"]
+
+Vampire expands on this by interpreting the names of form parameters in a
+special way. If form parameter names following certain conventions, it is
+possible to have related form parameters be aggregated together
+automatically into lists and dictionaries or even a combination of the two.
+The special characters which are used to denote structure are '-' and '.'.
+These are used in indicating that form parameters should be aggregated as
+lists and dictionaries respectively.
+
+To indicate that form parameters should be aggregated together as a list,
+they should each be named with the same prefix and then each should in turn
+be suffixed by '-' and an integer indicating its relative position in the
+list to other values.
+
+::
+
+  /form?name-1=value1&name-2=value2 --> name=["value1","value2"]
+  /form?name-1=value1&name-3=value3 --> name=["value1","value3"]
+
+The result here is not the same as a repeated form parameter, because when
+there is only one such named form parameter, it will still yield a list. A
+repeating form parameter of the same name, even in this form, will still
+result in a list being created just for that element in the list.
+
+::
+
+  /form?name-1=value1 --> name=["value1"]
+  /form?name-1=value1&name-1=value2 --> name=[["value1","value2"]]
+
+To indicate that form parameters should be aggregated together in the form
+of a dictionary, they should each be named with the same prefix and then
+each should in turn be suffixed by '.' and the label for the element within
+the dictionary.
+
+::
+
+  /form?name.key1=value1&name.key2=value2 --> name={'key2':'value2','key1':'value1'}
+
+A repeating form parameter of the same name, will again result in a list
+being created just for that element in the dictionary.
+
+::
+
+  /form?name.key1=value1 --> name={'key1':'value1'}
+  /form?name.key1=value1&name.key1=value2 --> name={'key1':['value1','value2']}
+
+The two different naming conventions for the construction of lists and
+dictionaries may be combined, making it possible to create more or less
+arbitrarily structured data values.
+
+::
+
+  /form?name.key-1=value1 --> name={'key':['value1']}
+  /form?name-1.key=value1 --> name=[{'key': 'value1'}]
+
+Because Vampire performs this special interpretation of form parameter
+names, if porting code from a different system, it may be necessary to
+modify the names of form parameters where they are interpreted in
+unexpected ways. Alternatively, the special interpretation of form
+parameter names can be disabled. This can be done by setting the
+"VampireStructuredForms" option to "Off".
+
+::
+
+  PythonOption VampireStructuredForms Off
+
+Note that although Vampire provides the means for processing a request
+and turning them into arbitrarily structured data values, no means of
+performing data validation is provided by Vampire. You will need to provide
+your own mechanisms for data validation or use a third party module such as
+FunFormKit_.
+
+.. _FunFormKit: http://funformkit.sourceforge.net/
