@@ -254,8 +254,9 @@ to the request object, you can use::
   params = vampire.processForm(req)
 
 The dictionary returned will be the same as what would have been passed to
-the content handler if the only arguments it specified were that for the
-request object and the keyword argument list parameter.
+the content handler through the keyword argument list parameter, if the
+only arguments it specified were that for the request object and the
+keyword argument list parameter.
 
 If processing of form parameters hadn't yet been performed at that point,
 it will be performed at that time and will have the side effect of setting
