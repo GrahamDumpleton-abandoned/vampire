@@ -225,4 +225,48 @@ which triggered an internal redirection to another handler which did then
 make use of the ability to specify form parameters as arguments to the
 handler.
 
+Note that "vampire::publisher" performs the same as mod_python.publisher
+and will always process a request object for form parameters. Thus it has
+the same limitation as mod_python.publisher in respect of internal
+redirects and use of third party templating systems. If you still wish to
+model handlers as published functions, but need to avoid these limitations,
+you will need to convert your code so as to use the "vampire.Publisher()"
+handler object instead. This will work because like content handlers,
+"vampire.Publisher()" will only trigger processing of form parameters if it
+is actually needed.
 
+
+Accessing The Form Object
+=========================
+
+When the request object is processed for form parameters, the resulting
+instance of the "util.FieldStorage" class is stored in the request object
+as the "form" attribute. This is compatible with where mod_python.publisher
+also caches the form object. If however it were the case that a content
+handler didn't define any arguments so as to cause processing of form
+parameters in the first place, then the form object will not have been
+created and the "form" attribute will therefore not exist.
+
+If you wish to access the full set of input form parameters from within a
+handler, or any function called from the handler, provided you have access
+to the request object, you can use::
+
+  params = vampire.processForm(req)
+
+The dictionary returned will be the same as what would have been passed to
+the content handler if the only arguments it specified were that for the
+request object and the keyword argument list parameter.
+
+If processing of form parameters hadn't yet been performed at that point,
+it will be performed at that time and will have the side effect of setting
+the "form" attribute of the request object to the form object.
+
+If prior to the call you had created your own instance of the
+"util.FieldStorage", provided that you had stored it in the request object
+as the "form" attribute, your instance of the form object will be used as
+the basis of calculating the set of form parameters and a new one will
+not be created.
+
+The full set of form parameters will be cached within the request object in
+a hidden field, thus calling "vampire.processForm()" multiple times will
+still be efficient as it will return the cached set of form parameters.
