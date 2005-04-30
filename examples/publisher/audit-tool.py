@@ -66,6 +66,9 @@ type_none = None
 # StringType: Accessible.
 type_string = "1"
 
+# StringType: Accessible.
+type_string_html = "<html<p>1</p></html>"
+
 # TupleType: Accessible.
 type_tuple = (1,)
 

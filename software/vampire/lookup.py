@@ -551,19 +551,20 @@ def _flush(req,result):
   else:
     result = ""
 
-  # The same type of check for HTML is used here as is
-  # used in the mod_python.publisher module. This is not
-  # the most reliable of checks that could be made as
-  # modern HTML which follows some sort of standard will
-  # not begin with "<html>". Thus end up having to fall
-  # back to searching the whole text for "</". This will
-  # work for HTML, but may also cause false positives
-  # in plain text where somewhere in the content that
-  # strings appears somewhere.
+  # Use a different check here than mod_python.publisher
+  # for guessing if content is HTML. Instead of looking
+  # from the start of the content, work backwards looking
+  # for the closing 'html' element. This avoids problems
+  # with all the lead in XML and DOCTYPE declarations
+  # moving the 'html' element too deep into the content
+  # to be detected and avoids the inefficient search
+  # for any closing element. This check works on the basis
+  # that in a valid HTML file there shouldn't be anything
+  # following the closing of the 'html' element.
 
   if not req._content_type_set:
-    if string.lower(string.strip(result[:100])[:6]) == '<html>' \
-	or string.find(result,'</') > 0:
+    tail = string.lower(string.strip(result[-100:]))
+    if tail.find('</html') > 0:
       req.content_type = 'text/html'
     else:
       req.content_type = 'text/plain'
