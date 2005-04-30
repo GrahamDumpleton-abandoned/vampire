@@ -61,8 +61,8 @@ Where there can exist multiple form parameters, the handler would define an
 argument corresponding to each. The order of the arguments is not
 important. It is not even necessary that the "req" argument be the first
 argument, although it is recommended. If it is necessary to catch all form
-parameters, including any aren't expected, a keyword argument list argument
-can be specified.
+parameters, including any which weren't expected, a keyword argument list
+argument can be specified.
 
 ::
 
@@ -116,7 +116,7 @@ lists and dictionaries respectively.
 To indicate that form parameters should be aggregated together as a list,
 they should each be named with the same prefix and then each should in turn
 be suffixed by '-' and an integer indicating its relative position in the
-list to other values.
+list in respect to other values.
 
 ::
 
@@ -170,6 +170,12 @@ parameter names can be disabled. This can be done by setting the
 
   PythonOption VampireStructuredForms Off
 
+Although "vampire::publisher" is intended as a drop in replacement for
+mod_python.publisher, it too by default supports this mechanism for
+structured data in form values. As such, all the above applies to
+"vampire::publisher", including the need to turn the feature off if so
+desired.
+
 Note that although Vampire provides the means for processing a request
 and turning them into arbitrarily structured data values, no means of
 performing data validation is provided by Vampire. You will need to provide
@@ -177,3 +183,46 @@ your own mechanisms for data validation or use a third party module such as
 FunFormKit_.
 
 .. _FunFormKit: http://funformkit.sourceforge.net/
+
+
+Lazy Evaluation Of Forms
+========================
+
+When one is using mod_python.publisher, a request will always be processed
+for form parameters. This causes a few problems and limits what you can use
+mod_python.publisher for. Specifically, a published function can not be
+used to process POST requests where the incoming content does not describe
+a HTML form. You could not for example implement an XML-RPC service using
+mod_python.publisher.
+
+In addition to this limitation, if a published function performs an internal
+redirect and form parameters are supplied in a POST request, the form
+parameters will not be available to the target of the redirection. This is
+because the request content will have been consumed by the initial processing
+of the request to obtain the form parameters. It isn't possible for the
+target of the redirection to read the content of the request a second time.
+
+A similar problem to that arising from redirection is where a templating
+system is used where the templating system expects to be able to do its own
+processing of the form parameters. This is the case with mod_python.psp and
+as such, you cannot from a published function create PSP template objects
+explicitly and still expect to be able to use POST requests for providing
+form parameters.
+
+To avoid all these problems, when using Vampire content handlers a request
+object will only be processed for form parameters when it is determined
+there is actually a need to do so. That is, no processing will be done if
+the content handler doesn't define any arguments through which form
+parameters could be passed. In the case of a POST request, processing of
+form parameters will also not be performed if the type of content provided
+doesn't actually equate to a HTML form.
+
+This means that provided that the only argument which is defined is that
+for the "req" object, you can still implement handlers where the handler
+takes responsibility for consuming and processing the actual content
+contained in the request. It would also be possible to define a handler
+which triggered an internal redirection to another handler which did then
+make use of the ability to specify form parameters as arguments to the
+handler.
+
+
