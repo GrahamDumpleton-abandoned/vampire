@@ -13,7 +13,12 @@ Articles
 `Apache Configuration Files`_
   Provides instructions on how to configure Apache to make use of Vampire.
 
+`Processing Form Parameters`_
+  Provides details on support in Vampire to assist in processing HTML
+  forms.
+
 
 .. _Getting MOD_PYTHON Working: articles/modpython-001.html
 .. _Quick Overview of Vampire: articles/vampire-001.html
 .. _Apache Configuration Files: articles/vampire-002.html
+.. _Processing Form Parameters: articles/vampire-003.html

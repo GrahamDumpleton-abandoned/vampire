@@ -68,6 +68,15 @@ Following items are being considered for future version of Vampire.
   methods such as "PUT" and "DELETE", thereby lifting the restriction that
   only "GET" and "POST" can be handled.
 
+- Investigate whether to add support for "HEAD" in "vampire::publisher".
+  This would only work for case where a published function wasn't
+  explicitly writing to the request object itself, in which case it should
+  be checking for a "HEAD" request itself. Generally the purpose of using
+  "HEAD" is to see if a document has changed since last request, but
+  where content is dynamically generated everytime, does this even make
+  any sense as content will not have a last modified time like a file
+  would.
+
 - Investigate how an option can be provided to turn off automatic module
   reloading for the Vampire module loading and caching system.
 
