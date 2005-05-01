@@ -569,6 +569,8 @@ def _execute(req,object,lazy=True):
 # which is returned by a method does not result in a 500
 # error, instead an empty page would be returned.
 
+re_html = re.compile(r"</html\s*>\s*$",re.I)
+
 def _flush(req,result):
 
   if result is not None:
@@ -588,8 +590,7 @@ def _flush(req,result):
   # following the closing of the 'html' element.
 
   if not req._content_type_set:
-    tail = string.lower(string.strip(result[-100:]))
-    if tail.find('</html') > 0:
+    if re_html.search(result,len(result)-100):
       req.content_type = 'text/html'
     else:
       req.content_type = 'text/plain'
