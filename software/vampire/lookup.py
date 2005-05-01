@@ -353,69 +353,65 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
 
 def _params(object):
 
-  # If callable object doesn't take keyword argument
-  # list then drop out arguments for which there is no
-  # corresponding named parameter.
-
   flags = None
 
   if callable(object):
     object_type = type(object)
 
     if object_type is types.FunctionType:
-      func_code = object.func_code
-      flags = object.func_code.co_flags
+      code = object.func_code
       defaults = object.func_defaults
-      expected = func_code.co_varnames[0:func_code.co_argcount]
+      expected = code.co_varnames[0:code.co_argcount]
+      flags = code.co_flags
 
     elif object_type is types.MethodType:
-      func_code = object.im_func.func_code
-      flags = object.im_func.func_code.co_flags
+      code = object.im_func.func_code
       defaults = object.im_func.func_defaults
-      expected = func_code.co_varnames[1:func_code.co_argcount]
+      expected = code.co_varnames[1:code.co_argcount]
+      flags = code.co_flags
 
     elif object_type is types.ClassType:
       if hasattr(object,"__init__") and \
           type(object.__init__) is types.MethodType:
-	func_code = object.__init__.im_func.func_code
-	flags = object.__init__.im_func.func_code.co_flags
+	code = object.__init__.im_func.func_code
 	defaults = object.__init__.im_func.func_defaults
-	expected = func_code.co_varnames[1:func_code.co_argcount]
+	expected = code.co_varnames[1:code.co_argcount]
+	flags = code.co_flags
       else:
-        flags = 0
 	defaults = []
 	expected = []
+        flags = 0
 
     elif object_type is types.TypeType:
       if hasattr(object,"__init__") and \
           type(object.__init__) is types.MethodType:
-	func_code = object.__init__.im_func.func_code
-	flags = object.__init__.im_func.func_code.co_flags
+	code = object.__init__.im_func.func_code
 	defaults = object.__init__.im_func.func_defaults
-	expected = func_code.co_varnames[1:func_code.co_argcount]
+	expected = code.co_varnames[1:code.co_argcount]
+	flags = code.co_flags
       else:
-        flags = 0
 	defaults = []
 	expected = []
+        flags = 0
 
     elif hasattr(object,"__call__"):
       if type(object.__call__) is types.MethodType:
-	func_code = object.__call__.im_func.func_code
-	flags = object.__call__.im_func.func_code.co_flags
+	code = object.__call__.im_func.func_code
 	defaults = object.__call__.im_func.func_defaults
-	expected = func_code.co_varnames[1:func_code.co_argcount]
+	expected = code.co_varnames[1:code.co_argcount]
+	flags = code.co_flags
 
     elif hasattr(object,"func_code"):
-      func_code = object.func_code
-      flags = object.func_code.co_flags
+      code = object.func_code
       defaults = object.func_defaults
-      expected = func_code.co_varnames[0:func_code.co_argcount]
+      expected = code.co_varnames[0:code.co_argcount]
+      flags = code.co_flags
 
     elif hasattr(object,"im_func"):
-      func_code = object.im_func.func_code
-      flags = object.im_func.func_code.co_flags
+      code = object.im_func.func_code
       defaults = object.im_func.func_defaults
-      expected = func_code.co_varnames[1:func_code.co_argcount]
+      expected = code.co_varnames[1:code.co_argcount]
+      flags = code.co_flags
 
   if flags is None:
     return (apache.HTTP_INTERNAL_SERVER_ERROR,None,None,None)
