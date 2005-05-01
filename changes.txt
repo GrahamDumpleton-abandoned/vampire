@@ -86,6 +86,43 @@ Changes in Vampire 1.7
   in the Apache configuration for the top level directory where the Python
   handlers for mod_python are setup.
 
+- Add "vampire.Instance" class. This can be used as a wrapper for an old or
+  new style class such that each time the wrapper is accessed, a new
+  instance of the wrapped class is created to handle the request. The class
+  must be a callable object, ie., define "__call__()", as once the instance
+  has been created, the object itself will be called.
+
+  ::
+
+    import vampire
+    import time
+
+    class OldStyleClass:
+
+      def __init__(self):
+	self.__time = time.time()
+
+      def __call__(self,req,arg1=None,arg2=None):
+	return self.__time,"OldStyleClass.__call__()",arg1,arg2
+
+    old_instance = vampire.Instance(OldStyleClass)
+
+    class NewStyleClass(object):
+
+      def __init__(self):
+	self.__time = time.time()
+
+      def __call__(self,req,arg1=None,arg2=None):
+	return self.__time,"NewStyleClass.__call__()",arg1,arg2
+
+    new_instance = vampire.Instance(NewStyleClass)
+
+  Either the "__init__()" method, if defined, or the "__call__()" method
+  may accept form parameters or the "req" object as necessary.
+
+  This wrapper class should be usable within "vampire::publisher",
+  "vampire.Publisher()" and "vampire.Handler()".
+
 
 Changes in Vampire 1.6
 ======================

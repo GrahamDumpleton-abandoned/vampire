@@ -5,7 +5,7 @@ __version__ = "1.7"
 from mod_python import apache
 
 from lookup import _handler, _publisher, _select, _form, _authenticate_basic
-from lookup import Handler, Publisher, PathInfo, PathArgs
+from lookup import Handler, Publisher, PathInfo, PathArgs, Instance
 
 handler = _handler
 publisher = _publisher
