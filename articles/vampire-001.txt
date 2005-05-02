@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 24/03/2005
+:Updated: 2/05/2005
 
 .. contents::
 
@@ -62,12 +62,11 @@ Its prime purpose is to make the basic mechanisms available through using
 mod_python more flexible. Vampire does not try to enforce on you a
 particular approach to implementing an application nor does it try and
 dictate a particular solution for performing page templating. In fact, it
-is relatively straight forward to integrate the use of frameworks such as
-PSP and mpservlets_. Similarly, it is relatively straight forward to adopt
-and use other page templating systems such as HTMLTemplate_ and Cheetah_.
-Use of HTMLTemplate does however get a head start on the others and is more
-easy to use by virtue of Vampire integrating a template loading and caching
-system for that system.
+is relatively straight forward to integrate the use of frameworks for
+creating actual HTML output such as PSP, mpservlets_, HTMLTemplate_ and
+Cheetah_. Use of HTMLTemplate does however get a head start on the others
+and is more easy to use by virtue of Vampire integrating a template loading
+and caching system for that system.
 
 .. _mod_python: http://www.modpython.org
 .. _mpservlets: http://home.comcast.net/~d.popowich/mpservlets
@@ -859,6 +858,87 @@ Because each component of the path is mapped to a distinct function
 parameter, it is not possible for the function to also accept form
 parameters. The function may still accept the request object, but the
 parameter must be the first parameter of the function.
+
+
+Using Objects As Handlers
+=========================
+
+The handler being used to service a request is not restricted to being a
+function. Instead, an instance of a class may also be used. For this to
+work however, the class must have defined the "__call__()" method. As with
+any handler, the method can be defined to accept the "req" object and any
+other form parameters as appropriate.
+
+::
+
+  class Handler:
+
+    def __call__(self,req,message=""):
+      if not message: message = "Give Blood!"
+      req.content_type = "text/plain"
+      req.send_http_header()
+      req.write(message)
+      return apache.OK
+
+  handler_txt = Handler()
+
+The benefit of embedding the handler into a class is that one could
+encapsulate common code used by different handlers into a base class. One
+could for example create a servlet like system similar to the mpservlets
+extension for mod_python.
+
+As written however, the same instance of the class would be used for every
+request. If the instance used to handle a request cannot be reused, or if a
+multithreaded MPM was being used and multiple requests at the same time
+cannot be handled, a single instance would not be sufficient. In this case
+a mechanism is needed such that a distinct instance of the class is created
+to handle each request.
+
+One solution to this problem is to code an actual handler which creates an
+instance of the class on demand.
+
+::
+
+  def handler_txt(req,message=""):
+    return Handler()(req,message)
+
+Using this approach however, the handler would need to mirror the set of
+arguments and default values and explicitly pass them through when making
+the call against the object instance. To avoid this sort of duplication,
+Vampire provides a wrapper class which will perform the creation of an
+instance of the class and automatically supply the "req" object and any
+form parameters for you as appropriate.
+
+::
+
+  handler_txt = vampire.Instance(Handler)
+
+In addition to supplying these parameters when applying the call to the
+object instance, if the constructor specifies the "req" argument or any
+form parameters, they will also be supplied at the point of creation of the
+instance as well.
+
+::
+
+  class Handler:
+
+    def __init__(self,req):
+      self.req = req
+
+    def __call__(self,message=""):
+      if not message: message = "Give Blood!"
+      self.req.content_type = "text/plain"
+      self.req.send_http_header()
+      self.req.write(message)
+      return apache.OK
+
+  handler_txt = vampire.Instance(Handler)
+
+Especially in the case of the request object, this would allow any base
+classes to be initialised with data specific to the request.
+
+Note that this wrapper class may be used with published methods as well
+as with basic content handlers.
 
 
 Implementing Web Services
