@@ -21,6 +21,7 @@ import re
 import sys
 import base64
 import new
+import inspect
 
 import cache
 import config
@@ -347,79 +348,59 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
   return (apache.OK,traverse,execute,access,objects)
 
 
-# Following method determines the set of parameters
-# that a callable object is able to accept or whether
-# it accepts keyword arguments.
+# Following method returns the set of arguments that
+# a callable object uses to accept incoming data, as
+# well as any default values which are specified.
 
 def _params(object):
 
-  flags = None
+  def _inspect(function,adt=False):
+    if function:
+      this = None
+      args,varargs,varkw,defaults = inspect.getargspec(function)
+      if adt:
+	this = args[0]
+	args = args[1:]
+      return this,args,varargs,varkw,defaults
+    elif adt:
+      return ("",[],None,None,None)
+    else:
+      return (None,[],None,None,None)
 
   if callable(object):
     object_type = type(object)
 
     if object_type is types.FunctionType:
-      code = object.func_code
-      defaults = object.func_defaults
-      expected = code.co_varnames[0:code.co_argcount]
-      flags = code.co_flags
+      return _inspect(object,False)
 
     elif object_type is types.MethodType:
-      code = object.im_func.func_code
-      defaults = object.im_func.func_defaults
-      expected = code.co_varnames[1:code.co_argcount]
-      flags = code.co_flags
+      return _inspect(object,True)
 
     elif object_type is types.ClassType:
       if hasattr(object,"__init__") and \
           type(object.__init__) is types.MethodType:
-	code = object.__init__.im_func.func_code
-	defaults = object.__init__.im_func.func_defaults
-	expected = code.co_varnames[1:code.co_argcount]
-	flags = code.co_flags
+	return _inspect(object.__init__,True)
       else:
-	defaults = []
-	expected = []
-        flags = 0
+	return _inspect(None,True)
 
     elif object_type is types.TypeType:
       if hasattr(object,"__init__") and \
           type(object.__init__) is types.MethodType:
-	code = object.__init__.im_func.func_code
-	defaults = object.__init__.im_func.func_defaults
-	expected = code.co_varnames[1:code.co_argcount]
-	flags = code.co_flags
+	return _inspect(object.__init__,True)
       else:
-	defaults = []
-	expected = []
-        flags = 0
+	return _inspect(None,True)
 
     elif hasattr(object,"__call__"):
       if type(object.__call__) is types.MethodType:
-	code = object.__call__.im_func.func_code
-	defaults = object.__call__.im_func.func_defaults
-	expected = code.co_varnames[1:code.co_argcount]
-	flags = code.co_flags
+	return _inspect(object.__call__,True)
 
     elif hasattr(object,"func_code"):
-      code = object.func_code
-      defaults = object.func_defaults
-      expected = code.co_varnames[0:code.co_argcount]
-      flags = code.co_flags
+      return _inspect(object,False)
 
     elif hasattr(object,"im_func"):
-      code = object.im_func.func_code
-      defaults = object.im_func.func_defaults
-      expected = code.co_varnames[1:code.co_argcount]
-      flags = code.co_flags
+      return _inspect(object,False)
 
-  if flags is None:
-    raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
-
-  if defaults is None:
-    defaults = []
-
-  return (flags,expected,defaults)
+  raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
 
 # Following decodes any form parameters if appropriate
@@ -526,7 +507,7 @@ def _execute(req,object,lazy=True):
   # object and whether it also supports variable argument
   # list or keyword argument list.
 
-  flags,expected,defaults = _params(object)
+  this,expected,varargs,varkw,defaults = _params(object)
 
   # If callable object requires form parameters to be
   # supplied or lazy form parsing is disabled, force
@@ -534,7 +515,7 @@ def _execute(req,object,lazy=True):
 
   args = {}
 
-  if (not lazy) or (flags & 0x08) or ((len(expected) > 1) or \
+  if (not lazy) or varkw or ((len(expected) > 1) or \
       (len(expected) == 1 and not "req" in expected)):
     args = _form(req)
 
@@ -546,7 +527,7 @@ def _execute(req,object,lazy=True):
   # list, filter out form parameters that don't match
   # any input parameter.
 
-  if not flags & 0x08:
+  if not varkw:
     for name in args.keys():
       if name not in expected:
 	del args[name]
@@ -1309,12 +1290,12 @@ class PathInfo:
 
   def __call__(self,req,**args):
 
-    flags,expected,defaults = _params(self.__callback)
+    this,expected,varargs,varkw,defaults = _params(self.__callback)
 
     args[self.__name] = '/'.join([""]+self.__path)
     args["req"] = req
 
-    if not flags & 0x08:
+    if not varkw:
       for name in args.keys():
         if name not in expected:
           del args[name]
@@ -1349,12 +1330,15 @@ class PathArgs:
 
   def __setup(self):
 
-    flags,expected,defaults = _params(self.__callback)
+    this,expected,varargs,varkw,defaults = _params(self.__callback)
+
+    if defaults is None:
+      defaults = []
 
     self.__expected = expected
     self.__maxargs = len(expected)
     self.__minargs = self.__maxargs - len(defaults)
-    self.__varargs = (flags & 0x04)
+    self.__varargs = varargs
 
   def __call__(self,req):
 

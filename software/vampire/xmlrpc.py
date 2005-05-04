@@ -138,12 +138,12 @@ class Service:
 	  return target(*params)
 
 	else:
-	  status,flags,expected,defaults = _params(target)
+	  try:
+	    this,expected,varargs,varkw,defaults = _params(target)
+          except:
+	    raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
 
-	  if status != apache.OK:
-	    raise xmlrpclib.Fault(1,"Method Unavailble : %s" % method)
-
-	  if expected[:1] == ("req",):
+	  if expected[:1] == ["req",]:
 	    return target(req,*params)
 
 	  return target(*params)
