@@ -140,7 +140,7 @@ import types
 
 import vampire
 
-from vampire.lookup import _resolve,_params,_publisher_rules
+from vampire.lookup import _resolve,_publisher_rules
 
 _index = """
 <html>

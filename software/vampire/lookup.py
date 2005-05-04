@@ -414,12 +414,12 @@ def _params(object):
       flags = code.co_flags
 
   if flags is None:
-    return (apache.HTTP_INTERNAL_SERVER_ERROR,None,None,None)
+    raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
   if defaults is None:
     defaults = []
 
-  return (apache.OK,flags,expected,defaults)
+  return (flags,expected,defaults)
 
 
 # Following decodes any form parameters if appropriate
@@ -526,10 +526,7 @@ def _execute(req,object,lazy=True):
   # object and whether it also supports variable argument
   # list or keyword argument list.
 
-  status,flags,expected,defaults = _params(object)
-
-  if status != apache.OK:
-    raise apache.SERVER_RETURN, status
+  flags,expected,defaults = _params(object)
 
   # If callable object requires form parameters to be
   # supplied or lazy form parsing is disabled, force
@@ -1312,10 +1309,7 @@ class PathInfo:
 
   def __call__(self,req,**args):
 
-    status,flags,expected,defaults = _params(self.__callback)
-
-    if status != apache.OK:
-      raise apache.SERVER_RETURN, status
+    flags,expected,defaults = _params(self.__callback)
 
     args[self.__name] = '/'.join([""]+self.__path)
     args["req"] = req
@@ -1355,10 +1349,7 @@ class PathArgs:
 
   def __setup(self):
 
-    status,flags,expected,defaults = _params(self.__callback)
-
-    if status != apache.OK:
-      raise apache.SERVER_RETURN, status
+    flags,expected,defaults = _params(self.__callback)
 
     self.__expected = expected
     self.__maxargs = len(expected)
