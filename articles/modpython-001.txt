@@ -4,7 +4,7 @@ Getting mod_python Working
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 24/03/2005
+:Updated: 5/05/2005
 
 .. contents::
 
@@ -210,14 +210,21 @@ To do this, the exact same configuration as was specified in the
 to the absolute path name to the directory which contain your files.
 For example::
 
-  <Directory /some/directory>
+  <Directory /some/file/system/directory>
   AddHandler python-program .py
   PythonHandler mptest
   PythonDebug On
   </Directory>
 
-Because this is in the global configuration, Apache will need to be
-restarted after any change to it.
+If "/some/file/system/directory" isn't located underneath your document
+root, or isn't otherwise mapped into the URL namespace of your server, you
+will need to configure Apache to map the directory into an appropriate
+location. This can be done using the "Alias" directive::
+
+  Alias /some/url /some/file/system/directory
+
+Because this is being done in the global configuration, Apache will need to
+be restarted after any change has been made.
 
 
 Apache Error Log
