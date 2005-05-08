@@ -15,9 +15,14 @@ implementation of the mod_python.publisher module along which a range of
 other useful features which make using mod_python a much more pleasant
 experience.
 
-For further information about Vampire, check out the supplied articles_. If
-you have any questions about Vampire, it is suggested you subscribe to the
-`mod_python mailing list`_ and ask your question there.
+For further information about Vampire, check out the supplied articles_.
+At the moment any documentation lags behind the actual code, thus you
+should also consult the list of changes_ for each version as this will
+often provide you with the only documentation on a new feature until
+more general documentation has been completed.
+
+If you have any questions about Vampire, it is suggested you subscribe to
+the `mod_python mailing list`_ and ask your question there.
 
 Official releases of Vampire can be downloaded from:
 
@@ -41,4 +46,5 @@ Vampire is made available under a BSD style license_.
 .. _patches: patches.html
 .. _license: license.html
 .. _articles: articles.html
+.. _changes: changes.html
 .. _mod_python mailing list: http://mailman.modpython.org/mailman/listinfo/mod_python

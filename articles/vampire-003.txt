@@ -152,7 +152,7 @@ being created just for that element in the dictionary.
 
 The two different naming conventions for the construction of lists and
 dictionaries may be combined, making it possible to create more or less
-arbitrarily structured data values.
+arbitrary structures consisting of dictionaries, lists and strings.
 
 ::
 
@@ -176,17 +176,9 @@ structured data in form values. As such, all the above applies to
 "vampire::publisher", including the need to turn the feature off if so
 desired.
 
-Note that although Vampire provides the means for processing a request
-and turning them into arbitrarily structured data values, no means of
-performing data validation is provided by Vampire. You will need to provide
-your own mechanisms for data validation or use a third party module such as
-FunFormKit_.
 
-.. _FunFormKit: http://funformkit.sourceforge.net/
-
-
-Lazy Evaluation Of Forms
-========================
+Lazy Request Processing
+=======================
 
 When one is using mod_python.publisher, a request will always be processed
 for form parameters. This causes a few problems and limits what you can use
@@ -271,3 +263,137 @@ not be created.
 The full set of form parameters will be cached within the request object in
 a hidden field, thus calling "vampire.processForm()" multiple times will
 still be efficient as it will return the cached set of form parameters.
+
+
+Delayed Form Interpretation
+===========================
+
+If using an object as a handler, as a way of reusing code through
+derivation, it may not be convenient to have to specify arguments to the
+"__call__()" method to capture form parameters. One means of accessing the
+form parameters at a later point is using "vampire.processForm()". Using
+this approach means explicitly having to access each argument from the
+dictionary of form parameters as necessary.
+
+An alternative shortcut is to define a further instance method whose job it
+is to use the form parameters, defining any named arguments to receive
+them. At the point that the form parameters need to be processed, the
+"vampire.executeHandler()" function is used to trigger processing of the
+request for the form parameters and the execution of the instance method.
+
+::
+
+  class Servlet:
+
+    def __init__(self,req):
+      self.req = req
+
+    def __call__(self):
+      vampire.executeHandler(self.req,self.processForm)
+      return self.renderPage()
+
+    def processForm(self,lhs,rhs):
+      self.__result = float(lhs) * float(rhs)
+
+    def renderPage(self):
+      self.req.content_type = "text/plain"
+      self.req.send_http_header()
+      self.req.write(str(self.__result))
+
+  handler = vampire.Instance(Servlet)
+
+The "vampire.executeHandler()" function can actually be applied to any
+callable object. Where an argument is the same name as a form parameter,
+the form parameter will be passed via that argument. If an argument is
+called "req", the original request object will be passed via that argument.
+
+
+Validating Form Parameters
+==========================
+
+Although Vampire provides the means for processing a request and turning
+them into arbitrary structures, no means of performing data validation is
+provided by Vampire. You will need to provide your own mechanisms for data
+validation or use a third party module such as FunFormKit_.
+
+.. _FunFormKit: http://funformkit.sourceforge.net/
+
+Form validation generally entails checking if required form parameters are
+provided and whether the values adhere to some particular type and/or
+format. Such values may optionally be converted from a string into
+integers, booleans or some special purpose custom data object.
+
+Vampire can't directly help with content validation or type conversion, but
+if using "vampire.executeHandler()", it does provide a way to determine if
+the appropriate form parameters were actually provided before using this
+function. If such a check isn't performed and "vampire.executeHandler()" is
+called when not all required form parameters were provided, the client will
+receive a HTTP internal server error as a response.
+
+The "vampire.processForm()" function already provides access to the full
+set of form parameters that have been provided by a request. What is now
+required is a means of determining the list of form parameters that a
+function designed to process them is expecting.
+
+The Python "inspect" module provides the "getargspec()" function for
+determining such information, however, you need to know when using it if
+you are applying it to a function or an instance method, and if the latter,
+skip the first actual argument the function defines. If the target is
+an instance of a class which is callable, you need to actually apply
+the "inspect.getargspec()" function to the "__call__()" method as well as
+skip the first actual argument.
+
+To streamline this task, the "vampire.handlerArguments()" function is
+provided. This works in a similar way to "inspect.getargspec()", but will
+automatically determine the actual function which should be queried if a
+callable object and separate out the leading function argument when an
+instance method.
+
+The value returned by "vampire.handlerArguments()" will be a tuple
+consisting of "(this, args, varargs, varkw, defaults)". Where 'this' is the
+name of the first argument when handler is an instance method or None,
+'args' is a list of the argument names, 'varargs' and 'varkw' are the names
+of the '*' and '**' arguments or None, and 'defaults' is an n-tuple of the
+default values of the last n arguments.
+
+All this information could then be used as follows, as the part of an
+overall form validation mechanism to determine the list of missing form
+parameters::
+
+  def missingArguments(req,handler): 
+
+    # Derive list of supplied form parameters.
+
+    supplied = vampire.processForm(req)
+
+    # Derive list of expected form parameters.
+
+    this,args,varargs,varkw,defaults = vampire.handlerArguments(handler)
+
+    # Check if handler accepts all form parameters.
+
+    if varkw:
+      return []
+
+    # Check that other form parameters are supplied.
+    # Need to skip the "req" argument if it exists.
+
+    missing = []
+
+    mandatory = len(args)
+
+    if defaults:
+      mandatory = mandatory - len(defaults)
+
+    i = 0
+    for name in args:
+      if name != "req":
+	if not name in supplied and i < mandatory:
+	  missing.append(name)
+      i = i + 1
+
+    return missing
+
+Instead of returning a generic HTTP error response, it would now be
+possible to return a customised HTML page which provided a list of the
+missing form parameters.
