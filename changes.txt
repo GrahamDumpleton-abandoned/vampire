@@ -123,6 +123,12 @@ Changes in Vampire 1.7
   This wrapper class should be usable within "vampire::publisher",
   "vampire.Publisher()" and "vampire.Handler()".
 
+- Made available "vampire.handlerArguments()" and "vampire.executeHandler()"
+  functions. These provide means of determining set of arguments that a
+  callable object accepts and a means of executing a callable object such
+  that any form parameters supplied with the request are passed when
+  appropriate via the arguments the callable object accepts.
+
 
 Changes in Vampire 1.6
 ======================
