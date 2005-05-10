@@ -4,7 +4,7 @@ Quick Overview of Vampire
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 2/05/2005
+:Updated: 10/05/2005
 
 .. contents::
 
@@ -505,10 +505,18 @@ distinct resources.
       return apache.OK
     return apache.DECLINED
 
-If user authentication should be applied across a whole directory, the
-prefered approach would be to define an authentication handler. This can
+If user authentication should be applied across a whole directory, an
+alternate approach would be to define an authentication handler. This can
 be done by defining the "PythonAuthenHandler" directive, or by using the
 Vampire configuration mechanism to define the authentication handler.
+
+When an authentication handler is used in this way, it does not disable the
+mod_python.publisher style authentication mechanism by default. To avoid
+possible conflict, Vampire also provides a way of disabling this mechanism.
+This same mechanism however, instead of being used to disable the default
+mechanism, can also be used to specify an alternate authentication
+mechanism to control login and access to a site. This may for example make
+use of HTML form based login and sessions.
 
 
 Configuration Mechanism
