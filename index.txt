@@ -3,8 +3,8 @@ Vampire
 =======
 
 Vampire is an extension module for mod_python_ which provides a more
-flexible dispatch mechanism for basic content handlers. Whereas the
-standard mod_python handler mechanism only allows one content handler to be
+flexible dispatch mechanism for basic content handlers. Whereas with the
+standard mod_python handler mechanism one content handler is generally
 associated with a whole directory when handling the content delivery phase
 of servicing a HTTP request, Vampire implements a mechanism for selecting
 between multiple content handlers associated with distinct resources within
@@ -13,13 +13,15 @@ a directory.
 In addition to this main feature, Vampire also provides an alternative
 implementation of the mod_python.publisher module along which a range of
 other useful features which make using mod_python a much more pleasant
-experience.
+experience. For further information about Vampire, check out the supplied
+articles_.
 
-For further information about Vampire, check out the supplied articles_.
-At the moment any documentation lags behind the actual code, thus you
-should also consult the list of changes_ for each version as this will
-often provide you with the only documentation on a new feature until
-more general documentation has been completed.
+Note that the Vampire web site tends to reflect the latest working copy of
+Vampire as it exists in the source code repository. As such, the
+documentation on the web site may describe features which are not present
+in the latest official release. In general though, the documentation lags
+behind the actual code. You should therefore always consult the list of
+changes_ for each version to learn about what features it supports.
 
 If you have any questions about Vampire, it is suggested you subscribe to
 the `mod_python mailing list`_ and ask your question there.
