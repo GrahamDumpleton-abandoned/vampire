@@ -1,0 +1,55 @@
+#extends _layout
+#implements body
+
+#def title
+Request Details#slurp
+#end def                                                                        
+
+<p>
+<h2>Request Object</h2>
+<table>
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+<tbody>
+<tr><td>args</td><td>$self.req.args</td></tr>
+<tr><td>hostname</td><td>$self.req.hostname</td></tr>
+<tr><td>interpreter</td><td>$self.req.interpreter</td></tr>
+<tr><td>method</td><td>$self.req.method</td></tr>
+<tr><td>path_info</td><td>$self.req.path_info</td></tr>
+<tr><td>proto_num</td><td>$self.req.proto_num</td></tr>
+<tr><td>protocol</td><td>$self.req.protocol</td></tr>
+<tr><td>the_request</td><td>$self.req.the_request</td></tr>
+<tr><td>unparsed_uri</td><td>$self.req.unparsed_uri</td></tr>
+<tr><td>uri</td><td>$self.req.uri</td></tr>
+<tr><td>user</td><td>$self.req.user</td></tr></tr>
+</tbody>
+</table>
+</p>
+
+#set $headers = $req.headers_in
+#set $keys = $headers.keys()
+#silent $keys.sort()
+
+<p>
+<h2>Request Headers</h2>
+<table>
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+<tbody>
+#for $key in $keys
+<tr>
+<td>$key</td>
+<td>$headers[$key]</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>
