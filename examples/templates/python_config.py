@@ -10,13 +10,13 @@ class Template(layout.Template):
 
   def renderTemplate(self):
 
-    options = self.req.get_config()
+    config = self.req.get_config()
 
     def renderItem(node,key):
       node.key.content = key
-      node.value.content = options[key]
+      node.value.content = config[key]
 
-    keys = list(options.keys())
+    keys = list(config.keys())
     keys.sort()
 
     self.template.item.repeat(renderItem,keys)
