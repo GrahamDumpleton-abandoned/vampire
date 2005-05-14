@@ -1,0 +1,29 @@
+#extends _layout
+#implements body
+
+#def title
+Apache Options#slurp
+#end def                                                                        
+
+#set $items = $req.get_options()
+#set $keys = $items.keys()
+#silent $keys.sort()
+
+<p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+#for $key in $keys
+<tr>
+<td>$key</td>
+<td>$items[$key]</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>
