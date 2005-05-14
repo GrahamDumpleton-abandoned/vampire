@@ -30,6 +30,7 @@ class _Config:
 
   def get(self,section,option,raw=0,vars=None):
     temp = {}
+    temp.update(self._config.defaults())
     temp.update(self._options)
     if vars: temp.update(vars)
     temp.update(self._defaults)
@@ -43,17 +44,20 @@ class _Config:
     # which are a source of interpolation and
     # not actually defined in the section itself
     # are also returned. This is not very nice.
-    # :-(
 
     def items(self,section,raw=0,vars=None):
       temp = {}
+      temp.update(self._config.defaults())
       temp.update(self._options)
       if vars: temp.update(vars)
       temp.update(self._defaults)
       return self._config.items(section,raw=raw,vars=temp)
 
   def defaults(self):
-    return self._defaults
+    temp = {}
+    temp.update(self._config.defaults())
+    temp.update(self._defaults)
+    return temp
 
 class _ConfigEntry:
 

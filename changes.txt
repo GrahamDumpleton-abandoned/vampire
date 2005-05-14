@@ -17,6 +17,12 @@ been made available.
 Changes in Vampire 1.7
 ======================
 
+- Special meaning of default section, ie., "DEFAULT", as implemented by
+  original Python ConfigParser class wasn't being honoured by Vampire
+  configuration system. This has now been fixed, and variables which need
+  to be referenced through interpolation in multiple sections, can be
+  placed in the "DEFAULT" section.
+
 - Added mechanism whereby Python import mechanism is partly overridden
   such that although the standard Python "import" statement is used, under
   the covers, the Vampire import mechanism is used to load a module.
