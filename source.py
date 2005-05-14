@@ -6,7 +6,7 @@ import cgi
 
 # Handler for virtual directory.
 
-export = [ ".diff", ".html", ".psp", ".py", ".rml", ".vampire" ]
+export = [ ".diff", ".html", ".psp", ".py", ".rml", ".vampire", ".sh" ]
 
 def handler(req):
 
