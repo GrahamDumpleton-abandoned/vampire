@@ -1,45 +1,28 @@
-from mod_python import apache
-
-import os
-import sys
+import vampire
 import time
 
-import vampire
+config = vampire.loadConfig(__req__,".vampire")
+layouts = config.get("Handlers","layouts_root")
+layout = vampire.importModule("basic",layouts,__req__)
 
-# Handler for ".html" request.
+class Template(layout.Template):
 
-def handler_html(req):
+  no_cache = True
 
-  # Load the page template.
+  def renderTemplate(self):
 
-  if not os.path.exists(req.filename):
-    return apache.DECLINED
+    cache = vampire.ModuleCache()
 
-  template = vampire.loadTemplate(req.filename,"vampire:node")
+    def renderModule(node,label):
+      info = cache.moduleInfo(label)
+      node.path.content = info.file
+      node.mtime.content = time.asctime(time.localtime(info.mtime))
+      node.atime.content = time.asctime(time.localtime(info.atime))
+      node.hits.content = str(info.direct)
 
-  # Fill in the page content.
+    keys = cache.cachedModules()
+    keys.sort()
 
-  cache = vampire.ModuleCache()
+    self.template.module.repeat(renderModule,keys)
 
-  def renderModule(node,label):
-    info = cache.moduleInfo(label)
-    node.path.content = info.file
-    node.mtime.content = time.asctime(time.localtime(info.mtime))
-    node.atime.content = time.asctime(time.localtime(info.atime))
-    node.hits.content = str(info.direct)
-
-  keys = cache.cachedModules()
-  keys.sort()
-
-  template.module.repeat(renderModule,keys)
-
-  # Return the rendered page content.
-
-  req.content_type = "text/html"
-  req.headers_out['Pragma'] = 'no-cache' 
-  req.headers_out['Cache-Control'] = 'no-cache' 
-  req.headers_out['Expires'] = '-1' 
-  req.send_http_header()
-  req.write(template.render())
-
-  return apache.OK
+handler_html = vampire.Instance(Template)

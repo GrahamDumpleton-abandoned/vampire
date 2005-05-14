@@ -1,39 +1,23 @@
-from mod_python import apache
-
-import os
-import sys
-
 import vampire
+import os
 
-# Handler for ".html" request.
+config = vampire.loadConfig(__req__,".vampire")
+layouts = config.get("Handlers","layouts_root")
+layout = vampire.importModule("basic",layouts,__req__)
 
-def handler_html(req):
+class Template(layout.Template):
 
-  # Load the page template.
+  no_cache = True
 
-  if not os.path.exists(req.filename):
-    return apache.DECLINED
+  def renderTemplate(self):
 
-  template = vampire.loadTemplate(req.filename,"vampire:node")
+    def renderItem(node,name):
+      node.name.content = name
+      node.value.content = os.environ[name]
 
-  # Fill in the page content.
+    names = list(os.environ.keys())
+    names.sort()
 
-  def renderItem(node,name):
-    node.name.content = name
-    node.value.content = os.environ[name]
+    self.template.item.repeat(renderItem,names)
 
-  names = list(os.environ.keys())
-  names.sort()
-
-  template.item.repeat(renderItem,names)
-
-  # Return the rendered page content.
-
-  req.content_type = "text/html"
-  req.headers_out['Pragma'] = 'no-cache' 
-  req.headers_out['Cache-Control'] = 'no-cache' 
-  req.headers_out['Expires'] = '-1' 
-  req.send_http_header()
-  req.write(template.render())
-
-  return apache.OK
+handler_html = vampire.Instance(Template)

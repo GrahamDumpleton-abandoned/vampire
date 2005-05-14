@@ -1,75 +1,59 @@
-from mod_python import apache
-
-import os
-import sys
-import ConfigParser
-
 import vampire
 
-# Default handler.
+config = vampire.loadConfig(__req__,".vampire")
+layouts = config.get("Handlers","layouts_root")
+layout = vampire.importModule("basic",layouts,__req__)
 
-def handler_html(req,file=".vampire",raw=None):
+class Template(layout.Template):
 
-  # Load the page template.
+  no_cache = True
 
-  if not os.path.exists(req.filename):
-    return apache.DECLINED
+  def renderTemplate(self,file=".vampire",raw=None):
 
-  template = vampire.loadTemplate(req.filename,"vampire:node")
+    config = vampire.loadConfig(self.req,file)
 
-  config = vampire.loadConfig(req,file)
+    # Render PythonOptions.
 
-  # Render PythonOptions.
+    options = self.req.get_options()
 
-  options = req.get_options()
+    def renderOption(node,key):
+      node.key.content = key
+      node.value.content = options[key]
 
-  def renderOption(node,key):
-    node.key.content = key
-    node.value.content = options[key]
-
-  keys = options.keys()
-  keys.sort()
-
-  template.htaccess.item.repeat(renderOption,keys)
-
-  # Render config file defaults.
-
-  defaults = config.defaults()
-
-  def renderDefault(node,key):
-    node.key.content = key
-    node.value.content = defaults[key]
-
-  keys = defaults.keys()
-  keys.sort()
-
-  template.context.name.content = file
-  template.context.item.repeat(renderDefault,keys)
-
-  # Render config file sections.
-
-  def renderConfig(node,key,section):
-    node.key.content = key
-    node.value.content = config.get(section,key,raw=raw)
-
-  def renderSection(node,section):
-    node.name.content = section
-    keys = config.options(section)
+    keys = options.keys()
     keys.sort()
-    node.item.repeat(renderConfig,keys,section)
 
-  sections = config.sections()
-  sections.sort()
+    self.template.htaccess.item.repeat(renderOption,keys)
 
-  template.section.repeat(renderSection,sections)
+    # Render config file defaults.
 
-  # Return the rendered page content.
+    defaults = config.defaults()
 
-  req.content_type = "text/html"
-  req.headers_out['Pragma'] = 'no-cache' 
-  req.headers_out['Cache-Control'] = 'no-cache' 
-  req.headers_out['Expires'] = '-1' 
-  req.send_http_header()
-  req.write(template.render())
+    def renderDefault(node,key):
+      node.key.content = key
+      node.value.content = defaults[key]
 
-  return apache.OK
+    keys = defaults.keys()
+    keys.sort()
+
+    self.template.context.name.content = file
+    self.template.context.item.repeat(renderDefault,keys)
+
+    # Render config file sections.
+
+    def renderConfig(node,key,section):
+      node.key.content = key
+      node.value.content = config.get(section,key,raw=raw)
+
+    def renderSection(node,section):
+      node.name.content = section
+      keys = config.options(section)
+      keys.sort()
+      node.item.repeat(renderConfig,keys,section)
+
+    sections = config.sections()
+    sections.sort()
+
+    self.template.section.repeat(renderSection,sections)
+
+handler_html = vampire.Instance(Template)
