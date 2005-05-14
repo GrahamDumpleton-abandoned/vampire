@@ -1,0 +1,3 @@
+[Handlers] 
+
+layouts_root = %(__config_root__)s/../../layouts
