@@ -1,0 +1,87 @@
+#extends _layout
+#implements body
+
+#def title
+Vampire Config#slurp
+#end def                                                                        
+
+#set $options = $req.get_options()
+#set $keys = $options.keys()
+#silent $keys.sort()
+
+<p>
+<h2>.htaccess</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+#for $key in $keys
+<tr>
+<td>$key</td>
+<td>$options[$key]</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>
+
+#set $file = $req.fields.get("file",".vampire")
+
+#import vampire
+
+#set $config = $vampire.loadConfig($req,$file)
+#set $defaults = $config.defaults()
+
+#set $keys = $defaults.keys()
+#silent $keys.sort()
+
+<p>
+<h2>.vampire</h2>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+#for $key in $keys
+<tr>
+<td>$key</td>
+<td>$defaults[$key]</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>
+
+#set $sections = $config.sections()
+#silent $sections.sort()
+
+#for $section in $sections
+<p vampire:node="rep:section">
+<h3>$section</h3>
+<table>
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+<tbody>
+#set $keys = $config.options($section)
+#silent $keys.sort()
+#for $key in $keys
+<tr>
+<td>$key</td>
+<td>$config.get($section,$key)</td>
+#end for
+</tr>
+</tbody>
+</table>
+</p>
+#end for
