@@ -1,8 +1,6 @@
 #implements respond
 
-#def title
-Default Title #slurp
-#end def
+#set $title = "Default Title"
 
 #def body
 <p>Default Body</p>
@@ -10,9 +8,7 @@ Default Title #slurp
 
 <html>
 <head>
-<title>
-$title
-</title>
+<title>$title</title>
 </head>
 <body>
 <h1>$title</h1>
