@@ -1,0 +1,29 @@
+#extends _layout
+#implements body
+
+#def title
+Form Values#slurp
+#end def                                                                        
+
+#set $fields = $req.fields
+#set $keys = $fields.keys()
+#silent $keys.sort()
+
+<p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+#for $key in $keys
+<tr>
+<td>$key</td>
+<td>$fields[$key]</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>
