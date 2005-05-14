@@ -4,241 +4,259 @@ import vampire
 import cgi
 import os
 
-def _search(req,settings,file):
+directory = os.path.split(__file__)[0]
+basic = vampire.importModule("basic",directory,__req__)
 
-  # Searches for file type associated with request by
-  # first looking for file as extension of actual file
-  # and then back up the directory hierarchy until the
-  # document root is reached.
 
-  target = os.path.splitext(req.filename)[0] + file
-  if os.path.exists(target):
-    return target
+# Extension to basic object handler for template which
+# massages HTML with appropriate marked elements into a
+# two or three column page incorporating navigation bar,
+# page links and sidebar.
 
-  document_root = settings["document_root"]
+class Template(basic.Template):
 
-  directory = os.path.dirname(req.filename)
-  while len(directory) >= len(document_root):
-    target = os.path.join(directory,file)
+  # Name of configuration file to be loaded.
+
+  config_file = ".vampire"
+
+  # Defaults for various page template components.
+
+  masthead = None
+  navbar = None
+  links = None
+  footer = None
+  sidebar = None
+
+  def __cacheSettings(self):
+
+    # Cache configuration settings for later use.
+
+    self.__settings = {}
+
+    for key,value in self.config.items("Settings"):
+      self.__settings[key] = value
+
+  def __searchPlugin(self,file):
+
+    # Searches for plugin associated with target of
+    # request by first looking for a file with name
+    # formed by adding "file" to end of basename of
+    # target of request. If this isn't found, then
+    # search is made for "file" back up the directory
+    # hierarchy until the document root is reached.
+    # It is expected that "document_root" be defined
+    # as a setting in the configuration file.
+
+    target = os.path.splitext(self.req.filename)[0] + file
     if os.path.exists(target):
       return target
-    directory = os.path.split(directory)[0]
 
-  return None
+    document_root = self.__settings["document_root"]
 
+    directory = os.path.dirname(self.req.filename)
+    while len(directory) >= len(document_root):
+      target = os.path.join(directory,file)
+      if os.path.exists(target):
+	return target
+      directory = os.path.split(directory)[0]
 
-def _hnav(links,settings):
+    return None
 
-  output = []
+  def __importPlugin(self,file):
 
-  output.append('<ul>')
+    target = self.__searchPlugin(file)
 
-  for label,target in links:
-    if target.find('%(') != -1:
-      target = target % settings
-    target = cgi.escape(target)
-    label = cgi.escape(label)
+    if target:
+      directory = os.path.dirname(target)
+      name = os.path.splitext(os.path.basename(target))[0]
+      return vampire.importModule(name,directory,self.req)
 
-    output.append('<li><a href="%s">%s</a>' % (target,label))
-    output.append('<span class="divider"> : </span>')
+  def __renderMasthead(self):
 
-  output.append('</ul>')
+    # Render page template masthead.
 
-  return "".join(output)
+    masthead = ""
 
+    if self.masthead is not None:
+      masthead = self.masthead
 
-def _links(groups,settings):
+    else:
+      module = self.__importPlugin("_masthead.py")
 
-  output = []
+      if module:
+	masthead = module.masthead(self.req)
 
-  for name,links in groups:
-    output.append('<h3>')
-    output.append(cgi.escape(name))
-    output.append('</h3>\n')
+    if masthead:
+      self.template.masthead.raw = masthead
+
+  def __formatNavigation(self,links):
+
+    # Format HTML for nagivation bar.
+
+    output = []
 
     output.append('<ul>')
 
     for label,target in links:
       if target.find('%(') != -1:
-	target = target % settings
+	target = target % self.__settings
       target = cgi.escape(target)
       label = cgi.escape(label)
 
       output.append('<li><a href="%s">%s</a>' % (target,label))
+      output.append('<span class="divider"> : </span>')
 
-    output.append('</ul>\n')
+    output.append('</ul>')
 
-  return "".join(output)
+    return "".join(output)
 
+  def __renderNavigation(self):
 
-def layout_html(req,template,**options):
+    # Render page template navigation bar.
 
-  # Load in configuration settings for this
-  # request. These will be used later on.
+    navbar = []
 
-  config = vampire.loadConfig(req,".vampire")
+    if self.navbar is not None:
+      navbar = self.navbar
 
-  settings = {}
-
-  for key,value in config.items("Settings"):
-    settings[key] = value
-
-  # Setup masthead.
-
-  masthead = ""
-
-  if options.has_key("masthead"):
-    masthead = options["masthead"]
-  else:
-    module = None
-
-    target = _search(req,settings,"_masthead.py")
-
-    if target:
-      directory = os.path.dirname(target)
-      name = os.path.splitext(os.path.basename(target))[0]
-      module = vampire.importModule(name,directory,req)
-
-    if module:
-      masthead = module.masthead(req)
-
-  if masthead:
-    template.masthead.content = masthead
-
-  # Setup navigation links.
-
-  navbar = []
-
-  if options.has_key("navbar"):
-    navbar = options["navbar"]
-
-  else:
-    module = None
-
-    target = _search(req,settings,"_navbar.py")
-
-    if target:
-      directory = os.path.dirname(target)
-      name = os.path.splitext(os.path.basename(target))[0]
-      module = vampire.importModule(name,directory,req)
-
-    if module:
-      navbar = module.navbar(req)
-
-  if navbar:
-    template.hnav.raw = _hnav(navbar,settings)
-
-  links = []
-
-  if options.has_key("links"):
-    links = options["links"]
-
-  else:
-    module = None
-
-    target = _search(req,settings,"_links.py")
-
-    if target:
-      directory = os.path.dirname(target)
-      name = os.path.splitext(os.path.basename(target))[0]
-      module = vampire.importModule(name,directory,req)
-
-    if module:
-      links = module.links(req)
-
-  if links:
-    template.vnav.raw = _links(links,settings)
-
-  # Setup footer.
-
-  footer = ""
-
-  if options.has_key("footer"):
-    footer = options["footer"]
-  else:
-    module = None
-
-    target = _search(req,settings,"_footer.py")
-
-    if target:
-      directory = os.path.dirname(target)
-      name = os.path.splitext(os.path.basename(target))[0]
-      module = vampire.importModule(name,directory,req)
-
-    if module:
-      footer = module.footer(req)
-
-  if footer:
-    template.footer.raw = footer
-
-
-  # Setup sidebar text.
-
-  sidebar = ""
-
-  if options.has_key("sidebar"):
-    sidebar = options["sidebar"]
-
-  else:
-    target = _search(req,settings,"_sidebar.html")
-
-    if target:
-      sidebar = vampire.loadTemplate(target,"vampire:node")
-
-    if sidebar:
-      collector = []
-      sidebar.body._renderContent(collector)
-      sidebar = ''.join(collector)
-
-  template.rightColumn.raw = sidebar
-
-  # Setup stylesheets.
-
-  def renderStylesheet(node,data):
-    media,href = data
-    if href.find('%(') != -1:
-      node.atts["href"] = cgi.escape(href%settings)
     else:
-      node.atts["href"] = cgi.escape(href)
-    node.atts["media"] = media
+      module = self.__importPlugin("_navbar.py")
 
-  STYLESHEETS_2COLUMN = (
-   ( "screen",	"%(styles_home)s/two_column.css" ),
-   ( "print",	"%(styles_home)s/print_media.css" ),
-  )
+      if module:
+	navbar = module.navbar(self.req)
 
-  STYLESHEETS_3COLUMN = (
-   ( "screen",	"%(styles_home)s/three_column.css" ),
-   ( "print",	"%(styles_home)s/print_media.css" ),
-  )
+    if navbar:
+      self.template.hnav.raw = self.__formatNavigation(navbar)
 
-  if sidebar:
-    template.stylesheet.repeat(renderStylesheet,STYLESHEETS_3COLUMN)
-  else:
-    template.stylesheet.repeat(renderStylesheet,STYLESHEETS_2COLUMN)
+  def __formatLinks(self,groups):
+
+    # Format HTML for links.
+
+    output = []
+
+    for name,links in groups:
+      output.append('<h3>')
+      output.append(cgi.escape(name))
+      output.append('</h3>\n')
+
+      output.append('<ul>')
+
+      for label,target in links:
+	if target.find('%(') != -1:
+	  target = target % self.__settings
+	target = cgi.escape(target)
+	label = cgi.escape(label)
+
+	output.append('<li><a href="%s">%s</a>' % (target,label))
+
+      output.append('</ul>\n')
+
+    return "".join(output)
+
+  def __renderLinks(self):
+
+    # Render page template links.
+
+    links = []
+
+    if self.links is not None:
+      links = self.links
+
+    else:
+      module = self.__importPlugin("_links.py")
+
+      if module:
+	links = module.links(self.req)
+
+    if links:
+      self.template.vnav.raw = self.__formatLinks(links)
+
+  def __renderFooter(self):
+
+    # Render page template footer.
+
+    footer = ""
+
+    if self.footer is not None:
+      footer = self.footer
+
+    else:
+      module = self.__importPlugin("_footer.py")
+
+      if module:
+	footer = module.footer(self.req)
+
+    if footer:
+      self.template.footer.raw = footer
+
+  def __renderSidebar(self):
+
+    # Render page template sidebar.
+
+    sidebar = ""
+
+    if self.sidebar is not None:
+      sidebar = self.sidebar
+
+    else:
+      target = self.__searchPlugin("_sidebar.html")
+
+      if target:
+	sidebar = vampire.loadTemplate(target,self.node_name)
+
+      if sidebar:
+	collector = []
+	sidebar.body._renderContent(collector)
+	sidebar = ''.join(collector)
+
+    self.template.rightColumn.raw = sidebar
+
+  def __renderHeader(self):
+
+    # Fillin details of appropriate style sheet.
+
+    def renderStylesheet(node,data):
+      media,href = data
+      if href.find('%(') != -1:
+	node.atts["href"] = cgi.escape(href%self.__settings)
+      else:
+	node.atts["href"] = cgi.escape(href)
+      node.atts["media"] = media
+
+    STYLESHEETS_2COLUMN = (
+     ( "screen",	"%(styles_home)s/two_column.css" ),
+     ( "print",	"%(styles_home)s/print_media.css" ),
+    )
+
+    STYLESHEETS_3COLUMN = (
+     ( "screen",	"%(styles_home)s/three_column.css" ),
+     ( "print",	"%(styles_home)s/print_media.css" ),
+    )
+
+    if self.template.rightColumn.raw:
+      self.template.stylesheet.repeat(renderStylesheet,STYLESHEETS_3COLUMN)
+    else:
+      self.template.stylesheet.repeat(renderStylesheet,STYLESHEETS_2COLUMN)
+
+  def renderTemplate(self):
+
+    # Cache configuration settings.
+
+    self.__cacheSettings()
+
+    # Render internal elements of page template.
+
+    self.__renderMasthead()
+    self.__renderNavigation()
+    self.__renderLinks()
+    self.__renderFooter()
+    self.__renderSidebar()
+    self.__renderHeader()
+
+    # Trigger base class method in case it needs to do
+    # any additional work.
+
+    basic.Template.renderTemplate(self)
 
 
-def handler_html(req):
-
-  # Check to see if a HTML file actually exists at
-  # the location which is the target of the request.
-
-  if not os.path.exists(req.filename):
-    return apache.DECLINED
-
-  # Load file as a template object.
-
-  template = vampire.loadTemplate(req.filename,"vampire:node")
-
-  # Add in layout elements.
-
-  layout_html(req,template)
-
-  # Render the template and write out the response.
-
-  req.content_type = "text/html"
-  req.send_http_header()
-
-  req.write(template.render())
-
-  return apache.OK
+handler_html = vampire.Instance(Template)
