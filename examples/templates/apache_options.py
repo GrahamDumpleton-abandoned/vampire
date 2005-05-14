@@ -1,7 +1,5 @@
 import vampire
 
-import os
-
 config = vampire.loadConfig(__req__,".vampire")
 layouts = config.get("Handlers","layouts_root")
 layout = vampire.importModule("basic",layouts,__req__)
