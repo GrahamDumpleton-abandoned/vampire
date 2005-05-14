@@ -1,0 +1,37 @@
+#extends _layout
+#implements body
+
+#def title
+Cached Modules#slurp
+#end def                                                                        
+
+#import vampire
+#import time
+
+#set $cache = $vampire.ModuleCache()
+#set $keys = $cache.cachedModules()
+#silent $keys.sort()
+
+<p>
+<table>
+<thead>
+<tr>
+<th>Path</td>
+<th>Modified</td>
+<th>Accessed</td>
+<th>Hits</td>
+</tr>
+</thead>
+<tbody>
+#for $key in $keys
+#set $info = $cache.moduleInfo($key)
+<tr>
+<td>$info.file</td>
+<td>$time.asctime($time.localtime($info.mtime))</td>
+<td>$time.asctime($time.localtime($info.atime))</td>
+<td>$info.direct</td>
+</tr>
+#end for
+</tbody>
+</table>
+</p>

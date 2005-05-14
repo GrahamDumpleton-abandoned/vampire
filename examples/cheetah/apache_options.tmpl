@@ -5,8 +5,8 @@
 Apache Options#slurp
 #end def                                                                        
 
-#set $items = $req.get_options()
-#set $keys = $items.keys()
+#set $options = $req.get_options()
+#set $keys = $options.keys()
 #silent $keys.sort()
 
 <p>
@@ -21,7 +21,7 @@ Apache Options#slurp
 #for $key in $keys
 <tr>
 <td>$key</td>
-<td>$items[$key]</td>
+<td>$options[$key]</td>
 </tr>
 #end for
 </tbody>
