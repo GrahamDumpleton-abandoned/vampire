@@ -32,7 +32,7 @@ PythonOption VampireDefaultHandlers On
 # on whether using ".html" extension in requests or
 # REST style URLs. Which is dictated by settings in
 # the Vampire configuration file.
-PythonOption VampireDirectoryIndex index.html
+#PythonOption VampireDirectoryIndex index.html
 #PythonOption VampireDirectoryIndex index
 
 # If structured naming conventions for form parameters
