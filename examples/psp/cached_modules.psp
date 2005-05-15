@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Cached Modules</title>
+<title>Cached Modules</title>
 </head>
 
 <body>
@@ -12,12 +12,12 @@
 <table>
 
 <thead>
-  <tr>
-    <th>Path</td>
-    <th>Modified</td>
-    <th>Accessed</td>
-    <th>Hits</td>
-  </tr>
+<tr>
+<th>Path</td>
+<th>Modified</td>
+<th>Accessed</td>
+<th>Hits</td>
+</tr>
 </thead>
 
 <tbody>
@@ -31,12 +31,12 @@ keys.sort()
 for key in keys:
   info = cache.moduleInfo(key)
 %>
-  <tr>
-    <td><%=info.file%></td>
-    <td><%=time.asctime(time.localtime(info.mtime))%></td>
-    <td><%=time.asctime(time.localtime(info.atime))%></td>
-    <td><%=info.direct%></td>
-  </tr>
+	<tr>
+	<td><%=info.file%></td>
+	<td><%=time.asctime(time.localtime(info.mtime))%></td>
+	<td><%=time.asctime(time.localtime(info.atime))%></td>
+	<td><%=info.direct%></td>
+	</tr>
 <%
 #end for
 %>

@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Apache Options</title>
+<title>Apache Options</title>
 </head>
 
 <body>
@@ -12,10 +12,10 @@
 <table>
 
 <thead>
-  <tr>
-    <th>Key</th>
-    <th>Value</th>
-  </tr>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
 </thead>
 
 <tbody>
@@ -25,10 +25,10 @@ keys = options.keys()
 keys.sort()
 for key in keys:
 %>
-  <tr>
-    <td><%=key%></td>
-    <td><%=options[key]%></td>
-  </tr>
+	<tr>
+	<td><%=key%></td>
+	<td><%=options[key]%></td>
+	</tr>
 <%
 #end for
 %>

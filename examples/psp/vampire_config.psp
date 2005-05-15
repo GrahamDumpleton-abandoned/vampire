@@ -80,18 +80,18 @@ sections.sort()
 
 for section in sections:
 %>
-<p>
-<h3><%=section%></h3>
-<table>
+	<p>
+	<h3><%=section%></h3>
+	<table>
 
-<thead>
-<tr>
-<td><strong>Key</strong></td>
-<td><strong>Value</strong></td>
-</tr>
-</thead>
+	<thead>
+	<tr>
+	<td><strong>Key</strong></td>
+	<td><strong>Value</strong></td>
+	</tr>
+	</thead>
 
-<tbody>
+	<tbody>
 <%
 	keys = config.options(section)
 	keys.sort()
@@ -104,10 +104,10 @@ for section in sections:
 <%
 	#end for
 %>
-</tbody>
+	</tbody>
 
-</table>
-</p>
+	</table>
+	</p>
 <%
 #end for
 %>

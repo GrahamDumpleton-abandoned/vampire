@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Python Path</title>
+<title>Python Path</title>
 </head>
 
 <body>
@@ -12,9 +12,9 @@
 <table>
 
 <thead>
-  <tr>
-    <th>Directory</th>
-  </tr>
+<tr>
+<th>Directory</th>
+</tr>
 </thead>
 
 <tbody>
@@ -22,9 +22,9 @@
 import sys
 for path in sys.path:
 %>
-  <tr>
-    <td><%=path%></td>
-  </tr>
+	<tr>
+	<td><%=path%></td>
+	</tr>
 <%
 #end for
 %>

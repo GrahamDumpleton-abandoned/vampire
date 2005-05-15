@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Request Details</title>
+<title>Request Details</title>
 </head>
 
 <body>
@@ -13,24 +13,24 @@
 <table>
 
 <thead>
-  <tr>
-    <td><strong>Key</strong></td>
-    <td><strong>Value</strong></td>
-  </tr>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
 </thead>
 
 <tbody>
-  <tr><td>args</td><td><%=req.args%></td></tr>
-  <tr><td>hostname</td><td><%=req.hostname%></td></tr>
-  <tr><td>interpreter</td><td><%=req.interpreter%></td></tr>
-  <tr><td>method</td><td><%=req.method%></td></tr>
-  <tr><td>path_info</td><td><%=req.path_info%></td></tr>
-  <tr><td>proto_num</td><td><%=req.proto_num%></td></tr>
-  <tr><td>protocol</td><td><%=req.protocol%></td></tr>
-  <tr><td>the_request</td><td><%=req.the_request%></td></tr>
-  <tr><td>unparsed_uri</td><td><%=req.unparsed_uri%></td></tr>
-  <tr><td>uri</td><td><%=req.uri%></td></tr>
-  <tr><td>user</td><td><%=req.user%></td></tr></tr>
+<tr><td>args</td><td><%=req.args%></td></tr>
+<tr><td>hostname</td><td><%=req.hostname%></td></tr>
+<tr><td>interpreter</td><td><%=req.interpreter%></td></tr>
+<tr><td>method</td><td><%=req.method%></td></tr>
+<tr><td>path_info</td><td><%=req.path_info%></td></tr>
+<tr><td>proto_num</td><td><%=req.proto_num%></td></tr>
+<tr><td>protocol</td><td><%=req.protocol%></td></tr>
+<tr><td>the_request</td><td><%=req.the_request%></td></tr>
+<tr><td>unparsed_uri</td><td><%=req.unparsed_uri%></td></tr>
+<tr><td>uri</td><td><%=req.uri%></td></tr>
+<tr><td>user</td><td><%=req.user%></td></tr></tr>
 </tbody>
 
 </table>
@@ -41,10 +41,10 @@
 <table>
 
 <thead>
-  <tr>
-    <td><strong>Key</strong></td>
-    <td><strong>Value</strong></td>
-  </tr>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
 </thead>
 
 <tbody>
@@ -54,10 +54,10 @@ keys = headers.keys()
 keys.sort()
 for key in keys:
 %>
-  <tr>
-    <td><%=key%></td>
-    <td><%=headers[key]%></td>
-  </tr>
+	<tr>
+	<td><%=key%></td>
+	<td><%=headers[key]%></td>
+	</tr>
 <%
 #end for
 %>

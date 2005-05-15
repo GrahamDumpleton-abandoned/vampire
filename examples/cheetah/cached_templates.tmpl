@@ -16,25 +16,25 @@ Cached Templates#slurp
 <table>
 
 <thead>
-  <tr>
-    <th>Path</td>
-    <th>Node</td>
-    <th>Modified</td>
-    <th>Accessed</td>
-    <th>Hits</td>
-  </tr>
+<tr>
+<th>Path</td>
+<th>Node</td>
+<th>Modified</td>
+<th>Accessed</td>
+<th>Hits</td>
+</tr>
 </thead>
 
 <tbody>
 #for $key in $keys
 #set $info = $cache.templateInfo($key)
-  <tr>
-    <td>$info.path</td>
-    <td>$info.attribute</td>
-    <td>$time.asctime($time.localtime($info.mtime))</td>
-    <td>$time.asctime($time.localtime($info.atime))</td>
-    <td>$info.hits</td>
-  </tr>
+	<tr>
+	<td>$info.path</td>
+	<td>$info.attribute</td>
+	<td>$time.asctime($time.localtime($info.mtime))</td>
+	<td>$time.asctime($time.localtime($info.atime))</td>
+	<td>$info.hits</td>
+	</tr>
 #end for
 </tbody>
 

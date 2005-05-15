@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Python Modules</title>
+<title>Python Modules</title>
 </head>
 
 <body>
@@ -12,10 +12,10 @@
 <table>
 
 <thead>
-  <tr>
-    <th>Label</th>
-    <th>Path</th>
-  </tr>
+<tr>
+<th>Label</th>
+<th>Path</th>
+</tr>
 </thead>
 
 <tbody>
@@ -24,15 +24,15 @@ import sys
 keys = sys.modules.keys()
 keys.sort()
 for key in keys:
-  file = ""
-  if hasattr(sys.modules[key],"__file__"):
-    file = sys.modules[key].__file__
-  #end if
+	file = ""
+	if hasattr(sys.modules[key],"__file__"):
+	  file = sys.modules[key].__file__
+	#end if
 %>
-  <tr>
-    <td><%=key%></td>
-    <td><%=file%></td>
-  </tr>
+	<tr>
+	<td><%=key%></td>
+	<td><%=file%></td>
+	</tr>
 <%
 #end for
 %>

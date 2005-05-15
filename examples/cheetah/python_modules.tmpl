@@ -14,22 +14,22 @@ Python Modules#slurp
 <table>
 
 <thead>
-  <tr>
-    <th>Label</th>
-    <th>Path</th>
-  </tr>
+<tr>
+<th>Label</th>
+<th>Path</th>
+</tr>
 </thead>
 
 <tbody>
 #for $key in $keys
-  <tr>
-    <td>$key</td>
-    <td>
-    #if $hasattr($sys.modules[$key],"__file__")
-    $sys.modules[$key].__file__
-    #end if
-    </td>
-  </tr>
+<tr>
+	<td>$key</td>
+	<td>
+	#if $hasattr($sys.modules[$key],"__file__")
+		$sys.modules[$key].__file__
+	#end if
+	</td>
+	</tr>
 #end for
 </tbody>
 

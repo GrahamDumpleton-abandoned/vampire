@@ -1,7 +1,7 @@
 <html>
 
 <head>
-  <title>Python Config</title>
+<title>Python Config</title>
 </head>
 
 <body>
@@ -12,10 +12,10 @@
 <table>
 
 <thead>
-  <tr>
-    <th>Key</th>
-    <th>Value</th>
-  </tr>
+<tr>
+<th>Key</th>
+<th>Value</th>
+</tr>
 </thead>
 
 <tbody>
@@ -25,10 +25,10 @@ keys = config.keys()
 keys.sort()
 for key in keys:
 %>
-  <tr>
-    <td><%=key%></td>
-    <td><%=config[key]%></td>
-  </tr>
+	<tr>
+	<td><%=key%></td>
+	<td><%=config[key]%></td>
+	</tr>
 </tbody>
 <%
 #end for
