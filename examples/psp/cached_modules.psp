@@ -1,0 +1,49 @@
+<html>
+
+<head>
+  <title>Cached Modules</title>
+</head>
+
+<body>
+
+<h1>Cached Modules</h1>
+
+<p>
+<table>
+
+<thead>
+  <tr>
+  <th>Path</td>
+  <th>Modified</td>
+  <th>Accessed</td>
+  <th>Hits</td>
+  </tr>
+</thead>
+
+<tbody>
+<%
+import vampire
+import time
+
+cache = vampire.ModuleCache()
+keys = cache.cachedModules()
+keys.sort()
+for key in keys:
+  info = cache.moduleInfo(key)
+%>
+  <tr>
+  <td><%=info.file%></td>
+  <td><%=time.asctime(time.localtime(info.mtime))%></td>
+  <td><%=time.asctime(time.localtime(info.atime))%></td>
+  <td><%=info.direct%></td>
+  </tr>
+<%
+#end for
+%>
+</tbody>
+
+</table>
+</p>
+
+</body>
+</html>
