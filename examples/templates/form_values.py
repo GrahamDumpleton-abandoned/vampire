@@ -8,13 +8,13 @@ class Template(layout.Template):
 
   no_cache = True
 
-  def renderTemplate(self,**params):
+  def renderTemplate(self,**fields):
 
     def renderItem(node,name):
       node.name.content = name
-      node.value.content = str(params[name])
+      node.value.content = str(fields[name])
 
-    names = list(params.keys())
+    names = list(fields.keys())
     names.sort()
 
     self.template.item.repeat(renderItem,names)
