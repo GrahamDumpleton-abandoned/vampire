@@ -1,12 +1,3 @@
-[Settings]
-
-# Define any variables here which should be available
-# within any PSP page under this directory. Any of the
-# default variables such as "__config_root__" will also
-# be available.
-
-contact = grahamd@dscpl.com.au 
-
 [Handlers]
 
 # Location of the default content handlers. This is only

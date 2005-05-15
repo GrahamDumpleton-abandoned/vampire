@@ -1,0 +1,116 @@
+<html>
+
+<head>
+<title>Vampire Config</title>
+</head>
+
+<body>
+
+<h1>Vampire Config</h1>
+
+<p>
+<h2>.htaccess</h2>
+<table>
+
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+
+<tbody>
+<%
+options = req.get_options()
+keys = options.keys()
+keys.sort()
+for key in keys:
+%>
+	<tr>
+	<td><%=key%></td>
+	<td><%=options[key]%></td>
+	</tr>
+<%
+#end for
+%>
+</tbody>
+
+</table>
+</p>
+
+<%
+import vampire
+file = fields.get("file",".vampire")
+config = vampire.loadConfig(req,file)
+%>
+
+<p>
+<h2>.vampire</h2>
+<table>
+
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+
+<tbody>
+<%
+defaults = config.defaults()
+keys = defaults.keys()
+keys.sort()
+for key in keys:
+%>
+	<tr>
+	<td><%=key%></td>
+	<td><%=defaults[key]%></td>
+	</tr>
+<%
+#end for
+%>
+</tbody>
+
+</table>
+</p>
+
+<%
+sections = config.sections()
+sections.sort()
+
+for section in sections:
+%>
+<p>
+<h3><%=section%></h3>
+<table>
+
+<thead>
+<tr>
+<td><strong>Key</strong></td>
+<td><strong>Value</strong></td>
+</tr>
+</thead>
+
+<tbody>
+<%
+	keys = config.options(section)
+	keys.sort()
+	for key in keys:
+%>
+		<tr>
+		<td><%=key%></td>
+		<td><%=config.get(section,key)%></td>
+		</tr>
+<%
+	#end for
+%>
+</tbody>
+
+</table>
+</p>
+<%
+#end for
+%>
+
+</body>
+</html>
