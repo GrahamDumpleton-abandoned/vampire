@@ -1,0 +1,41 @@
+<html>
+
+<head>
+  <title>System Environ</title>
+</head>
+
+<body>
+
+<h1>System Environ</h1>
+
+<p>
+<table>
+
+<thead>
+  <tr>
+    <th>Name</th>
+    <th>Value</th>
+  </tr>
+</thead>
+
+<tbody>
+<%
+import os
+names = os.environ.keys()
+names.sort()
+for name in names:
+%>
+  <tr>
+    <td><%=name%></td>
+    <td><%=os.environ[name]%></td>
+  </tr>
+<%
+#end for
+%>
+</tbody>
+
+</table>
+</p>
+
+</body>
+</html>
