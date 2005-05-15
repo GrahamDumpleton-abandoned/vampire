@@ -1,0 +1,37 @@
+<html>
+
+<head>
+  <title>Python Path</title>
+</head>
+
+<body>
+
+<h1>Python Path</h1>
+
+<p>
+<table>
+
+<thead>
+  <tr>
+    <th>Directory</th>
+  </tr>
+</thead>
+
+<tbody>
+<%
+import sys
+for path in sys.path:
+%>
+  <tr>
+    <td><%=path%></td>
+  </tr>
+<%
+#end for
+%>
+</tbody>
+
+</table>
+</p>
+
+</body>
+</html>
