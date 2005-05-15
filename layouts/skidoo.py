@@ -7,6 +7,53 @@ import os
 directory = os.path.split(__file__)[0]
 basic = vampire.importModule("basic",directory,__req__)
 
+PREFIX = """
+<div id="pageWrapper">
+<div id="masthead" class="inside">
+<!-- masthead content begin -->
+<h1>%(masthead)s</h1>
+<!-- masthead content end -->
+</div>
+<!-- horizontal nav begin -->
+<div class="hnav">%(navbar)s</div>
+<!-- horizontal nav end -->
+<div id="outerColumnContainer">
+<div id="innerColumnContainer">
+<div id="SOWrap">
+<div id="middleColumn">
+<div class="inside">
+"""
+
+SUFFIX = """
+</div>
+</div>
+<div id="leftColumn">
+<div class="inside">
+<!--- left column begin -->
+<!-- vertical nav begin -->
+<div class="vnav">%(links)s</div>
+<!-- vertical nav end -->
+<!--- left column end -->
+</div>
+</div>
+</div>
+<div id="rightColumn">
+<div class="inside">
+<!--- right column begin -->
+%(sidebar)s
+<!--- right column end -->
+</div>
+</div>
+<div class="clear mozclear"></div>
+</div>
+</div>
+<div id="footer" class="inside">
+<!-- footer begin -->
+<p style="margin:0;">%(footer)s</p>
+<!-- footer end -->
+</div>
+</div>
+"""
 
 # Extension to basic object handler for template which
 # massages HTML with appropriate marked elements into a
@@ -86,8 +133,7 @@ class Template(basic.Template):
       if module:
 	masthead = module.masthead(self.req)
 
-    if masthead:
-      self.template.masthead.raw = masthead
+    self.__components["masthead"] = masthead
 
   def __formatNavigation(self,links):
 
@@ -125,8 +171,7 @@ class Template(basic.Template):
       if module:
 	navbar = module.navbar(self.req)
 
-    if navbar:
-      self.template.hnav.raw = self.__formatNavigation(navbar)
+    self.__components["navbar"] = self.__formatNavigation(navbar)
 
   def __formatLinks(self,groups):
 
@@ -168,8 +213,7 @@ class Template(basic.Template):
       if module:
 	links = module.links(self.req)
 
-    if links:
-      self.template.vnav.raw = self.__formatLinks(links)
+    self.__components["links"] = self.__formatLinks(links)
 
   def __renderFooter(self):
 
@@ -186,8 +230,7 @@ class Template(basic.Template):
       if module:
 	footer = module.footer(self.req)
 
-    if footer:
-      self.template.footer.raw = footer
+    self.__components["footer"] = footer
 
   def __renderSidebar(self):
 
@@ -209,7 +252,9 @@ class Template(basic.Template):
 	sidebar.body._renderContent(collector)
 	sidebar = ''.join(collector)
 
-    self.template.rightColumn.raw = sidebar
+    #self.template.rightColumn.raw = sidebar
+
+    self.__components["sidebar"] = sidebar
 
   def __renderHeader(self):
 
@@ -233,18 +278,20 @@ class Template(basic.Template):
      ( "print",	"%(styles_home)s/print_media.css" ),
     )
 
-    if self.template.rightColumn.raw:
+    if self.__components["sidebar"]:
       self.template.stylesheet.repeat(renderStylesheet,STYLESHEETS_3COLUMN)
     else:
       self.template.stylesheet.repeat(renderStylesheet,STYLESHEETS_2COLUMN)
 
   def renderTemplate(self):
 
+    self.__components = {}
+
     # Cache configuration settings.
 
     self.__cacheSettings()
 
-    # Render internal elements of page template.
+    # Render components of page template.
 
     self.__renderMasthead()
     self.__renderNavigation()
@@ -252,6 +299,12 @@ class Template(basic.Template):
     self.__renderFooter()
     self.__renderSidebar()
     self.__renderHeader()
+
+    prefix = PREFIX % self.__components
+    suffix = SUFFIX % self.__components
+
+    self.template.prefix.raw = prefix
+    self.template.suffix.raw = suffix
 
     # Trigger base class method in case it needs to do
     # any additional work.
