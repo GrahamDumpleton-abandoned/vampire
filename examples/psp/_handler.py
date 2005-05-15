@@ -60,16 +60,23 @@ def handler(req):
 
   # Check whether the code is trying to make use of the
   # form object. If it is, use the form object created
-  # by Vampire. Note that no steps are taken to push
-  # Vampire decoded form parameters into the execution
-  # environment, instead compatibility is kept with how
-  # PSP does things.
+  # by Vampire.
 
   form = None
 
   if "form" in code.co_names:
     vampire.processForm(req)
     form = req.form
+
+  # Check whether the code is trying to make use of the
+  # form fields. If it is, put the actual form fields
+  # into the execution environment as well. This is an
+  # addition on top of what original PSP did.
+
+  fields = {}
+
+  if "fields" in code.co_names:
+    fields = vampire.processForm(req)
 
   # Create PSP interface object for compatibility.
 
@@ -90,6 +97,7 @@ def handler(req):
   environ["req"] = req
   environ["session"] = session
   environ["form"] = form
+  environ["fields"] = fields
   environ["psp"] = interface
 
   # Now execute the actual page to handle the request.

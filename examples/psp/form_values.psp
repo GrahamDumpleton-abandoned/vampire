@@ -1,38 +1,38 @@
 <html>
 
 <head>
-  <title>Apache Options</title>
+  <title>Form Values</title>
 </head>
 
 <body>
 
-<h1>Apache Options</h1>
+<h1>Form Values</h1>
 
 <p>
 <table>
 
 <thead>
   <tr>
-    <th>Key</th>
+    <th>Name</th>
     <th>Value</th>
   </tr>
 </thead>
 
 <tbody>
 <%
-options = req.get_options()
-keys = options.keys()
+import vampire
+keys = fields.keys()
 keys.sort()
 for key in keys:
 %>
   <tr>
     <td><%=key%></td>
-    <td><%=options[key]%></td>
+    <td><%=fields[key]%></td>
   </tr>
+</tbody>
 <%
 #end for
 %>
-</tbody>
 
 </table>
 </p>

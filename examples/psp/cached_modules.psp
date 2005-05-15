@@ -13,10 +13,10 @@
 
 <thead>
   <tr>
-  <th>Path</td>
-  <th>Modified</td>
-  <th>Accessed</td>
-  <th>Hits</td>
+    <th>Path</td>
+    <th>Modified</td>
+    <th>Accessed</td>
+    <th>Hits</td>
   </tr>
 </thead>
 
@@ -32,10 +32,10 @@ for key in keys:
   info = cache.moduleInfo(key)
 %>
   <tr>
-  <td><%=info.file%></td>
-  <td><%=time.asctime(time.localtime(info.mtime))%></td>
-  <td><%=time.asctime(time.localtime(info.atime))%></td>
-  <td><%=info.direct%></td>
+    <td><%=info.file%></td>
+    <td><%=time.asctime(time.localtime(info.mtime))%></td>
+    <td><%=time.asctime(time.localtime(info.atime))%></td>
+    <td><%=info.direct%></td>
   </tr>
 <%
 #end for
