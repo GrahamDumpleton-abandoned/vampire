@@ -21,8 +21,10 @@ PythonDebug On
 # Stop the directory being added to path.
 PythonPath 'sys.path'
 
-# Enable default handlers for rendering of HTML pages.
+# Enable default content handlers.
 PythonOption VampireDefaultHandlers On
+
+# Specify default directory index file.
 PythonOption VampireDirectoryIndex index.html
 
 # Block access to configuration file.

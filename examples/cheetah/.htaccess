@@ -28,11 +28,12 @@ PythonOption VampireImportHooks On
 # Enable default content handlers.
 PythonOption VampireDefaultHandlers On
 
-# Specify directory index file.Which you use depends
-# on whether using ".html" extension in requests or
-# REST style URLs. Which is dictated by settings in
-# the Vampire configuration file.
-#PythonOption VampireDirectoryIndex index.html
+# Specify default directory index file. Which you use
+# will depend on whether you are using ".html" extension
+# in requests or REST style URLs with no extension.
+# Which it will be is dictated by settings in the
+# Vampire configuration file.
+PythonOption VampireDirectoryIndex index.html
 #PythonOption VampireDirectoryIndex index
 
 # If structured naming conventions for form parameters
