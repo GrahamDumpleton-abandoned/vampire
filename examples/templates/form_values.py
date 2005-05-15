@@ -8,9 +8,7 @@ class Template(layout.Template):
 
   no_cache = True
 
-  def renderTemplate(self):
-
-    params = vampire.processForm(self.req)
+  def renderTemplate(self,**params):
 
     def renderItem(node,name):
       node.name.content = name

@@ -519,9 +519,11 @@ def _execute(req,object,lazy=True):
       (len(expected) == 1 and not "req" in expected)):
     args = _form(req)
 
-  # Add request object set of input form parameters.
+  # Add request object into set of input form parameters
+  # if it is expected.
 
-  args["req"] = req
+  if "req" in expected:
+    args["req"] = req
 
   # If callable object doesn't support keyword argument
   # list, filter out form parameters that don't match
