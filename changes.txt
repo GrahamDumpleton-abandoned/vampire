@@ -129,6 +129,12 @@ Changes in Vampire 1.7
   This wrapper class should be usable within "vampire::publisher",
   "vampire.Publisher()" and "vampire.Handler()".
 
+- In the same manner that "vampire.Instance()" can be used to trigger
+  creation of an instance of a class to handle a request in the style of a
+  handler, the "vampire.Publisher()" and "vampire.Handler()" classes have
+  been enhanced to allow a class type to be wrapped, with an instance of
+  the class being created for each request.
+
 - Made available "vampire.handlerArguments()" and "vampire.executeHandler()"
   functions. These provide means of determining set of arguments that a
   callable object accepts and a means of executing a callable object such

@@ -1141,7 +1141,9 @@ class Handler:
     if func_path[-1:] == "/":
       func_path = func_path[:-1]
 
-    # Now resolve the path to identify target object.
+    # Now resolve the path to identify target object. If
+    # the target is a class type, we will need to create
+    # an instance of the object.
 
     if func_path:
       parts = func_path.split('/')
@@ -1150,8 +1152,13 @@ class Handler:
 
     rules = _handler_rules
 
+    if type(self.__object) in [types.ClassType,types.TypeType]:
+      object = _execute(req,self.__object,lazy=True)
+    else:
+      object = self.__object
+
     status,traverse,execute,access,objects = _resolve(
-        req,self.__object,parts,rules)
+        req,object,parts,rules)
 
     # Return control to Apache if we were unable to find
     # an appropriate handler to execute.
@@ -1245,7 +1252,9 @@ class Publisher:
     if func_path[-1:] == "/":
       func_path = func_path[:-1]
 
-    # Now resolve the path to identify target object.
+    # Now resolve the path to identify target object. If
+    # the target is a class type, we will need to create
+    # an instance of the object.
 
     if func_path:
       parts = func_path.split('/')
@@ -1254,8 +1263,13 @@ class Publisher:
 
     rules = _publisher_rules
 
+    if type(self.__object) in [types.ClassType,types.TypeType]:
+      object = _execute(req,self.__object,lazy=True)
+    else:
+      object = self.__object
+
     status,traverse,execute,access,objects = _resolve(
-        req,self.__object,parts,rules)
+        req,object,parts,rules)
 
     # Authenticate all the objects that were traversed
     # even if we did not find a target handler.
