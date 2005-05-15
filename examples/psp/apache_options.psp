@@ -1,0 +1,41 @@
+<html>
+
+<head>
+  <title>Apache Options</title>
+</head>
+
+<body>
+
+<h1>Apache Options</h1>
+
+<p>
+<table>
+
+<thead>
+  <tr>
+  <th>Key</th>
+  <th>Value</th>
+  </tr>
+</thead>
+
+<tbody>
+<%
+options = req.get_options()
+keys = options.keys()
+keys.sort()
+for key in keys:
+%>
+  <tr>
+  <td><%=key%></td>
+  <td><%=options[key]%></td>
+  </tr>
+<%
+#end for
+%>
+</tbody>
+
+</table>
+</p>
+
+</body>
+</html>
