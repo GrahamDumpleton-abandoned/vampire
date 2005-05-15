@@ -333,8 +333,10 @@ def _import(name,globals=None,locals=None,fromlist=None):
   # use of import hooks has been enabled.
 
   if globals and globals.has_key("__req__"):
+    options = {}
     req = globals["__req__"]
-    options = req.get_options()
+    if req is not None:
+      options = req.get_options()
     if options.has_key("VampireImportHooks"):
       if options["VampireImportHooks"] in ["On","on"]:
 
