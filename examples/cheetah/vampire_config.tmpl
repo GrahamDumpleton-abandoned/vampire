@@ -12,20 +12,23 @@ Vampire Config#slurp
 <p>
 <h2>.htaccess</h2>
 <table>
+
 <thead>
-<tr>
-<th>Key</th>
-<th>Value</th>
-</tr>
+  <tr>
+    <th>Key</th>
+    <th>Value</th>
+  </tr>
 </thead>
+
 <tbody>
 #for $key in $keys
-<tr>
-<td>$key</td>
-<td>$options[$key]</td>
-</tr>
+  <tr>
+    <td>$key</td>
+    <td>$options[$key]</td>
+  </tr>
 #end for
 </tbody>
+
 </table>
 </p>
 
@@ -42,20 +45,23 @@ Vampire Config#slurp
 <p>
 <h2>.vampire</h2>
 <table>
+
 <thead>
-<tr>
-<th>Key</th>
-<th>Value</th>
-</tr>
+  <tr>
+    <th>Key</th>
+    <th>Value</th>
+  </tr>
 </thead>
+
 <tbody>
 #for $key in $keys
-<tr>
-<td>$key</td>
-<td>$defaults[$key]</td>
-</tr>
+  <tr>
+    <td>$key</td>
+    <td>$defaults[$key]</td>
+  </tr>
 #end for
 </tbody>
+
 </table>
 </p>
 
@@ -66,21 +72,23 @@ Vampire Config#slurp
 <p vampire:node="rep:section">
 <h3>$section</h3>
 <table>
+
 <thead>
-<tr>
-<td><strong>Key</strong></td>
-<td><strong>Value</strong></td>
-</tr>
+  <tr>
+    <td><strong>Key</strong></td>
+    <td><strong>Value</strong></td>
+  </tr>
 </thead>
+
 <tbody>
 #set $keys = $config.options($section)
 #silent $keys.sort()
 #for $key in $keys
-<tr>
-<td>$key</td>
-<td>$config.get($section,$key)</td>
+  <tr>
+    <td>$key</td>
+    <td>$config.get($section,$key)</td>
+  </tr>
 #end for
-</tr>
 </tbody>
 </table>
 </p>

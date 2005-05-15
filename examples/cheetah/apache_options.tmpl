@@ -11,19 +11,22 @@ Apache Options#slurp
 
 <p>
 <table>
+
 <thead>
-<tr>
-<th>Key</th>
-<th>Value</th>
-</tr>
+  <tr>
+    <th>Key</th>
+    <th>Value</th>
+  </tr>
 </thead>
+
 <tbody>
 #for $key in $keys
-<tr>
-<td>$key</td>
-<td>$options[$key]</td>
-</tr>
+  <tr>
+    <td>$key</td>
+    <td>$options[$key]</td>
+  </tr>
 #end for
 </tbody>
+
 </table>
 </p>
