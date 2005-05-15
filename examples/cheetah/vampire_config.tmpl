@@ -32,13 +32,12 @@ Vampire Config#slurp
 </table>
 </p>
 
-#set $file = $req.fields.get("file",".vampire")
-
 #import vampire
 
+#set $file = $req.fields.get("file",".vampire")
 #set $config = $vampire.loadConfig($req,$file)
-#set $defaults = $config.defaults()
 
+#set $defaults = $config.defaults()
 #set $keys = $defaults.keys()
 #silent $keys.sort()
 
