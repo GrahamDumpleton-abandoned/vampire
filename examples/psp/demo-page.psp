@@ -8,10 +8,6 @@ import time
 <%=time.strftime("%Y-%m-%d, %H:%M:%S")%>
 </p>
 <p>
-<h1>Contact</h1>
-<%=contact%>
-</p>
-<p>
 <h1>Defaults</h1>
 <table>
 <thead>
