@@ -3,7 +3,7 @@
 
 #def title
 Apache Options#slurp
-#end def                                                                        
+#end def
 
 #set $options = $req.get_options()
 #set $keys = $options.keys()
@@ -21,10 +21,10 @@ Apache Options#slurp
 
 <tbody>
 #for $key in $keys
-	<tr>
-	<td>$key</td>
-	<td>$options[$key]</td>
-	</tr>
+    <tr>
+    <td>$key</td>
+    <td>$options[$key]</td>
+    </tr>
 #end for
 </tbody>
 

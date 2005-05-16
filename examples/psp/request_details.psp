@@ -53,13 +53,14 @@ headers = req.headers_in
 keys = headers.keys()
 keys.sort()
 for key in keys:
+    # indent
 %>
-	<tr>
-	<td><%=key%></td>
-	<td><%=headers[key]%></td>
-	</tr>
+    <tr>
+    <td><%=key%></td>
+    <td><%=headers[key]%></td>
+    </tr>
 <%
-#end for
+# end for
 %>
 </tbody>
 

@@ -24,14 +24,15 @@ config = req.get_config()
 keys = config.keys()
 keys.sort()
 for key in keys:
+    # indent
 %>
-	<tr>
-	<td><%=key%></td>
-	<td><%=config[key]%></td>
-	</tr>
+    <tr>
+    <td><%=key%></td>
+    <td><%=config[key]%></td>
+    </tr>
 </tbody>
 <%
-#end for
+# end for
 %>
 
 </table>

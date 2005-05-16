@@ -30,19 +30,20 @@ cache = vampire.TemplateCache()
 keys = cache.cachedTemplates()
 keys.sort()
 for key in keys:
-  info = cache.templateInfo(key)
+    # indent
+    info = cache.templateInfo(key)
 %>
-	<tr>
-	<td><%=info.path%></td>
-	<td><%=info.attribute%></td>
-	<td><%=time.asctime(time.localtime(info.mtime))%></td>
-	<td><%=time.asctime(time.localtime(info.atime))%></td>
-	<td><%=info.hits%></td>
-	</tr>
-</tbody>
+    <tr>
+    <td><%=info.path%></td>
+    <td><%=info.attribute%></td>
+    <td><%=time.asctime(time.localtime(info.mtime))%></td>
+    <td><%=time.asctime(time.localtime(info.atime))%></td>
+    <td><%=info.hits%></td>
+    </tr>
 <%
-#end for
+# end for
 %>
+</tbody>
 </table>
 </p>
 

@@ -29,16 +29,17 @@ cache = vampire.ModuleCache()
 keys = cache.cachedModules()
 keys.sort()
 for key in keys:
-  info = cache.moduleInfo(key)
+    # ident
+    info = cache.moduleInfo(key)
 %>
-	<tr>
-	<td><%=info.file%></td>
-	<td><%=time.asctime(time.localtime(info.mtime))%></td>
-	<td><%=time.asctime(time.localtime(info.atime))%></td>
-	<td><%=info.direct%></td>
-	</tr>
+    <tr>
+    <td><%=info.file%></td>
+    <td><%=time.asctime(time.localtime(info.mtime))%></td>
+    <td><%=time.asctime(time.localtime(info.atime))%></td>
+    <td><%=info.direct%></td>
+    </tr>
 <%
-#end for
+# end for
 %>
 </tbody>
 

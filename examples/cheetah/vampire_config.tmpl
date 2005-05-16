@@ -22,10 +22,10 @@ Vampire Config#slurp
 
 <tbody>
 #for $key in $keys
-	<tr>
-	<td>$key</td>
-	<td>$options[$key]</td>
-	</tr>
+    <tr>
+    <td>$key</td>
+    <td>$options[$key]</td>
+    </tr>
 #end for
 </tbody>
 
@@ -54,10 +54,10 @@ Vampire Config#slurp
 
 <tbody>
 #for $key in $keys
-	<tr>
-	<td>$key</td>
-	<td>$defaults[$key]</td>
-	</tr>
+    <tr>
+    <td>$key</td>
+    <td>$defaults[$key]</td>
+    </tr>
 #end for
 </tbody>
 
@@ -68,27 +68,27 @@ Vampire Config#slurp
 #silent $sections.sort()
 
 #for $section in $sections
-	<p vampire:node="rep:section">
-	<h3>$section</h3>
-	<table>
+    <p vampire:node="rep:section">
+    <h3>$section</h3>
+    <table>
 
-	<thead>
+    <thead>
+    <tr>
+    <td><strong>Key</strong></td>
+    <td><strong>Value</strong></td>
+    </tr>
+    </thead>
+
+    <tbody>
+    #set $keys = $config.options($section)
+    #silent $keys.sort()
+    #for $key in $keys
 	<tr>
-	<td><strong>Key</strong></td>
-	<td><strong>Value</strong></td>
+	<td>$key</td>
+	<td>$config.get($section,$key)</td>
 	</tr>
-	</thead>
-
-	<tbody>
-	#set $keys = $config.options($section)
-	#silent $keys.sort()
-	#for $key in $keys
-		<tr>
-		<td>$key</td>
-		<td>$config.get($section,$key)</td>
-		</tr>
-	#end for
-	</tbody>
-	</table>
-	</p>
+    #end for
+    </tbody>
+    </table>
+    </p>
 #end for

@@ -24,14 +24,15 @@ import vampire
 keys = fields.keys()
 keys.sort()
 for key in keys:
+    # indent
 %>
-	<tr>
-	<td><%=key%></td>
-	<td><%=fields[key]%></td>
-	</tr>
+    <tr>
+    <td><%=key%></td>
+    <td><%=fields[key]%></td>
+    </tr>
 </tbody>
 <%
-#end for
+# end for
 %>
 
 </table>

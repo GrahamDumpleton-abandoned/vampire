@@ -24,13 +24,14 @@ import os
 names = os.environ.keys()
 names.sort()
 for name in names:
+    # indent
 %>
-	<tr>
-	<td><%=name%></td>
-	<td><%=os.environ[name]%></td>
-	</tr>
+    <tr>
+    <td><%=name%></td>
+    <td><%=os.environ[name]%></td>
+    </tr>
 <%
-#end for
+# end for
 %>
 </tbody>
 

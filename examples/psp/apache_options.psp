@@ -24,13 +24,14 @@ options = req.get_options()
 keys = options.keys()
 keys.sort()
 for key in keys:
+    # indent
 %>
-	<tr>
-	<td><%=key%></td>
-	<td><%=options[key]%></td>
-	</tr>
+    <tr>
+    <td><%=key%></td>
+    <td><%=options[key]%></td>
+    </tr>
 <%
-#end for
+# end for
 %>
 </tbody>
 

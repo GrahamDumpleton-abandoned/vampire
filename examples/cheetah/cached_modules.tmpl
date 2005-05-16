@@ -27,12 +27,12 @@ Cached Modules#slurp
 <tbody>
 #for $key in $keys
 #set $info = $cache.moduleInfo($key)
-	<tr>
-	<td>$info.file</td>
-	<td>$time.asctime($time.localtime($info.mtime))</td>
-	<td>$time.asctime($time.localtime($info.atime))</td>
-	<td>$info.direct</td>
-	</tr>
+    <tr>
+    <td>$info.file</td>
+    <td>$time.asctime($time.localtime($info.mtime))</td>
+    <td>$time.asctime($time.localtime($info.atime))</td>
+    <td>$info.direct</td>
+    </tr>
 #end for
 </tbody>
 

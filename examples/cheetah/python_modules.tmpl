@@ -23,13 +23,13 @@ Python Modules#slurp
 <tbody>
 #for $key in $keys
 <tr>
-	<td>$key</td>
-	<td>
-	#if $hasattr($sys.modules[$key],"__file__")
-		$sys.modules[$key].__file__
-	#end if
-	</td>
-	</tr>
+    <td>$key</td>
+    <td>
+    #if $hasattr($sys.modules[$key],"__file__")
+	$sys.modules[$key].__file__
+    #end if
+    </td>
+    </tr>
 #end for
 </tbody>
 

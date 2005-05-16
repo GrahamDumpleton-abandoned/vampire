@@ -28,13 +28,13 @@ Cached Templates#slurp
 <tbody>
 #for $key in $keys
 #set $info = $cache.templateInfo($key)
-	<tr>
-	<td>$info.path</td>
-	<td>$info.attribute</td>
-	<td>$time.asctime($time.localtime($info.mtime))</td>
-	<td>$time.asctime($time.localtime($info.atime))</td>
-	<td>$info.hits</td>
-	</tr>
+    <tr>
+    <td>$info.path</td>
+    <td>$info.attribute</td>
+    <td>$time.asctime($time.localtime($info.mtime))</td>
+    <td>$time.asctime($time.localtime($info.atime))</td>
+    <td>$info.hits</td>
+    </tr>
 #end for
 </tbody>
 
