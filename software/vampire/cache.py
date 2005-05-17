@@ -326,13 +326,16 @@ def _search(name,path,req):
       return importModule(name,directory,req)
 
 def _import(name,globals=None,locals=None,fromlist=None):
+
   module = None
 
-  # Only consider using Vampire import mechanism
-  # if request object is present as "__req__" and
-  # use of import hooks has been enabled.
+  # Only consider using Vampire import mechanism if
+  # request object is present as "__req__", filename is
+  # defined by "__file__" and use of import hooks has
+  # been enabled.
 
-  if globals and globals.has_key("__req__"):
+  if globals and globals.has_key("__req__") \
+      and globals.has_key("__file__"):
     options = {}
     req = globals["__req__"]
     if req is not None:
