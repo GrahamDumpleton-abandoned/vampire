@@ -269,13 +269,13 @@ class Template(basic.Template):
       node.atts["media"] = media
 
     STYLESHEETS_2COLUMN = (
-     ( "screen",	"%(styles_home)s/two_column.css" ),
-     ( "print",	"%(styles_home)s/print_media.css" ),
+     ( "screen", "%(styles_home)s/two_column.css" ),
+     ( "print", "%(styles_home)s/print_media.css" ),
     )
 
     STYLESHEETS_3COLUMN = (
-     ( "screen",	"%(styles_home)s/three_column.css" ),
-     ( "print",	"%(styles_home)s/print_media.css" ),
+     ( "screen", "%(styles_home)s/three_column.css" ),
+     ( "print", "%(styles_home)s/print_media.css" ),
     )
 
     if self.__components["sidebar"]:
