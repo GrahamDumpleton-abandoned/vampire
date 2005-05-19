@@ -141,6 +141,20 @@ Changes in Vampire 1.7
   that any form parameters supplied with the request are passed when
   appropriate via the arguments the callable object accepts.
 
+- When using "vampire.importModule()", if the path argument is explicitly
+  set to "None", the directory in which the module will be searched for
+  will be that which the calling module is located in. This means that
+  instead of writing:
+
+    import os
+
+    directory = os.path.dirname(__file__)
+    xxx = vampire.importModule,"xxx",directory,__req__)
+
+  it is possible to use:
+
+    xxx = vampire.importModule,"xxx",None,__req__)
+
 
 Changes in Vampire 1.6
 ======================

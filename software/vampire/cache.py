@@ -143,6 +143,12 @@ class _ModuleCache:
       if req.get_config().has_key("PythonDebug"):
         if req.get_config()["PythonDebug"] == "1":
           log = True
+    if path is None:
+      try:
+        raise Exception
+      except Exception:
+        frame = sys.exc_info()[2].tb_frame.f_back
+	path = os.path.dirname(frame.f_code.co_filename)
     path = os.path.normpath(path)
     file = os.path.join(path,name) + ".py"
     label = self._moduleLabel(file)
@@ -301,8 +307,7 @@ _moduleCache = _ModuleCache()
 def ModuleCache():
   return _moduleCache
 
-def importModule(name,path,req=None):
-  return _moduleCache.importModule(name,path,req)
+importModule = _moduleCache.importModule
 
 
 # Following replaces the standard Python __import__ hook
