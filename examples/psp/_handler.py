@@ -65,13 +65,10 @@ class PSP(psp.PSP):
     # pushed into the environment so that these can be
     # used. If user defined settings are placed into the
     # "DEFAULT" section of configuration file, these
-    # will also be available. Note that don't copy
-    # globals from this module or the psp module like in
-    # original PSP as that means contents of this module
-    # could be trashed. Instead populate environment
-    # just with methods and classes that are documented
-    # as being available or which make sense to be made
-    # available.
+    # will also be available. Note that only populate
+    # environment with just methods and classes that are
+    # documented as being available within PSP page or
+    # which make sense to be made available.
 
     environ = {}
 
