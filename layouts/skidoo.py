@@ -4,8 +4,7 @@ import vampire
 import cgi
 import os
 
-directory = os.path.split(__file__)[0]
-basic = vampire.importModule("basic",directory,__req__)
+basic = vampire.importModule("basic",None,__req__)
 
 PREFIX = """
 <div id="pageWrapper">

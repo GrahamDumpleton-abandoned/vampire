@@ -6,8 +6,7 @@ import os
 # Import startup code for dispatcher to ensure it is
 # initialised and connection to exchange is created.
 
-directory = os.path.dirname(__file__)
-_gateway = vampire.importModule("_gateway",directory,__req__)
+_gateway = vampire.importModule("_gateway",None,__req__)
 
 
 # Handler which will attempt to log all requests with
