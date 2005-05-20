@@ -5,20 +5,6 @@ import csv
 import cgi
 import time
 
-def handler(req,mimeType):
-  if mimeType == "text/plain":
-    return handler_csv(req,mimeType)
-  elif mimeType == "text/comma-separated-values":
-    return handler_csv(req,mimeType)
-  elif mimeType == "text/tab-separated-values":
-    return handler_tsv(req)
-  elif mimeType == "application/vnd.ms-excel":
-    return handler_tsv(req)
-  elif mimeType == "text/html":
-    return handler_html(req)
-  else:
-    return apache.HTTP_BAD_REQUEST
-
 def handler_csv(req,mimeType="text/comma-separated-values"):
 
   if mimeType != "text/comma-separated-values" and \
@@ -38,8 +24,6 @@ def handler_csv(req,mimeType="text/comma-separated-values"):
     req.write(fd.read())
     fd.close()
 
-  return apache.OK
-
 def handler_tsv(req):
 
   file = os.path.splitext(req.filename)[0] + ".csv"
@@ -55,8 +39,6 @@ def handler_tsv(req):
     writer.writerow(row)
 
   fd.close()
-
-  return apache.OK
 
 def handler_html(req):
 
@@ -109,4 +91,16 @@ def handler_html(req):
 
   fd.close()
 
-  return apache.OK
+def handler(req,mimeType):
+  if mimeType == "text/plain":
+    return handler_csv(req,mimeType)
+  elif mimeType == "text/comma-separated-values":
+    return handler_csv(req,mimeType)
+  elif mimeType == "text/tab-separated-values":
+    return handler_tsv(req)
+  elif mimeType == "application/vnd.ms-excel":
+    return handler_tsv(req)
+  elif mimeType == "text/html":
+    return handler_html(req)
+  else:
+    return apache.HTTP_BAD_REQUEST

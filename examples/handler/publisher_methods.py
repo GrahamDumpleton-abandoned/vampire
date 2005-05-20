@@ -19,8 +19,3 @@ class _Object:
 _object = _Object()
 
 handler = vampire.Publisher(_object)
-
-def handler_txt(req):
-  req.content_type = "text/plain"
-  req.send_http_header()
-  req.write("handler_txt()")
