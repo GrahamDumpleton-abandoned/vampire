@@ -53,6 +53,7 @@ class _TemplateCache:
   def __init__(self):
     self._cache = {}
     self._lock = Lock()
+    self._frozen = False
 
   def cachedTemplates(self):
     self._lock.acquire()
@@ -78,6 +79,9 @@ class _TemplateCache:
     finally:
       self._lock.release()
 
+  def freezeCache(self):
+    self._frozen = True
+
   def loadTemplate(self,path,attribute="node"):
     self._lock.acquire()
     try:
@@ -87,22 +91,24 @@ class _TemplateCache:
       # is page template already loaded
       if self._cache.has_key(path):
 	record = self._cache[path]
-	# has page template been changed
-	try:
-	  mtime = os.path.getmtime(path)
-	except:
-	  # page template must not exist
-	  del self._cache[path]
-	  raise
-	else:
-	  if record.mtime != mtime:
-	    # force reloading of page template
+	# check if reloads have been disabled
+	if not self._frozen:
+	  # has page template been changed
+	  try:
+	    mtime = os.path.getmtime(path)
+	  except:
+	    # page template must not exist
 	    del self._cache[path]
-	    record = None
-	  elif record.attribute != attribute:
-	    # name of attribute has changed
-	    del self._cache[path]
-	    record = None
+	    raise
+	  else:
+	    if record.mtime != mtime:
+	      # force reloading of page template
+	      del self._cache[path]
+	      record = None
+	    elif record.attribute != attribute:
+	      # name of attribute has changed
+	      del self._cache[path]
+	      record = None
       # need to load the page template
       if record is None:
 	file = open(path,"r")

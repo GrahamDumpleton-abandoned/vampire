@@ -155,6 +155,48 @@ Changes in Vampire 1.7
 
     xxx = vampire.importModule,"xxx",None,__req__)
 
+- Added mechanism to turn off automatic reloading of modules by the Vampire
+  module importing system. Ideally, turning off of module reloading should
+  only be done from within a module which is imported using PythonImport.
+  This will gaurantee that module reloading is off for the whole life of
+  the interpreter in question. That is, once module reloading is turned
+  off, it cannot be turned back on. To have it turned back on would entail
+  disabling the code which turned it off and restarting Apache.
+
+  The code which should be used to turn off module loading from a module
+  imported using PythonImport is::
+
+    import vampire
+
+    vampire.ModuleCache().freezeCache()
+
+  This is done in this way because the alternative as used by mod_python
+  itself, in the form of the option "PythonAutoReload" is unreliable
+  because it can can be set to different values in different parts of the
+  document tree. Further, explicit use of the "apache.import_module()"
+  function doesn't consult this option. Instead, it is expected that the
+  caller supply through a parameter whether module reloading is enabled or
+  not.
+
+  Thus for the module loading system in mod_python, a request to load a
+  module via a request through one part of the document tree may cause a
+  automatic reload whereas through another part of the document tree it may
+  not. This can cause inconsistencies as far as expectations as to what
+  version of a module is loaded. For that reason, Vampire implements a
+  mechanism whereby it is on everywhere, or not at all. If different parts
+  of the document tree need to be on or off then distinct interpreters will
+  need to be used to keep everything separate.
+
+- Similar to being able to disable reloading of modules by the module cache,
+  option provided to disable reloading of page template files in the
+  HTMLTemplate loading and caching mechanism. Again, this is preferable
+  triggered from a module imported using PythonImport mechanism. The code
+  which would be used is:
+
+    import vampire
+
+    vampire.TemplateCache().freezeCache()
+
 
 Changes in Vampire 1.6
 ======================

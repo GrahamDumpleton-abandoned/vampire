@@ -76,6 +76,7 @@ class _ModuleCache:
     self._lock1 = Lock()
     self._lock2 = Lock()
     self._generation = 0
+    self._frozen = False
 
   def cachedModules(self):
     self._lock1.acquire()
@@ -137,6 +138,9 @@ class _ModuleCache:
     finally:
       self._lock1.release()
 
+  def freezeCache(self):
+    self._frozen = True
+
   def importModule(self,name,path,req=None):
     log = False
     if req != None:
@@ -189,6 +193,7 @@ class _ModuleCache:
 	#if req != None:
 	#  req = _Request(req)
 	module.__req__ = req
+	module.__dict__["__builtins__"] = __new_builtin__
 	try:
 	  execfile(file,module.__dict__)
 	except:
@@ -233,6 +238,10 @@ class _ModuleCache:
 
       # Grab entry from cache.
       cache = self._cache[label]
+
+      # Check if reloads have been disabled.
+      if self._frozen:
+        return (cache,False)
 
       # Has modification time changed.
       try:
@@ -311,18 +320,20 @@ importModule = _moduleCache.importModule
 
 
 # Following replaces the standard Python __import__ hook
-# with one which has some knowledge of Vampire and its
-# module importing system. When "import" is used from a
-# module which has been imported using the Vampire
-# module importing system, a check will be made to see
-# if the requested module resides in the same directory
-# as the parent or in Vampires module path. If it is,
-# the Vampire module importing system will be used to
-# import it instead of the standard Python import system.
+# for any module loading using the Vampire module
+# importing system with one which has some knowledge of
+# Vampire and its module importing system. When "import"
+# is used from a module which has been imported using
+# the Vampire module importing system, a check will be
+# made to see if the requested module resides in the
+# same directory as the parent or in Vampires module
+# path. If it is, the Vampire module importing system
+# will be used to import it instead of the standard
+# Python import system. If the module cannot be found in
+# this way, it will fallback to using the standard Python
+# import mechanism.
 
 import __builtin__
-
-__oldimport__ = None
 
 def _search(name,path,req):
   for directory in path:
@@ -380,13 +391,10 @@ def _import(name,globals=None,locals=None,fromlist=None):
   # Default to standard Python import mechanism.
 
   if not module:
-    return __oldimport__(name,globals,locals,fromlist)
+    return __builtin__.__import__(name,globals,locals,fromlist)
 
   return module
 
-
-# Substitute standard Python import mechamism.
-
-if type(__builtin__.__import__) == types.BuiltinFunctionType:
-  __oldimport__ = __builtin__.__import__
-  __builtin__.__import__ = _import
+__new_builtin__ = imp.new_module("__builtin__")
+__new_builtin__.__dict__.update(__builtin__.__dict__)
+__new_builtin__.__dict__["__import__"] = _import
