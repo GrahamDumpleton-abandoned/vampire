@@ -72,6 +72,8 @@ class PSP(psp.PSP):
 
     environ = {}
 
+    environ["__builtins__"] = __builtins__
+
     environ["PSP"] = PSP
     environ["parse"] = psp.parse
     environ["parsestring"] = psp.parsestring
