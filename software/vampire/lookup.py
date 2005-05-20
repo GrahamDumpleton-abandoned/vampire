@@ -1361,7 +1361,7 @@ class PathArgs:
     if self.__expected is None:
       self.__setup()
 
-    if self.__expected[:1] == ("req",):
+    if self.__expected[:1] == ["req"]:
 
       if len(self.__path) < (self.__minargs-1):
 	raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
@@ -1384,7 +1384,7 @@ class PathArgs:
 
       if not self.__varargs:
 
-        if self.__expected[:1] == ("req",) and \
+        if self.__expected[:1] == ["req"] and \
 	    len(self.__path) == (self.__maxargs-1):
 	  raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
