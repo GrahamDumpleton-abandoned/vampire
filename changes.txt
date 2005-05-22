@@ -127,7 +127,8 @@ Changes in Vampire 1.7
   may accept form parameters or the "req" object as necessary.
 
   This wrapper class should be usable within "vampire::publisher",
-  "vampire.Publisher()" and "vampire.Handler()".
+  "vampire.Publisher()" and "vampire.Handler()" or as a basic content
+  handler.
 
 - In the same manner that "vampire.Instance()" can be used to trigger
   creation of an instance of a class to handle a request in the style of a
