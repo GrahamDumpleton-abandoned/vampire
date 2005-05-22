@@ -497,11 +497,12 @@ def _form(req):
 # Following executes a callable object. Any form
 # parameters are automatically decoded and as
 # appropriate are passed to the callable object when it
-# is executed. The "req" parameter is always treated
-# specially, with the request object being passed in
-# using that parameter.
+# is executed. Similarly with any special variables
+# which are supplied explicitly. The "req" parameter is
+# always treated as extra special, with the request
+# object being passed in using that parameter.
 
-def _execute(req,object,lazy=True):
+def _execute(req,object,lazy=True,vars={}):
 
   # Determine names of parameters expected by callable
   # object and whether it also supports variable argument
@@ -509,15 +510,30 @@ def _execute(req,object,lazy=True):
 
   this,expected,varargs,varkw,defaults = _params(object)
 
+  # Determine mandatory parameters which can only be
+  # supplied as form parameters. This ignores though
+  # whether they have default parameters.
+
+  mandatory = []
+
+  for name in expected:
+    if not vars.has_key(name):
+      mandatory.append(name)
+
   # If callable object requires form parameters to be
   # supplied or lazy form parsing is disabled, force
   # parsing of form parameters.
 
   args = {}
 
-  if (not lazy) or varkw or ((len(expected) > 1) or \
-      (len(expected) == 1 and not "req" in expected)):
+  if (not lazy) or varkw or ((len(mandatory) > 1) or \
+      (len(mandatory) == 1 and not "req" in mandatory)):
     args = _form(req)
+
+  # Merge explicitly provided variables in to set of the
+  # supplied form parameters.
+
+  args.update(vars)
 
   # Add request object into set of input form parameters
   # if it is expected.
@@ -1153,7 +1169,7 @@ class Handler:
     rules = _handler_rules
 
     if type(self.__object) in [types.ClassType,types.TypeType]:
-      object = _execute(req,self.__object,lazy=True)
+      object = _execute(req,self.__object,lazy=True,vars=self.__vars)
     else:
       object = self.__object
 
@@ -1181,7 +1197,7 @@ class Handler:
 
     # Execute the content handler which was found.
 
-    result = _execute(req,objects[-1],lazy=True)
+    result = _execute(req,objects[-1],lazy=True,vars=self.__vars)
 
     # To try and make standard content handlers and
     # publisher style handlers interchangeable, allow a
@@ -1196,8 +1212,9 @@ class Handler:
 
 class Publisher:
 
-  def __init__(self,object):
+  def __init__(self,object,**vars):
     self.__object = object
+    self.__vars = vars
 
   def __call__(self,req):
 
@@ -1264,7 +1281,7 @@ class Publisher:
     rules = _publisher_rules
 
     if type(self.__object) in [types.ClassType,types.TypeType]:
-      object = _execute(req,self.__object,lazy=True)
+      object = _execute(req,self.__object,lazy=True,vars=self.__vars)
     else:
       object = self.__object
 
@@ -1286,7 +1303,7 @@ class Publisher:
       if execute:
 	req.vampire["handler"] = "vampire::publisher"
 
-	result = _execute(req,objects[-1],lazy=True)
+	result = _execute(req,objects[-1],lazy=True,vars=self.__vars)
 
 	return _flush(req,result)
 
@@ -1399,16 +1416,17 @@ class PathArgs:
 
 class Instance:
 
-  def __init__(self,target):
+  def __init__(self,target,**vars):
     self.__target = target
+    self.__vars = vars
 
   def __call__(self,req):
     if not type(self.__target) in [types.ClassType,types.TypeType]:
       raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
-    instance = _execute(req,self.__target,lazy=True)
+    instance = _execute(req,self.__target,lazy=True,vars=self.__vars)
 
     if not callable(instance):
       raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
-    return _execute(req,instance,lazy=True)
+    return _execute(req,instance,lazy=True,vars=self.__vars)
