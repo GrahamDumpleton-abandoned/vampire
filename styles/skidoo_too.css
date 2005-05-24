@@ -1,7 +1,7 @@
 @charset "iso-8859-1";
 
 /*******************************************************************************
-*  skidoo_too.css : 2005.03.07
+*  skidoo_too.css : 2005.05.03
 * -----------------------------------------------------------------------------
 *  A remake of the skidoo layout with the middle column appearing first in
 *  source ordering.
@@ -376,7 +376,7 @@ body:last-child, * html body
 }
 body
 {
-	background-color: #fff;
+	background-color: #eee;
 	color: #000;
 	font-family: arial, helvetica, sans-serif;
 }
@@ -398,6 +398,8 @@ body
 {
 	border-left-color: #ded;	/* left column background color */
 	border-right-color: #cdc;	/* right column background color */
+	background-color: #fff;		/* set the background color for the
+					   middle column here */
 }
 .vnav ul li a:link, .vnav ul li a:visited, .vnav ul li a:active
 {
