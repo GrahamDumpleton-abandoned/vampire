@@ -134,3 +134,6 @@ Following items are being considered for future version of Vampire.
   outside of what the original mod_python.publisher was capable of doing.
   If using "vampire.Publisher()" within the context of a standard
   Vampire content handler, the feature would then be available.
+
+- Look at whether the module importing system can be made to understand
+  and work with Python packages.
