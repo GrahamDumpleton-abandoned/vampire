@@ -4,7 +4,7 @@ Getting mod_python Working
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 5/05/2005
+:Updated: 25/05/2005
 
 .. contents::
 
@@ -130,7 +130,15 @@ changed and thus it is now preferred to use "mod_python" instead of
 "python-program". The old name though is still supported and will be used
 here to avoid confusion for those using version 2.7.
 
-In the same directory create a file called "mptest.py". In that file place::
+In the same directory create a file called "mptest.py". Use this specific
+name for the file at this point, do not use any other name. If you insist
+on not following this advice and use a different name anyway, at least do
+not call it "test.py" as there is a Python module of the same name. In
+practice you should avoid using a name which conflicts with any existing
+Python module as certain configuration mistakes will result in the standard
+Python module being picked up instead of your own.
+
+In the "mptest.py" file place::
 
   from mod_python import apache
 
@@ -216,10 +224,27 @@ For example::
   PythonDebug On
   </Directory>
 
-If "/some/file/system/directory" isn't located underneath your document
-root, or isn't otherwise mapped into the URL namespace of your server, you
-will need to configure Apache to map the directory into an appropriate
-location. This can be done using the "Alias" directive::
+Note that you should not use the "Location" directive as it is not
+interchangeable with the "Directory" directive within the context of
+mod_python.
+
+When the "Directory" directive is used, the physical directory referenced
+will be inserted by mod_python into the Python module search path. This
+ensures that the module indicated by the "PythonHandler" can actually be
+found by the Python module importing mechanism if it is located in that
+directory.
+
+If the "Location" directive is instead used, the path is actually a virtual
+resource and not a physical directory. As such it cannot be used in the
+Python module search path. The result will be that mod_python will not be
+able to find the module implementing the handler as it will not know which
+physical directory to search for it.
+
+If the physical directory you specified for the "Directory" directive isn't
+located underneath your document root, or isn't otherwise mapped into the
+URL namespace of your server, you will need to configure Apache to map the
+directory into an appropriate location. This can be done using the "Alias"
+directive::
 
   Alias /some/url /some/file/system/directory
 
