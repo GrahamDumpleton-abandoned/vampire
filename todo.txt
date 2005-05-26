@@ -33,12 +33,12 @@ Following items are being considered for future version of Vampire.
       __allow_methods__ = ["GET","POST"]
 
       def __init__(self):
-	# List of allowed methods.
-	self.__allow_methods__ = ["GET","POST"]
+        # List of allowed methods.
+        self.__allow_methods__ = ["GET","POST"]
 
       # Function dictating if method is allowed.
       def __allow_methods__(self,req,method):
-	return method in ["GET","POST"]
+        return method in ["GET","POST"]
 
   In practice, the definition of what is an allowed method at file scope or
   class scope, where multiple callable methods, would probably be too
@@ -50,7 +50,7 @@ Following items are being considered for future version of Vampire.
 
       # Function dictating if method is allowed.
       def __allow_methods__(req,method):
-	return method in ["GET","POST"]
+        return method in ["GET","POST"]
 
       return "CONTENT"
 
@@ -58,11 +58,11 @@ Following items are being considered for future version of Vampire.
 
       def publisher():
 
-	# Function dictating if method is allowed.
-	def __allow_methods__(req,method):
-	  return method in ["GET","POST"]
+        # Function dictating if method is allowed.
+        def __allow_methods__(req,method):
+          return method in ["GET","POST"]
 
-	return "CONTENT"
+        return "CONTENT"
 
   Addition of the feature would allow publishers to implement additional
   methods such as "PUT" and "DELETE", thereby lifting the restriction that

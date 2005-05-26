@@ -80,13 +80,13 @@ def _access(req,object,realm=None,auth=None,access=None):
       i = list(func_code.co_names).index("__auth__")
       auth = func_code.co_consts[i+1]
       if hasattr(auth,"co_name"):
-	auth = new.function(auth,object.func_globals)
+        auth = new.function(auth,object.func_globals)
 
     if "__access__" in func_code.co_names:
       i = list(func_code.co_names).index("__access__")
       access = func_code.co_consts[i+1]
       if hasattr(access,"co_name"):
-	access = new.function(access,object.func_globals)
+        access = new.function(access,object.func_globals)
 
   else:
     if hasattr(object,"__auth_realm__"):
@@ -141,18 +141,18 @@ def _authenticate_basic(req):
 
     if req.headers_in.has_key("Authorization"):
       try:
-	header = req.headers_in["Authorization"]
-	scheme,credentials = header.split(None,1)
-	credentials = credentials.strip()
+        header = req.headers_in["Authorization"]
+        scheme,credentials = header.split(None,1)
+        credentials = credentials.strip()
 
-	scheme = scheme.lower()
-	if scheme == "basic":
-	  credentials = base64.decodestring(credentials)
-	  user,passwd = string.split(credentials,":",1)
-	else:
-	  raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
+        scheme = scheme.lower()
+        if scheme == "basic":
+          credentials = base64.decodestring(credentials)
+          user,passwd = string.split(credentials,":",1)
+        else:
+          raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
       except:
-	raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
+        raise apache.SERVER_RETURN, apache.HTTP_BAD_REQUEST
 
     # Perform authentication check.
 
@@ -165,29 +165,29 @@ def _authenticate_basic(req):
       # authentication.
 
       if realm is None:
-	raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+        raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
       # User needed if authentication being performed.
 
       if not user:
-	s = 'Basic realm="%s"' % realm
-	req.err_headers_out["WWW-Authenticate"] = s
-	raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+        s = 'Basic realm="%s"' % realm
+        req.err_headers_out["WWW-Authenticate"] = s
+        raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
 
       # Perform actual authentication checks.
 
       if callable(auth):
-	result = auth(req,user,passwd)
+        result = auth(req,user,passwd)
       else:
-	if type(auth) is types.DictionaryType:
-	  result = auth.has_key(user) and auth[user] == passwd
-	else: 
-	  result = auth
+        if type(auth) is types.DictionaryType:
+          result = auth.has_key(user) and auth[user] == passwd
+        else: 
+          result = auth
 
       if not result:
-	s = 'Basic realm="%s"' % realm
-	req.err_headers_out["WWW-Authenticate"] = s
-	raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+        s = 'Basic realm="%s"' % realm
+        req.err_headers_out["WWW-Authenticate"] = s
+        raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
 
     # Perform access check.
 
@@ -196,12 +196,12 @@ def _authenticate_basic(req):
       # Perform actual access checks.
 
       if callable(access): 
-	result = access(req,user)
+        result = access(req,user)
       else:
-	if type(access) in (types.ListType,types.TupleType):
-	  result = user in access
-	else:
-	  result = access
+        if type(access) in (types.ListType,types.TupleType):
+          result = user in access
+        else:
+          result = access
 
       # If access check failed, and authentication was
       # performed with actual user details being checked,
@@ -211,13 +211,13 @@ def _authenticate_basic(req):
       # correctly in mod_python.publisher.
 
       if not result:
-	if auth is not None and (callable(auth) or \
-	    type(auth) == types.DictionaryType):
-	  s = 'Basic realm="%s"' % realm
-	  req.err_headers_out["WWW-Authenticate"] = s
-	  raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
-	else:
-	  raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
+        if auth is not None and (callable(auth) or \
+            type(auth) == types.DictionaryType):
+          s = 'Basic realm="%s"' % realm
+          req.err_headers_out["WWW-Authenticate"] = s
+          raise apache.SERVER_RETURN, apache.HTTP_UNAUTHORIZED
+        else:
+          raise apache.SERVER_RETURN, apache.HTTP_FORBIDDEN
 
 
 # Determines if an authentication mechanism has been
@@ -248,14 +248,14 @@ def _authenticate(req):
     if func_code:
 
       if "__login__" in func_code.co_names:
-	i = list(func_code.co_names).index("__login__")
-	login = func_code.co_consts[i+1]
-	if hasattr(login,"co_name"):
-	  login = new.function(login,object.func_globals)
+        i = list(func_code.co_names).index("__login__")
+        login = func_code.co_consts[i+1]
+        if hasattr(login,"co_name"):
+          login = new.function(login,object.func_globals)
 
     else:
       if hasattr(object,"__login__"):
-	login = object.__login__
+        login = object.__login__
 
   if login:
     result = _execute(req,login,lazy=True)
@@ -306,15 +306,15 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
       # Block anything which fails the filter callback.
 
       if not filter(req,part,object):
-	return (apache.HTTP_FORBIDDEN,False,False,False,objects)
+        return (apache.HTTP_FORBIDDEN,False,False,False,objects)
 
       # Block everything when no such object exists.
 
       try:
-	object = getattr(object,part)
-	object_type = type(object)
+        object = getattr(object,part)
+        object_type = type(object)
       except AttributeError:
-	return (apache.HTTP_NOT_FOUND,False,False,False,objects)
+        return (apache.HTTP_NOT_FOUND,False,False,False,objects)
 
       # Extend list of traversed objects in the path.
 
@@ -328,8 +328,8 @@ def _resolve(req,object,parts,rules,filter=_default_filter):
       # performed on all but the last object in the path.
 
       if i < (len(parts)-1):
-	if not traverse:
-	  return (apache.HTTP_FORBIDDEN,False,False,False,objects)
+        if not traverse:
+          return (apache.HTTP_FORBIDDEN,False,False,False,objects)
 
   # Even if the rule says that the last object is
   # potentially executable it doesn't necessarily mean
@@ -359,8 +359,8 @@ def _params(object):
       this = None
       args,varargs,varkw,defaults = inspect.getargspec(function)
       if adt:
-	this = args[0]
-	args = args[1:]
+        this = args[0]
+        args = args[1:]
       return this,args,varargs,varkw,defaults
     elif adt:
       return ("",[],None,None,None)
@@ -379,20 +379,20 @@ def _params(object):
     elif object_type is types.ClassType:
       if hasattr(object,"__init__") and \
           type(object.__init__) is types.MethodType:
-	return _inspect(object.__init__,True)
+        return _inspect(object.__init__,True)
       else:
-	return _inspect(None,True)
+        return _inspect(None,True)
 
     elif object_type is types.TypeType:
       if hasattr(object,"__init__") and \
           type(object.__init__) is types.MethodType:
-	return _inspect(object.__init__,True)
+        return _inspect(object.__init__,True)
       else:
-	return _inspect(None,True)
+        return _inspect(None,True)
 
     elif hasattr(object,"__call__"):
       if type(object.__call__) is types.MethodType:
-	return _inspect(object.__call__,True)
+        return _inspect(object.__call__,True)
 
     elif hasattr(object,"func_code"):
       return _inspect(object,False)
@@ -431,7 +431,7 @@ def _form(req):
       content_type = req.headers_in["content-type"]
 
     if content_type == "application/x-www-form-urlencoded" or \
-	content_type[:10] == "multipart/":
+        content_type[:10] == "multipart/":
 
       req.form = util.FieldStorage(req,keep_blank_values=1)
 
@@ -445,27 +445,27 @@ def _form(req):
       # Convert the single item lists back into values.
 
       for field in req.form.list:
-	if field.filename: 
-	  value = field
-	else:
-	  value = field.value
+        if field.filename: 
+          value = field
+        else:
+          value = field.value
 
-	if args.has_key(field.name):
-	  args[field.name].append(value)
-	else:
-	  args[field.name] = [value]
+        if args.has_key(field.name):
+          args[field.name].append(value)
+        else:
+          args[field.name] = [value]
 
       for arg in args.keys():
-	if type(args[arg]) == types.ListType:
-	  if len(args[arg]) == 1:
-	    args[arg] = args[arg][0]
+        if type(args[arg]) == types.ListType:
+          if len(args[arg]) == 1:
+            args[arg] = args[arg][0]
 
       # Some strange forms can result in fields where the
       # key value is None. Wipe this out just in case this
       # happens as can cause problems later.
 
       if args.has_key(None):
-	del args[None]
+        del args[None]
 
       # Magic code which interprets certain naming
       # conventions in argument names and converts sets of
@@ -477,12 +477,12 @@ def _form(req):
 
       options = req.get_options()
       if options.has_key("VampireStructuredForms"):
-	value = options["VampireStructuredForms"]
-	if value in ["Off","off"]:
-	  advanced = False
+        value = options["VampireStructuredForms"]
+        if value in ["Off","off"]:
+          advanced = False
 
       if advanced:
-	args = forms.variable_decode(args)
+        args = forms.variable_decode(args)
 
       req.vampire["parameters"] = args
 
@@ -548,7 +548,7 @@ def _execute(req,object,lazy=True,vars={}):
   if not varkw:
     for name in args.keys():
       if name not in expected:
-	del args[name]
+        del args[name]
 
   # Execute as callable object.
 
@@ -665,13 +665,13 @@ def _handler(req):
       value = options["VampireDirectoryIndex"]
       if value != ".":
         if req.args:
-	  value = "%s?%s" % (value,req.args)
-	if hasattr(req,"internal_redirect"):
-	  req.internal_redirect(req.uri+value)
-	else:
-	  req.headers_out["location"] = "%s" % value
-	  req.status = apache.HTTP_MOVED_TEMPORARILY
-	return apache.OK
+          value = "%s?%s" % (value,req.args)
+        if hasattr(req,"internal_redirect"):
+          req.internal_redirect(req.uri+value)
+        else:
+          req.headers_out["location"] = "%s" % value
+          req.status = apache.HTTP_MOVED_TEMPORARILY
+        return apache.OK
 
   # Determine type of file based on extension.
 
@@ -719,11 +719,11 @@ def _handler(req):
     if options["VampireDefaultHandlers"] in ["On","on"]:
       file = ".vampire"
       if options.has_key("VampireHandlersConfig"):
-	file = options["VampireHandlersConfig"]
+        file = options["VampireHandlersConfig"]
       config = _configCache.loadConfig(req,file)
       section = "Handlers"
       if options.has_key("VampireHandlersSection"):
-	section = options["VampireHandlersSection"]
+        section = options["VampireHandlersSection"]
 
       # Section defined for default handlers.
 
@@ -731,64 +731,64 @@ def _handler(req):
 
         # Look for module of default handlers.
 
-	file = None
-	if config.has_option(section,"defaults"):
-	  file = config.get(section,"defaults")
-	if file != None:
-	  if os.path.splitext(file)[1] != ".py":
-	    return apache.HTTP_INTERNAL_SERVER_ERROR
-	  req.vampire["defaults"] = _import(req,file)
+        file = None
+        if config.has_option(section,"defaults"):
+          file = config.get(section,"defaults")
+        if file != None:
+          if os.path.splitext(file)[1] != ".py":
+            return apache.HTTP_INTERNAL_SERVER_ERROR
+          req.vampire["defaults"] = _import(req,file)
 
-	# Look for default login handler in module of
-	# default handlers to override the inbuilt basic
-	# authentication login handler.
+        # Look for default login handler in module of
+        # default handlers to override the inbuilt basic
+        # authentication login handler.
 
-	if req.vampire["defaults"]:
-	  module = req.vampire["defaults"]
-	  if hasattr(module,"loginhandler"):
-	    req.vampire["__login__"] = getattr(module,"loginhandler")
+        if req.vampire["defaults"]:
+          module = req.vampire["defaults"]
+          if hasattr(module,"loginhandler"):
+            req.vampire["__login__"] = getattr(module,"loginhandler")
 
-	# Look for explicitly defined default login
-	# handler. These can still be overridden by
-	# "__login__" function present within objects
-	# which are traversed.
+        # Look for explicitly defined default login
+        # handler. These can still be overridden by
+        # "__login__" function present within objects
+        # which are traversed.
 
-	file = None
-	if config.has_option(section,"loginhandler"):
-	  file = config.get(section,"loginhandler")
-	if file != None:
-	  if os.path.splitext(file)[1] != ".py":
-	    return apache.HTTP_INTERNAL_SERVER_ERROR
-	  module = _import(req,file)
-	  if module:
-	    if hasattr(module,"loginhandler"):
-	      req.vampire["__login__"] = getattr(module,"loginhandler")
+        file = None
+        if config.has_option(section,"loginhandler"):
+          file = config.get(section,"loginhandler")
+        if file != None:
+          if os.path.splitext(file)[1] != ".py":
+            return apache.HTTP_INTERNAL_SERVER_ERROR
+          module = _import(req,file)
+          if module:
+            if hasattr(module,"loginhandler"):
+              req.vampire["__login__"] = getattr(module,"loginhandler")
 
-	# If a specific content handler wasn't already
-	# found for the actual request, see if default
-	# content handler has been specified.
+        # If a specific content handler wasn't already
+        # found for the actual request, see if default
+        # content handler has been specified.
 
-	if status != apache.OK:
+        if status != apache.OK:
 
-	  # First look in module of default handlers.
+          # First look in module of default handlers.
 
-	  if req.vampire["defaults"]:
-	    status,traverse,execute,access,objects = _resolve(
-		req,req.vampire["defaults"],[method],rules)
+          if req.vampire["defaults"]:
+            status,traverse,execute,access,objects = _resolve(
+                req,req.vampire["defaults"],[method],rules)
 
-	  # Now check for an explicitly defined handler.
+          # Now check for an explicitly defined handler.
 
-	  if len(objects) <= 1:
-	    file = None
-	    if config.has_option(section,method):
-	      file = config.get(section,method)
-	    if file != None:
-	      if os.path.splitext(file)[1] != ".py":
-		return apache.HTTP_INTERNAL_SERVER_ERROR
-	      module = _import(req,file)
-	      if module:
-		status,traverse,execute,access,objects = _resolve(
-		    req,module,[method],rules)
+          if len(objects) <= 1:
+            file = None
+            if config.has_option(section,method):
+              file = config.get(section,method)
+            if file != None:
+              if os.path.splitext(file)[1] != ".py":
+                return apache.HTTP_INTERNAL_SERVER_ERROR
+              module = _import(req,file)
+              if module:
+                status,traverse,execute,access,objects = _resolve(
+                    req,module,[method],rules)
 
   req.vampire["objects"] = objects
 
@@ -1126,21 +1126,21 @@ class Handler:
       handler_root = None
 
       if hasattr(req,"hlist"):
-	# In mod_python 3.X have the req.hlist member.
-	handler_root = req.hlist.directory
+        # In mod_python 3.X have the req.hlist member.
+        handler_root = req.hlist.directory
       elif hasattr(req,"get_dirs"):
-	# In mod_python 2.X have the req.get_dirs() method.
-	handler_root = req.get_dirs()["PythonHandler"]
+        # In mod_python 2.X have the req.get_dirs() method.
+        handler_root = req.get_dirs()["PythonHandler"]
 
       if handler_root is None:
-	raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+        raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
       length = len(req.filename) - len(handler_root)
 
       path_info = "/"
 
       if length != 0:
-	path_info += req.filename[-length:]
+        path_info += req.filename[-length:]
 
       req.vampire = {}
 
@@ -1238,21 +1238,21 @@ class Publisher:
       handler_root = None
 
       if hasattr(req,"hlist"):
-	# In mod_python 3.X have the req.hlist member.
-	handler_root = req.hlist.directory
+        # In mod_python 3.X have the req.hlist member.
+        handler_root = req.hlist.directory
       elif hasattr(req,"get_dirs"):
-	# In mod_python 2.X have the req.get_dirs() method.
-	handler_root = req.get_dirs()["PythonHandler"]
+        # In mod_python 2.X have the req.get_dirs() method.
+        handler_root = req.get_dirs()["PythonHandler"]
 
       if handler_root is None:
-	raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+        raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
 
       length = len(req.filename) - len(handler_root)
 
       path_info = "/"
 
       if length != 0:
-	path_info += req.filename[-length:]
+        path_info += req.filename[-length:]
 
       req.vampire = {}
 
@@ -1301,14 +1301,14 @@ class Publisher:
     if status == apache.OK:
 
       if execute:
-	req.vampire["handler"] = "vampire::publisher"
+        req.vampire["handler"] = "vampire::publisher"
 
-	result = _execute(req,objects[-1],lazy=True,vars=self.__vars)
+        result = _execute(req,objects[-1],lazy=True,vars=self.__vars)
 
-	return _flush(req,result)
+        return _flush(req,result)
 
       elif access:
-	return _flush(req,objects[-1])
+        return _flush(req,objects[-1])
 
     raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
@@ -1381,14 +1381,14 @@ class PathArgs:
     if self.__expected[:1] == ["req"]:
 
       if len(self.__path) < (self.__minargs-1):
-	raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
       return self.__callback(req,*self.__path)
 
     else:
 
       if len(self.__path) < self.__minargs:
-	raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+        raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
       return self.__callback(*self.__path)
 
@@ -1402,11 +1402,11 @@ class PathArgs:
       if not self.__varargs:
 
         if self.__expected[:1] == ["req"] and \
-	    len(self.__path) == (self.__maxargs-1):
-	  raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+            len(self.__path) == (self.__maxargs-1):
+          raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
-	elif len(self.__path) == self.__maxargs:
-	  raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
+        elif len(self.__path) == self.__maxargs:
+          raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
       path = self.__path + [name]
       return PathArgs(self.__callback,self,path)

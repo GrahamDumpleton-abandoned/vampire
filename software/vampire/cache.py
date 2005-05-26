@@ -96,12 +96,12 @@ class _ModuleCache:
     self._lock1.acquire()
     try:
       if self._cache.has_key(label):
-	if hasattr(self._cache[label],"__purge__"):
-	  try:
-	    self._cache[label].__purge__()
-	  except:
-	    pass
-	del self._cache[label]
+        if hasattr(self._cache[label],"__purge__"):
+          try:
+            self._cache[label].__purge__()
+          except:
+            pass
+        del self._cache[label]
     finally:
       self._lock1.release()
 
@@ -109,14 +109,14 @@ class _ModuleCache:
     self._lock1.acquire()
     try:
       for label in self._cache.keys():
-	cache = self._cache[label]
-	if not os.path.exists(cache.file):
-	  if hasattr(self._cache[label],"__purge__"):
-	    try:
-	      self._cache[label].__purge__()
-	    except:
-	      pass
-	  del self._cache[label]
+        cache = self._cache[label]
+        if not os.path.exists(cache.file):
+          if hasattr(self._cache[label],"__purge__"):
+            try:
+              self._cache[label].__purge__()
+            except:
+              pass
+          del self._cache[label]
     finally:
       self._lock1.release()
 
@@ -124,17 +124,17 @@ class _ModuleCache:
     self._lock1.acquire()
     try:
       try:
-	fp = None
-	path = os.path.normpath(path)
-	file = os.path.join(path,name) + ".py"
-	label = self._moduleLabel(file)
-	if self._cache.has_key(label):
-	  cache = self._cache[label]
-	  cache.mtime = 0
+        fp = None
+        path = os.path.normpath(path)
+        file = os.path.join(path,name) + ".py"
+        label = self._moduleLabel(file)
+        if self._cache.has_key(label):
+          cache = self._cache[label]
+          cache.mtime = 0
       except:
-	pass
+        pass
       else:
-	fp.close()
+        fp.close()
     finally:
       self._lock1.release()
 
@@ -152,7 +152,7 @@ class _ModuleCache:
         raise Exception
       except Exception:
         frame = sys.exc_info()[2].tb_frame.f_back
-	path = os.path.dirname(frame.f_code.co_filename)
+        path = os.path.dirname(frame.f_code.co_filename)
     path = os.path.normpath(path)
     file = os.path.join(path,name) + ".py"
     label = self._moduleLabel(file)
@@ -161,65 +161,65 @@ class _ModuleCache:
       cache,reload = self._retrieveModule(name,label,file)
       cache.lock.acquire()
       if reload:
-	module = imp.new_module(label)
-	module.__file__ = file
-	if cache.module != None:
-	  if hasattr(cache.module,"__clone__"):
-	    try:
-	      cache.module.__clone__(module)
-	    except:
-	      if hasattr(cache.module,"__purge__"):
-		try:
-		  cache.module.__purge__()
-		except:
-		  pass
-	      if log:
-		msg = "vampire: Purging module '%s'" % file
-		apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
-	      cache.module = None
-	      module = imp.new_module(label)
-	      module.__file__ = file
-	  if log:
-	    if cache.module == None:
-	      msg = "vampire: Importing module '%s'" % file
-	      apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
-	    else:
-	      msg = "vampire: Reimporting module '%s'" % file
-	      apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
+        module = imp.new_module(label)
+        module.__file__ = file
+        if cache.module != None:
+          if hasattr(cache.module,"__clone__"):
+            try:
+              cache.module.__clone__(module)
+            except:
+              if hasattr(cache.module,"__purge__"):
+                try:
+                  cache.module.__purge__()
+                except:
+                  pass
+              if log:
+                msg = "vampire: Purging module '%s'" % file
+                apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
+              cache.module = None
+              module = imp.new_module(label)
+              module.__file__ = file
+          if log:
+            if cache.module == None:
+              msg = "vampire: Importing module '%s'" % file
+              apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
+            else:
+              msg = "vampire: Reimporting module '%s'" % file
+              apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
         else:
-	  if log:
-	    msg = "vampire: Importing module '%s'" % file
-	    apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
-	#if req != None:
-	#  req = _Request(req)
-	module.__req__ = req
-	module.__dict__["__builtins__"] = __new_builtin__
-	try:
-	  execfile(file,module.__dict__)
-	except:
-	  if cache.module is None:
-	    # Initial import. Discard cache entry.
-	    del self._cache[label]
-	  raise
-	cache.module = module
-	del module.__dict__["__req__"]
-	self._lock2.acquire()
-	self._generation = self._generation + 1
-	cache.generation = self._generation
-	self._lock2.release()
-	cache.atime = time.time()
-	cache.direct = 1
-	cache.indirect = 0
-	children = []
-	for object in module.__dict__.values():
-	  if type(object) == types.ModuleType:
-	    if object.__name__[:len(self._prefix)] == self._prefix:
-	      children.append(object.__name__)
-	cache.children = children
+          if log:
+            msg = "vampire: Importing module '%s'" % file
+            apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
+        #if req != None:
+        #  req = _Request(req)
+        module.__req__ = req
+        module.__dict__["__builtins__"] = __new_builtin__
+        try:
+          execfile(file,module.__dict__)
+        except:
+          if cache.module is None:
+            # Initial import. Discard cache entry.
+            del self._cache[label]
+          raise
+        cache.module = module
+        del module.__dict__["__req__"]
+        self._lock2.acquire()
+        self._generation = self._generation + 1
+        cache.generation = self._generation
+        self._lock2.release()
+        cache.atime = time.time()
+        cache.direct = 1
+        cache.indirect = 0
+        children = []
+        for object in module.__dict__.values():
+          if type(object) == types.ModuleType:
+            if object.__name__[:len(self._prefix)] == self._prefix:
+              children.append(object.__name__)
+        cache.children = children
       else:
-	cache.direct = cache.direct + 1
-	cache.atime = time.time()
-	module = cache.module
+        cache.direct = cache.direct + 1
+        cache.atime = time.time()
+        module = cache.module
       return module
     finally:
       if cache is not None:
@@ -231,10 +231,10 @@ class _ModuleCache:
 
       # Check if this is a new module.
       if not self._cache.has_key(label):
-	mtime = os.path.getmtime(file)
-	cache = _ModuleInfo(name,label,file,mtime)
-	self._cache[label] = cache
-	return (cache,True)
+        mtime = os.path.getmtime(file)
+        cache = _ModuleInfo(name,label,file,mtime)
+        self._cache[label] = cache
+        return (cache,True)
 
       # Grab entry from cache.
       cache = self._cache[label]
@@ -245,52 +245,52 @@ class _ModuleCache:
 
       # Has modification time changed.
       try:
-	mtime = os.path.getmtime(file)
+        mtime = os.path.getmtime(file)
       except:
-	# Must have been removed just then.
-	# We return currently cached module
-	# and avoid a reload. Defunct module
-	# would need to be purged later.
-	return (cache,False)
+        # Must have been removed just then.
+        # We return currently cached module
+        # and avoid a reload. Defunct module
+        # would need to be purged later.
+        return (cache,False)
       if mtime != cache.mtime:
-	cache.mtime = mtime
-	return (cache,True)
+        cache.mtime = mtime
+        return (cache,True)
 
       # Check if children have changed or have
       # been reloaded since module last used.
       if cache.children != []:
-	atime = time.time()
-	dependencies = []
-	visited = { label: 1 }
-	dependencies.extend(cache.children)
-	while len(dependencies) != 0:
-	  next = dependencies.pop()
-	  if not visited.has_key(next):
-	    if self._cache.has_key(next):
-	      temp = self._cache[next]
-	      temp.indirect = temp.indirect + 1
-	      temp.atime = atime
+        atime = time.time()
+        dependencies = []
+        visited = { label: 1 }
+        dependencies.extend(cache.children)
+        while len(dependencies) != 0:
+          next = dependencies.pop()
+          if not visited.has_key(next):
+            if self._cache.has_key(next):
+              temp = self._cache[next]
+              temp.indirect = temp.indirect + 1
+              temp.atime = atime
 
-	      # Child has been reloaded.
-	      if temp.generation > cache.generation:
-		return (cache,True)
+              # Child has been reloaded.
+              if temp.generation > cache.generation:
+                return (cache,True)
 
-	      try:
-		mtime = os.path.getmtime(temp.file)
-		# Child has been modified.
-		if mtime != temp.mtime:
-		  return (cache,True)
-	      except:
-		# Module must have been removed. Don't
-		# cause this to force a reload though as
-		# can cause problems.
-		pass
+              try:
+                mtime = os.path.getmtime(temp.file)
+                # Child has been modified.
+                if mtime != temp.mtime:
+                  return (cache,True)
+              except:
+                # Module must have been removed. Don't
+                # cause this to force a reload though as
+                # can cause problems.
+                pass
 
-	      dependencies.extend(temp.children)
-	    else:
-	      return (cache,True)
+              dependencies.extend(temp.children)
+            else:
+              return (cache,True)
 
-	    visited[next] = 1
+            visited[next] = 1
 
       return (cache,False)
 
@@ -359,27 +359,27 @@ def _import(name,globals=None,locals=None,fromlist=None):
     if options.has_key("VampireImportHooks"):
       if options["VampireImportHooks"] in ["On","on"]:
 
-	# Check directory in which parent is located.
+        # Check directory in which parent is located.
 
-	directory = os.path.split(globals["__file__"])[0]
-	module = _search(name,[directory],req)
+        directory = os.path.split(globals["__file__"])[0]
+        module = _search(name,[directory],req)
 
-	# If not in the parents own directory, check
-	# along the Vampire module search path.
+        # If not in the parents own directory, check
+        # along the Vampire module search path.
 
-	if not module:
-	  file = ".vampire"
-	  if options.has_key("VampireHandlersConfig"):
-	    file = options["VampireHandlersConfig"]
-	  config = _configCache.loadConfig(req,file)
-	  section = "Modules"
-	  if options.has_key("VampireModulesSection"):
-	    section = options["VampireModulesSection"]
-	  path = None
-	  if config.has_option(section,"path"):
-	    path = config.get(section,"path").split(':')
-	  if path:
-	    module = _search(name,path,req)
+        if not module:
+          file = ".vampire"
+          if options.has_key("VampireHandlersConfig"):
+            file = options["VampireHandlersConfig"]
+          config = _configCache.loadConfig(req,file)
+          section = "Modules"
+          if options.has_key("VampireModulesSection"):
+            section = options["VampireModulesSection"]
+          path = None
+          if config.has_option(section,"path"):
+            path = config.get(section,"path").split(':')
+          if path:
+            module = _search(name,path,req)
 
     # If "from list" is specified, need to explicitly put
     # a reference to the module in the parent so that the

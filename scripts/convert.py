@@ -36,8 +36,8 @@ class HTMLFragmentTranslator(docutils.writers.html4css1.HTMLTranslator):
 class HTMLFragmentWriter(docutils.writers.html4css1.Writer):
 
   def __init__(self,*params,**kwargs):
-	  docutils.writers.html4css1.Writer.__init__(self,*params,**kwargs)
-	  self.translator_class = HTMLFragmentTranslator
+          docutils.writers.html4css1.Writer.__init__(self,*params,**kwargs)
+          self.translator_class = HTMLFragmentTranslator
 
 try:
     import locale

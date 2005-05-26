@@ -14,7 +14,7 @@ class Logger(netsvc.Service):
     self.publishReport("request",(remote_ip,
         netsvc.DateTime(request_time),the_request,status,bytes))
     print '%s %s "%s" %d %d' % (remote_ip,
-	netsvc.DateTime(request_time),the_request,status,bytes)
+        netsvc.DateTime(request_time),the_request,status,bytes)
 
 
 class Database(netsvc.Service):

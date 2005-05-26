@@ -106,20 +106,20 @@ Changes in Vampire 1.7
     class OldStyleClass:
 
       def __init__(self):
-	self.__time = time.time()
+        self.__time = time.time()
 
       def __call__(self,req,arg1=None,arg2=None):
-	return self.__time,"OldStyleClass.__call__()",arg1,arg2
+        return self.__time,"OldStyleClass.__call__()",arg1,arg2
 
     old_instance = vampire.Instance(OldStyleClass)
 
     class NewStyleClass(object):
 
       def __init__(self):
-	self.__time = time.time()
+        self.__time = time.time()
 
       def __call__(self,req,arg1=None,arg2=None):
-	return self.__time,"NewStyleClass.__call__()",arg1,arg2
+        return self.__time,"NewStyleClass.__call__()",arg1,arg2
 
     new_instance = vampire.Instance(NewStyleClass)
 
@@ -330,11 +330,11 @@ Changes in Vampire 1.5
 
     class Exported:
       def __call__(self):
-	return "Exported.__call__()"
+        return "Exported.__call__()"
       def method1(self):
-	return "Exported.method1()"
+        return "Exported.method1()"
       def method2(self):
-	return "Exported.method2()"
+        return "Exported.method2()"
 
     handler = vampire.Publisher(Exported())
 
@@ -370,12 +370,12 @@ Changes in Vampire 1.5
 
     class Class:
       def __init__(self): 
-	self.method1 = vampire.PathInfo(self._method1)
-	self.method2 = vampire.PathInfo(self._method2,"xpath")
+        self.method1 = vampire.PathInfo(self._method1)
+        self.method2 = vampire.PathInfo(self._method2,"xpath")
       def _method1(self,path):
-	return "Class._method1",path
+        return "Class._method1",path
       def _method2(self,req,xpath):
-	return "Class._method2",xpath
+        return "Class._method2",xpath
 
     class1 = Class()
 
@@ -447,29 +447,29 @@ Changes in Vampire 1.5
   underscore::
 
     import vampire
-	
+        
     class Object1:
       
       def method1(self):
-	return "Object1.method1()"
+        return "Object1.method1()"
       
     class Object2:
 
       def __init__(self):
-	self.object1 = Object1()
-	self.string1 = "Object2.string1"
+        self.object1 = Object1()
+        self.string1 = "Object2.string1"
 
       def method1(self):
-	return "Object2.method1()"
+        return "Object2.method1()"
 
       def method2(self,req):
-	return "Object2.method2()",req.uri
+        return "Object2.method2()",req.uri
 
       def method3(self,data):
-	return "Object3.method3()",data
+        return "Object3.method3()",data
 
       def method4(self,req,data):
-	return "Object4.method4()",req.uri,data
+        return "Object4.method4()",req.uri,data
 
     _object2 = Object2()
 
@@ -557,16 +557,16 @@ Changes in Vampire 1.4
     def handler(req):
 
       def _callback(req,name,params):
-	if name[0:1] != "_":
-	  if module.__dict__.has_key(name):
-	    method = module.__dict__[name]
-	    if type(method) == types.FunctionType:
-	      if len(method.func_code.co_varnames) != 0:
-		if method.func_code.co_varnames[0] == "req":
-		  params = list(params)
-		  params.insert(0,req)
-	      return method(*params)
-	raise Exception("Method Unavailable")
+        if name[0:1] != "_":
+          if module.__dict__.has_key(name):
+            method = module.__dict__[name]
+            if type(method) == types.FunctionType:
+              if len(method.func_code.co_varnames) != 0:
+                if method.func_code.co_varnames[0] == "req":
+                  params = list(params)
+                  params.insert(0,req)
+              return method(*params)
+        raise Exception("Method Unavailable")
 
       return vampire.serviceRequest(req,_callback)
 

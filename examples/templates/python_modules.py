@@ -14,7 +14,7 @@ class Template(layout.Template):
     def renderModule(node,label):
       node.label.content = label
       if hasattr(sys.modules[label],"__file__"):
-	node.path.content = sys.modules[label].__file__
+        node.path.content = sys.modules[label].__file__
 
     keys = sys.modules.keys()
     keys.sort()

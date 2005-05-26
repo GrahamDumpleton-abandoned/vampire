@@ -103,7 +103,7 @@ class Template(basic.Template):
     while len(directory) >= len(document_root):
       target = os.path.join(directory,file)
       if os.path.exists(target):
-	return target
+        return target
       directory = os.path.split(directory)[0]
 
     return None
@@ -130,7 +130,7 @@ class Template(basic.Template):
       module = self.__importPlugin("_masthead.py")
 
       if module:
-	masthead = module.masthead(self.req)
+        masthead = module.masthead(self.req)
 
     self.__components["masthead"] = masthead
 
@@ -144,7 +144,7 @@ class Template(basic.Template):
 
     for label,target in links:
       if target.find('%(') != -1:
-	target = target % self.__settings
+        target = target % self.__settings
       target = cgi.escape(target)
       label = cgi.escape(label)
 
@@ -168,7 +168,7 @@ class Template(basic.Template):
       module = self.__importPlugin("_navbar.py")
 
       if module:
-	navbar = module.navbar(self.req)
+        navbar = module.navbar(self.req)
 
     self.__components["navbar"] = self.__formatNavigation(navbar)
 
@@ -186,12 +186,12 @@ class Template(basic.Template):
       output.append('<ul>')
 
       for label,target in links:
-	if target.find('%(') != -1:
-	  target = target % self.__settings
-	target = cgi.escape(target)
-	label = cgi.escape(label)
+        if target.find('%(') != -1:
+          target = target % self.__settings
+        target = cgi.escape(target)
+        label = cgi.escape(label)
 
-	output.append('<li><a href="%s">%s</a>' % (target,label))
+        output.append('<li><a href="%s">%s</a>' % (target,label))
 
       output.append('</ul>\n')
 
@@ -210,7 +210,7 @@ class Template(basic.Template):
       module = self.__importPlugin("_links.py")
 
       if module:
-	links = module.links(self.req)
+        links = module.links(self.req)
 
     self.__components["links"] = self.__formatLinks(links)
 
@@ -227,7 +227,7 @@ class Template(basic.Template):
       module = self.__importPlugin("_footer.py")
 
       if module:
-	footer = module.footer(self.req)
+        footer = module.footer(self.req)
 
     self.__components["footer"] = footer
 
@@ -244,12 +244,12 @@ class Template(basic.Template):
       target = self.__searchPlugin("_sidebar.html")
 
       if target:
-	sidebar = vampire.loadTemplate(target,self.node_name)
+        sidebar = vampire.loadTemplate(target,self.node_name)
 
       if sidebar:
-	collector = []
-	sidebar.body._renderContent(collector)
-	sidebar = ''.join(collector)
+        collector = []
+        sidebar.body._renderContent(collector)
+        sidebar = ''.join(collector)
 
     #self.template.rightColumn.raw = sidebar
 
@@ -262,9 +262,9 @@ class Template(basic.Template):
     def renderStylesheet(node,data):
       media,href = data
       if href.find('%(') != -1:
-	node.atts["href"] = cgi.escape(href%self.__settings)
+        node.atts["href"] = cgi.escape(href%self.__settings)
       else:
-	node.atts["href"] = cgi.escape(href)
+        node.atts["href"] = cgi.escape(href)
       node.atts["media"] = media
 
     STYLESHEETS_2COLUMN = (

@@ -24,7 +24,7 @@ class _Template(HTMLTemplate.Template):
 
     def render(self):
         """Render this template; *args will be passed directly to the template.
-	"""
+        """
         collector = []
         self._renderContent(collector)
         try: # quick-n-dirty error reporting; not a real substitute for type-
@@ -75,7 +75,7 @@ class _TemplateCache:
     try:
       path = os.path.normpath(path)
       if self._cache.has_key(path):
-	del self._cache[path]
+        del self._cache[path]
     finally:
       self._lock.release()
 
@@ -90,36 +90,36 @@ class _TemplateCache:
       path = os.path.normpath(path)
       # is page template already loaded
       if self._cache.has_key(path):
-	record = self._cache[path]
-	# check if reloads have been disabled
-	if not self._frozen:
-	  # has page template been changed
-	  try:
-	    mtime = os.path.getmtime(path)
-	  except:
-	    # page template must not exist
-	    del self._cache[path]
-	    raise
-	  else:
-	    if record.mtime != mtime:
-	      # force reloading of page template
-	      del self._cache[path]
-	      record = None
-	    elif record.attribute != attribute:
-	      # name of attribute has changed
-	      del self._cache[path]
-	      record = None
+        record = self._cache[path]
+        # check if reloads have been disabled
+        if not self._frozen:
+          # has page template been changed
+          try:
+            mtime = os.path.getmtime(path)
+          except:
+            # page template must not exist
+            del self._cache[path]
+            raise
+          else:
+            if record.mtime != mtime:
+              # force reloading of page template
+              del self._cache[path]
+              record = None
+            elif record.attribute != attribute:
+              # name of attribute has changed
+              del self._cache[path]
+              record = None
       # need to load the page template
       if record is None:
-	file = open(path,"r")
-	content = file.read()
-	mtime = os.path.getmtime(path)
-	template = _Template(content,attribute)
-	record = _TemplateInfo(path,mtime,template,attribute)
-	file.close()
-	self._cache[path] = record
+        file = open(path,"r")
+        content = file.read()
+        mtime = os.path.getmtime(path)
+        template = _Template(content,attribute)
+        record = _TemplateInfo(path,mtime,template,attribute)
+        file.close()
+        self._cache[path] = record
       else:
-	template = record.template
+        template = record.template
       # return clone of page template
       record.hits = record.hits + 1
       record.atime = time.time()

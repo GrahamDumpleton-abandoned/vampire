@@ -83,10 +83,10 @@ Vampire Config#slurp
     #set $keys = $config.options($section)
     #silent $keys.sort()
     #for $key in $keys
-	<tr>
-	<td>$key</td>
-	<td>$config.get($section,$key)</td>
-	</tr>
+        <tr>
+        <td>$key</td>
+        <td>$config.get($section,$key)</td>
+        </tr>
     #end for
     </tbody>
     </table>

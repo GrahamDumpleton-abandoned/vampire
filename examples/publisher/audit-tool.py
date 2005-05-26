@@ -268,33 +268,33 @@ def browse(req,name="",object="",**kw):
     else:
       req.write("<td>\n")
       if execute:
-	req.write("CALL")
+        req.write("CALL")
       else:
-	req.write("TYPE")
+        req.write("TYPE")
       req.write("</td>\n")
 
       req.write("<td>\n")
 
       if traverse:
-	req.write("&nbsp;")
-	req.write("<a href='%s"%action)
-	req.write("?name=%s&object=%s'>"%(name,subobject))
-	req.write("BROWSE")
-	req.write("</a>")
+        req.write("&nbsp;")
+        req.write("<a href='%s"%action)
+        req.write("?name=%s&object=%s'>"%(name,subobject))
+        req.write("BROWSE")
+        req.write("</a>")
 
       if execute:
-	req.write("&nbsp;")
-	url = action + '/../' + subobject
-	req.write("<a href='%s'>" % url)
-	req.write("EXEC")
-	req.write("</a>")
+        req.write("&nbsp;")
+        url = action + '/../' + subobject
+        req.write("<a href='%s'>" % url)
+        req.write("EXEC")
+        req.write("</a>")
 
       if access:
-	req.write("&nbsp;")
-	url = action + '/../' + subobject
-	req.write("<a href='%s'>" % url)
-	req.write("VIEW")
-	req.write("</a>")
+        req.write("&nbsp;")
+        url = action + '/../' + subobject
+        req.write("<a href='%s'>" % url)
+        req.write("VIEW")
+        req.write("</a>")
 
       req.write("</td>\n")
 

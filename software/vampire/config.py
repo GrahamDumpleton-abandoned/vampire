@@ -151,12 +151,12 @@ class _ConfigCache:
         baseurl_abs = posixpath.normpath(baseurl_abs)
         baseurl_rel = posixpath.normpath(baseurl_rel)
 
-	result["__config_root__"] = config_root
-	result["__config_file__"] = config_file
-	result["__baseurl_abs__"] = baseurl_abs
-	result["__baseurl_rel__"] = baseurl_rel
+        result["__config_root__"] = config_root
+        result["__config_file__"] = config_file
+        result["__baseurl_abs__"] = baseurl_abs
+        result["__baseurl_rel__"] = baseurl_rel
 
-	result["__config_mtime__"] = "0"
+        result["__config_mtime__"] = "0"
 
         return result
 
@@ -184,10 +184,10 @@ class _ConfigCache:
       # Fallback to default name if not specified.
 
       if not name:
-	name = ".vampire"
-	options = req.get_options()
-	if options.has_key("VampireConfigDatabase"):
-	  name = options["VampireConfigDatabase"]
+        name = ".vampire"
+        options = req.get_options()
+        if options.has_key("VampireConfigDatabase"):
+          name = options["VampireConfigDatabase"]
 
       # Check to see if config has been cached
       # in the request object from a previous
@@ -212,37 +212,37 @@ class _ConfigCache:
       # Empty, use cache or reload as necessary.
 
       if defaults["__handler_root__"] == "":
-	config = _ConfigParser()
-	entry = _Config(config,defaults,req)
+        config = _ConfigParser()
+        entry = _Config(config,defaults,req)
       elif defaults["__config_mtime__"] == "":
         file = defaults["__config_file__"]
-	if self._cache.has_key(file):
-	  del self._cache[file]
-	config = _ConfigParser()
-	defaults["__config_file__"] = ""
-	entry = _Config(config,defaults,req)
+        if self._cache.has_key(file):
+          del self._cache[file]
+        config = _ConfigParser()
+        defaults["__config_file__"] = ""
+        entry = _Config(config,defaults,req)
       else:
         file = defaults["__config_file__"]
-	if not self._cache.has_key(file):
-	  mtime = os.path.getmtime(file)
-	  config = _ConfigParser()
-	  config.read(file)
-	  cache = _ConfigEntry(config,file,mtime)
-	  self._cache[file] = cache
-	  defaults["__config_mtime__"] = str(mtime)
-	  entry = _Config(config,defaults,req)
-	else:
-	  cache = self._cache[file]
-	  config = cache.config
-	  mtime = os.path.getmtime(file)
-	  if mtime != cache.mtime:
-	    del self._cache[file]
-	    config = _ConfigParser()
-	    config.read(file)
-	    cache = _ConfigEntry(config,file,mtime)
-	    self._cache[file] = cache
-	  defaults["__config_mtime__"] = str(mtime)
-	  entry = _Config(config,defaults,req)
+        if not self._cache.has_key(file):
+          mtime = os.path.getmtime(file)
+          config = _ConfigParser()
+          config.read(file)
+          cache = _ConfigEntry(config,file,mtime)
+          self._cache[file] = cache
+          defaults["__config_mtime__"] = str(mtime)
+          entry = _Config(config,defaults,req)
+        else:
+          cache = self._cache[file]
+          config = cache.config
+          mtime = os.path.getmtime(file)
+          if mtime != cache.mtime:
+            del self._cache[file]
+            config = _ConfigParser()
+            config.read(file)
+            cache = _ConfigEntry(config,file,mtime)
+            self._cache[file] = cache
+          defaults["__config_mtime__"] = str(mtime)
+          entry = _Config(config,defaults,req)
       req.vampire["config"][name] = entry
       return entry
     finally:
@@ -252,8 +252,8 @@ class _ConfigCache:
     self._lock.acquire()
     try:
       for file in self._cache.keys():
-	if not os.path.exists(file):
-	  del self._cache[file]
+        if not os.path.exists(file):
+          del self._cache[file]
     finally:
       self._lock.release()
 

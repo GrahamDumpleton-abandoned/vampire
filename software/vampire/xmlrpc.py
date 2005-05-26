@@ -130,26 +130,26 @@ class Service:
     if status == apache.OK:
 
       if execute:
-	req.vampire["handler"] = "vampire::xmlrpc"
+        req.vampire["handler"] = "vampire::xmlrpc"
 
-	target = objects[-1]
+        target = objects[-1]
 
         if type(target) == types.BuiltinFunctionType:
-	  return target(*params)
+          return target(*params)
 
-	else:
-	  try:
-	    this,expected,varargs,varkw,defaults = _params(target)
+        else:
+          try:
+            this,expected,varargs,varkw,defaults = _params(target)
           except:
-	    raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
+            raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
 
-	  if expected[:1] == ["req",]:
-	    return target(req,*params)
+          if expected[:1] == ["req",]:
+            return target(req,*params)
 
-	  return target(*params)
+          return target(*params)
 
       elif access:
-	return objects[-1]
+        return objects[-1]
 
     raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
 
