@@ -38,8 +38,8 @@ class PSP(psp.PSP):
 
     if "session" in code.co_names:
       if not hasattr(req,"session"):
-	req.session = Session.Session(req)
-	session = req.session
+        req.session = Session.Session(req)
+        session = req.session
 
     # Check whether the code is trying to make use of
     # the form object or the fields object. If either is
@@ -106,7 +106,7 @@ class PSP(psp.PSP):
       # Always ensure that session object is saved.
 
       if session is not None:
-	session.save()
+        session.save()
 
     except: 
       et,ev,etb = sys.exc_info()
@@ -115,10 +115,10 @@ class PSP(psp.PSP):
       # an actual error page was supplied.
 
       if interface.error_page:
-	interface.error_page.run({"exception":(et,ev,etb)})
+        interface.error_page.run({"exception":(et,ev,etb)})
 
       else:
-	raise et,ev,etb
+        raise et,ev,etb
 
 
 # Basic handler for serving up PSP files. The handler
