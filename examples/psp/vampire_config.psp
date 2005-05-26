@@ -101,10 +101,10 @@ for section in sections:
     for key in keys:
         # indent
 %>
-	<tr>
-	<td><%=key%></td>
-	<td><%=config.get(section,key)%></td>
-	</tr>
+        <tr>
+        <td><%=key%></td>
+        <td><%=config.get(section,key)%></td>
+        </tr>
 <%
     #end for
 %>
