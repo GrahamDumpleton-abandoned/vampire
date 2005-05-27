@@ -251,8 +251,6 @@ class Template(basic.Template):
         sidebar.body._renderContent(collector)
         sidebar = ''.join(collector)
 
-    #self.template.rightColumn.raw = sidebar
-
     self.__components["sidebar"] = sidebar
 
   def __renderHeader(self):
