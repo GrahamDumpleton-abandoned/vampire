@@ -27,7 +27,11 @@ Changes in Vampire 1.7
   such that although the standard Python "import" statement is used, under
   the covers, the Vampire import mechanism is used to load a module.
 
-  The consequences of this are that module imports at global scope in a
+  Note though that at present this feature only works for modules
+  implemented in a single file, it will not be used if the module is
+  actually a package.
+
+  The result of this feature is that module imports at global scope in a
   module containing a handler, instead of being written as::
 
     import os

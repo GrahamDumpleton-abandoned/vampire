@@ -135,5 +135,6 @@ Following items are being considered for future version of Vampire.
   If using "vampire.Publisher()" within the context of a standard
   Vampire content handler, the feature would then be available.
 
-- Look at whether the module importing system can be made to understand
-  and work with Python packages.
+- Look at whether the optional extension to the module importing system
+  which allows use of "import" statement can be made to understand and work
+  with Python packages.
