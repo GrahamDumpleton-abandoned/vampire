@@ -135,6 +135,17 @@ Following items are being considered for future version of Vampire.
   If using "vampire.Publisher()" within the context of a standard
   Vampire content handler, the feature would then be available.
 
-- Look at whether the optional extension to the module importing system
-  which allows use of "import" statement can be made to understand and work
-  with Python packages.
+- Contemplate applying rules for creating structured form values to the
+  keys in a configuration file. This would allow:
+
+    [Settings]
+
+    elements-1 = one
+    elements-2 = two
+
+  The result of accessing "elements" would then be a list containing both
+  values. Similarly for dictionaries. Overall this would allow structured
+  data in the configuration files, albeit with values still being strings.
+
+- See if there is any way possible that the Vampire import mechanism could
+  support packages.

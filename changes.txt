@@ -27,12 +27,12 @@ Changes in Vampire 1.7
   such that although the standard Python "import" statement is used, under
   the covers, the Vampire import mechanism is used to load a module.
 
-  Note though that at present this feature only works for modules
-  implemented in a single file, it will not be used if the module is
-  actually a package.
+  Note though that this support only extends as far as file base modules
+  and not to full blown packages. Python doesn't seem to be able to support
+  packages which live totally outside of sys.modules.
 
-  The result of this feature is that module imports at global scope in a
-  module containing a handler, instead of being written as::
+  The result of this feature is that file based module imports at global
+  scope in a module containing a handler, instead of being written as::
 
     import os
     import vampire
@@ -88,7 +88,7 @@ Changes in Vampire 1.7
   calls to "vampire.importModule()".
 
   If this feature is used, it is highly recommended that "sys.path" be fixed
-  so as not to include any directories with the document tree. This can
+  so as not to include any directories within the document tree. This can
   be done by using::
 
     PythonPath 'sys.path'
@@ -201,6 +201,15 @@ Changes in Vampire 1.7
     import vampire
 
     vampire.TemplateCache().freezeCache()
+
+- Fixed bug in vampire.Publisher(), vampire.Handler() and vampire.Service()
+  which prevented them from being used from a handler not being dispatched
+  by Vampire, ie., a standard mod_python handler. This previously worked
+  but was probably broken in version 1.6.
+
+- The vampire.serviceRequest() now always return None and not apache.OK.
+  Thus any code calling it may now have to return apache.OK explicitly
+  itself from the handler the function is used in.
 
 
 Changes in Vampire 1.6

@@ -1142,10 +1142,19 @@ class Handler:
       if length != 0:
         path_info += req.filename[-length:]
 
+      path_info += req.path_info
+
       req.vampire = {}
 
     else:
       path_info = req.path_info
+
+    if not req.vampire.has_key("__login__"):
+      req.vampire["__login__"] = None
+    if not req.vampire.has_key("objects"):
+      req.vampire["objects"] = []
+    if not req.vampire.has_key("defaults"):
+      req.vampire["defaults"] = []
 
     # First need to determine the traversal path for the
     # function which will be called from the "path_info".
@@ -1254,10 +1263,19 @@ class Publisher:
       if length != 0:
         path_info += req.filename[-length:]
 
+      path_info += req.path_info
+
       req.vampire = {}
 
     else:
       path_info = req.path_info
+
+    if not req.vampire.has_key("__login__"):
+      req.vampire["__login__"] = None
+    if not req.vampire.has_key("objects"):
+      req.vampire["objects"] = []
+    if not req.vampire.has_key("defaults"):
+      req.vampire["defaults"] = []
 
     # Now need to determine the traversal path for the
     # function which will be called from the "path_info".
@@ -1409,6 +1427,7 @@ class PathArgs:
           raise apache.SERVER_RETURN, apache.HTTP_NOT_FOUND
 
       path = self.__path + [name]
+
       return PathArgs(self.__callback,self,path)
 
     raise AttributeError(name)

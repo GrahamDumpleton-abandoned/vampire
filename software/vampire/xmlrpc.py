@@ -154,4 +154,28 @@ class Service:
     raise xmlrpclib.Fault(1,"Method Unavailable : %s" % method)
 
   def __call__(self,req):
-    return serviceRequest(req,self._dispatch)
+
+    # Check to see if this is actually being executed
+    # from outside of Vampire. Need to setup various
+    # defaults if it is in order to make it look like
+    # Vampire was used and also need to explicitly
+    # return apache.OK.
+
+    result = None
+
+    if not hasattr(req,"vampire"):
+      result = apache.OK
+      req.vampire = {}
+
+    if not req.vampire.has_key("__login__"):
+      req.vampire["__login__"] = None
+    if not req.vampire.has_key("objects"):
+      req.vampire["objects"] = []
+    if not req.vampire.has_key("defaults"):
+      req.vampire["defaults"] = []
+
+    # Process and service the actual request.
+
+    serviceRequest(req,self._dispatch)
+
+    return result

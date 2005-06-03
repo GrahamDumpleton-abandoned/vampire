@@ -27,31 +27,6 @@ if not hasattr(types,"BooleanType"):
   True = 1
 
 
-# Cut down request object made available
-# only during the importing of a handler.
-
-class _Request:
-
-  def __init__(self,req):
-    # mod_python 2.7.X
-    if hasattr(req,"get_dirs"):
-      self.get_dirs = req.get_dirs
-
-    # mod_python 3.X
-    if hasattr(req,"hlist"):
-      self.hlist = req.hlist
-      self.document_root = req.document_root
-      self.interpreter = req.interpreter
-      self.log_error = req.log_error
-
-    # mod_python common
-    self.server = req.server
-    self.get_options = req.get_options
-    self.get_config = req.get_config
-    self.filename = req.filename
-    self.uri = req.uri
-
-
 class _ModuleInfo:
 
   def __init__(self,name,label,file,mtime):
@@ -142,43 +117,158 @@ class _ModuleCache:
     self._frozen = True
 
   def importModule(self,name,path,req=None):
+    # Raise an exception so as to determine the stack
+    # frame of the parent frame which has requested the
+    # module be imported. We need to skip any frames
+    # which refer to this module, something which can
+    # occur when "import" statement is being used.
+
+    try:
+      raise Exception
+    except:
+      parent = sys.exc_info()[2].tb_frame.f_back
+      while parent.f_globals.has_key("__file__") and \
+          parent.f_globals["__file__"] == __file__:
+        parent = parent.f_back
+
+    # Allow shortcut whereby if path is not set that we
+    # use the directory that the parent module doing the
+    # import is located in.
+
+    if path is None:
+      path = os.path.dirname(parent.f_code.co_filename)
+
+    # Where request object isn't explicitly provided,
+    # see if copy which is stashed in module while it is
+    # being imported exists and use that.
+
+    if req is None:
+      req = parent.f_globals.get("__req__",None)
+
+    # Ascertain if debugging is enabled and thus whether
+    # module imports and reimports etc should be logged.
+
     log = False
     if req != None:
       if req.get_config().has_key("PythonDebug"):
         if req.get_config()["PythonDebug"] == "1":
           log = True
-    if path is None:
-      try:
-        raise Exception
-      except Exception:
-        frame = sys.exc_info()[2].tb_frame.f_back
-        path = os.path.dirname(frame.f_code.co_filename)
+
+    # Calculate the potential name of the target module
+    # file and determine the coded module name which
+    # would be used to identify it.
+
     path = os.path.normpath(path)
-    file = os.path.join(path,name) + ".py"
+
+    target = os.path.join(path,name)
+
+    file = None
+
+    if os.path.isdir(target):
+      # XXX Haven't been able to work out yet how to
+      # support packages. Importing the top level of the
+      # package works okay, but importing a sub module
+      # of the package directly, where it isn't
+      # automatically imported by the top level of the
+      # package doesn't work. This is because the code
+      # inside Python appears to use context information
+      # derived from sys.modules to work out the parent
+      # module, but Vampire does not store anything in
+      # sys.modules.
+
+      raise ImportError("Vampire does not support packages.")
+
+      #target = os.path.join(target,"__init__.py")
+      #if os.path.exists(target):
+      #  file = target
+
+    if not file:
+      file = os.path.join(path,name) + ".py"
+
     label = self._moduleLabel(file)
-    cache = None
+
+    # See if requested module has already been imported
+    # previously within the context of this request. If
+    # it has we skip any dependency checks to ensure the
+    # same actual module instance is used.
+
+    if req and hasattr(req,"vampire"):
+        if req.vampire.has_key("modules"):
+          if req.vampire["modules"].has_key(label):
+            return req.vampire["modules"][label]
+
+    # Now move on to trying to find the actual module.
+
     try:
-      cache,reload = self._retrieveModule(name,label,file)
+      cache = None
+
+      # First determine if the module has been loaded
+      # previously. If not already loaded or if a
+      # dependency of the module has been changed on
+      # disk or reloaded since parent was loaded, must
+      # load the module.
+
+      cache,load = self._retrieveModule(name,label,file)
+
+      # Make sure that the cache entry is locked by the
+      # thread so that other threads in a multithreaded
+      # system don't try and load the same module at the
+      # same time.
+
       cache.lock.acquire()
-      if reload:
+
+      if load:
+
+	# Setup a new empty module to load the code for
+        # the module into.
+
         module = imp.new_module(label)
         module.__file__ = file
+
+	# If the module was previously loaded we need to
+	# manage the transition to the new instance of
+	# the module that is being loaded to replace it.
+        # This entails calling the special clone method,
+        # if provided, in the existing module. Using this
+	# method the existing method can selectively
+	# indicate what should be transfered over to the
+	# next instance of the module including thread
+	# locks. If this process fails the special purge
+	# method is called if provided to indicate that
+	# the existing module is being forcibly purged
+        # out of the system. In that case any existing
+        # state will not be transferred.
+
         if cache.module != None:
           if hasattr(cache.module,"__clone__"):
             try:
+              # Copy existing state data from existing
+              # module instance to new module instance.
+
+              if log:
+                msg = "vampire: Cloning module '%s'" % file
+                apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
+
               cache.module.__clone__(module)
             except:
+              # Forcibly purging module from system.
+
               if hasattr(cache.module,"__purge__"):
                 try:
                   cache.module.__purge__()
                 except:
                   pass
+
               if log:
                 msg = "vampire: Purging module '%s'" % file
                 apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
+
+              # Setup a fresh new module yet again.
+
               cache.module = None
               module = imp.new_module(label)
               module.__file__ = file
+
           if log:
             if cache.module == None:
               msg = "vampire: Importing module '%s'" % file
@@ -190,46 +280,135 @@ class _ModuleCache:
           if log:
             msg = "vampire: Importing module '%s'" % file
             apache.log_error(msg,apache.APLOG_NOERRNO|apache.APLOG_NOTICE)
-        #if req != None:
-        #  req = _Request(req)
+
+	# Save the request object into the global data
+	# of the module, but only for the lifetime of
+	# the actual module importing process.
+
         module.__req__ = req
-        module.__dict__["__builtins__"] = __new_builtin__
+
+	# Create a temporary place where information
+	# about child imports performed by the module
+	# can be put.
+
+        module.__children__ = []
+
+        # Place a reference to the module within the
+        # request specific cache of imported modules.
+	# This makes module lookup more efficient when
+	# the same module is imported more than once
+	# within the context of a request. In the case
+        # of a cyclical import, avoids a never ending
+        # recursive loop.
+
+        if req:
+          if not hasattr(req,"vampire"):
+            req.vampire = {}
+
+          if not req.vampire.has_key("modules"):
+            req.vampire["modules"] = {}
+
+          req.vampire["modules"][label] = module
+
+        # Perform the actual import of the module.
+
         try:
           execfile(file,module.__dict__)
+
         except:
+	  # Importation of module has failed for some
+	  # reason. If this is the very first import of
+	  # the module, need to discard the cache entry
+	  # entirely else a subsequent attempt to load
+	  # the module will wrongly think it was
+	  # successfully loaded already.
+
           if cache.module is None:
-            # Initial import. Discard cache entry.
             del self._cache[label]
+
           raise
-        cache.module = module
+
+	# If this is a child import of some parent
+	# module, add this module as a child of the
+	# parent.
+
+        globals = parent.f_globals
+
+        if globals.has_key("__children__"):
+            globals["__children__"].append(label)
+
+        # Remove the request object from the globals
+        # of the module.
+
         del module.__dict__["__req__"]
+
+        # Replace the existing module with the new one.
+
+        cache.module = module
+
+	# Increment the generation count of the global
+	# state of all modules. This is used in the
+	# dependency management scheme for reloading to
+	# determine if a module dependency has been
+	# reloaded since it was loaded.
+
         self._lock2.acquire()
         self._generation = self._generation + 1
         cache.generation = self._generation
         self._lock2.release()
+
+        # Update access time and reset access counts.
+
         cache.atime = time.time()
         cache.direct = 1
         cache.indirect = 0
-        children = []
-        for object in module.__dict__.values():
-          if type(object) == types.ModuleType:
-            if object.__name__[:len(self._prefix)] == self._prefix:
-              children.append(object.__name__)
-        cache.children = children
+
+        # Determine modules that this module depends
+        # on. That is, the list of modules the module
+        # imported within global scope.
+
+        cache.children = module.__children__
+
+        del module.__dict__["__children__"]
+
       else:
+	# Didn't need to reload the module so simply
+	# increment access counts and last access time.
+
         cache.direct = cache.direct + 1
         cache.atime = time.time()
+
+        # Place a reference to the module within the
+        # request specific cache of imported modules.
+	# This makes module lookup more efficient when
+	# the same module is imported more than once
+	# within the context of a request.
+
         module = cache.module
+
+        if req:
+          if not hasattr(req,"vampire"):
+            req.vampire = {}
+
+          if not req.vampire.has_key("modules"):
+            req.vampire["modules"] = {}
+
+          req.vampire["modules"][label] = module
+
       return module
+
     finally:
+      # Lock on cache object can now be released.
+
       if cache is not None:
         cache.lock.release()
 
   def _retrieveModule(self,name,label,file):
-    self._lock1.acquire()
     try:
+      self._lock1.acquire()
 
       # Check if this is a new module.
+
       if not self._cache.has_key(label):
         mtime = os.path.getmtime(file)
         cache = _ModuleInfo(name,label,file,mtime)
@@ -237,32 +416,37 @@ class _ModuleCache:
         return (cache,True)
 
       # Grab entry from cache.
+
       cache = self._cache[label]
 
       # Check if reloads have been disabled.
+
       if self._frozen:
         return (cache,False)
 
       # Has modification time changed.
+
       try:
         mtime = os.path.getmtime(file)
       except:
-        # Must have been removed just then.
-        # We return currently cached module
-        # and avoid a reload. Defunct module
-        # would need to be purged later.
+	# Must have been removed just then. We return
+	# currently cached module and avoid a reload.
+	# Defunct module would need to be purged later.
+
         return (cache,False)
       if mtime != cache.mtime:
         cache.mtime = mtime
         return (cache,True)
 
-      # Check if children have changed or have
-      # been reloaded since module last used.
+      # Check if children have changed or have been
+      # reloaded since module last used.
+
       if cache.children != []:
         atime = time.time()
         dependencies = []
         visited = { label: 1 }
         dependencies.extend(cache.children)
+
         while len(dependencies) != 0:
           next = dependencies.pop()
           if not visited.has_key(next):
@@ -272,18 +456,23 @@ class _ModuleCache:
               temp.atime = atime
 
               # Child has been reloaded.
+
               if temp.generation > cache.generation:
                 return (cache,True)
 
               try:
                 mtime = os.path.getmtime(temp.file)
+
                 # Child has been modified.
+
                 if mtime != temp.mtime:
                   return (cache,True)
+
               except:
-                # Module must have been removed. Don't
-                # cause this to force a reload though as
-                # can cause problems.
+		# Module must have been removed. Don't
+		# cause this to force a reload though as
+		# can cause problems.
+
                 pass
 
               dependencies.extend(temp.children)
@@ -298,12 +487,12 @@ class _ModuleCache:
       self._lock1.release()
 
   def _moduleLabel(self,file):
-    # The label is used in the __name__ field of
-    # the module and then used in determining
-    # child module imports. Thus needs to be
-    # unique. We don't really want to use a
-    # module name which is a filesystem path.
-    # Hope MD5 hex digest is okay.
+    # The label is used in the __name__ field of the
+    # module and then used in determining child module
+    # imports. Thus really needs to be unique. We don't
+    # really want to use a module name which is a
+    # filesystem path. Hope MD5 hex digest is okay.
+
     stub = os.path.splitext(file)[0]
     label = md5.new(stub).hexdigest()
     label = self._prefix + label
@@ -319,82 +508,109 @@ def ModuleCache():
 importModule = _moduleCache.importModule
 
 
-# Following replaces the standard Python __import__ hook
-# for any module loading using the Vampire module
-# importing system with one which has some knowledge of
-# Vampire and its module importing system. When "import"
-# is used from a module which has been imported using
-# the Vampire module importing system, a check will be
-# made to see if the requested module resides in the
-# same directory as the parent or in Vampires module
-# path. If it is, the Vampire module importing system
-# will be used to import it instead of the standard
-# Python import system. If the module cannot be found in
-# this way, it will fallback to using the standard Python
-# import mechanism.
+class ModuleLoader:
 
-import __builtin__
+  def __init__(self,directory,req):
+    self.__directory = directory
+    self.__req = req
 
-def _search(name,path,req):
-  for directory in path:
-    target = os.path.join(directory,name) + ".py"
-    if os.path.exists(target):
-      return importModule(name,directory,req)
+  def load_module(self,fullname):
+    apache.log_error("load %s"%fullname)
+    return importModule(fullname,self.__directory,self.__req)
 
-def _import(name,globals=None,locals=None,fromlist=None):
+class ModuleImporter:
 
-  module = None
+  def find_module(self,fullname,path=None):
+    apache.log_error("find %s %s" %(fullname,path))
 
-  # Only consider using Vampire import mechanism if
-  # request object is present as "__req__", filename is
-  # defined by "__file__" and use of import hooks has
-  # been enabled.
+    # Raise an exception so as to determine the stack
+    # frame of the parent frame which has requested the
+    # module be imported.
 
-  if globals and globals.has_key("__req__") \
-      and globals.has_key("__file__"):
+    try:
+      raise Exception
+    except:
+      parent = sys.exc_info()[2].tb_frame.f_back
+
+    # Only consider using import caching mechanism if
+    # request object is present as "__req__", filename
+    # is defined by "__file__" and use of import hooks
+    # has been enabled.
+
+    globals = parent.f_globals
+
+    if not globals.has_key("__req__"):
+      return None
+
+    if not globals.has_key("__file__"):
+      return None
+
     options = {}
+
     req = globals["__req__"]
-    if req is not None:
-      options = req.get_options()
-    if options.has_key("VampireImportHooks"):
-      if options["VampireImportHooks"] in ["On","on"]:
 
-        # Check directory in which parent is located.
+    if req is None:
+      return None
 
-        directory = os.path.split(globals["__file__"])[0]
-        module = _search(name,[directory],req)
+    options = req.get_options()
 
-        # If not in the parents own directory, check
-        # along the Vampire module search path.
+    if not options.has_key("VampireImportHooks"):
+      return None
 
-        if not module:
-          file = ".vampire"
-          if options.has_key("VampireHandlersConfig"):
-            file = options["VampireHandlersConfig"]
-          config = _configCache.loadConfig(req,file)
-          section = "Modules"
-          if options.has_key("VampireModulesSection"):
-            section = options["VampireModulesSection"]
-          path = None
-          if config.has_option(section,"path"):
-            path = config.get(section,"path").split(':')
-          if path:
-            module = _search(name,path,req)
+    if options["VampireImportHooks"] not in ["On","on"]:
+      return None
 
-    # If "from list" is specified, need to explicitly put
-    # a reference to the module in the parent so that the
-    # autoreloading mechanisms of Vampire actually works.
+    # Check directory in which parent is located.
 
-    if module and fromlist:
-      globals[module.__name__] = module
+    file = None
+    ispkg = False
 
-  # Default to standard Python import mechanism.
+    directory = os.path.dirname(globals["__file__"])
 
-  if not module:
-    return __builtin__.__import__(name,globals,locals,fromlist)
+    target = os.path.join(directory,fullname)
+    if os.path.isdir(target):
+      target = os.path.join(target,"__init__.py")
+      if os.path.exists(target):
+        file = target
+        ispkg = True
 
-  return module
+    if not file:
+      target = os.path.join(directory,fullname) + ".py"
+      if os.path.exists(target):
+        file = target
 
-__new_builtin__ = imp.new_module("__builtin__")
-__new_builtin__.__dict__.update(__builtin__.__dict__)
-__new_builtin__.__dict__["__import__"] = _import
+    # If not in the parents own directory, check
+    # along the Vampire module search path.
+
+    def _search(name,path,req):
+      for directory in path:
+        target = os.path.join(directory,name) + ".py"
+        if os.path.exists(target):
+          return target
+
+    if not file:
+      name = ".vampire"
+      if options.has_key("VampireHandlersConfig"):
+        name = options["VampireHandlersConfig"]
+      config = _configCache.loadConfig(req,name)
+      section = "Modules"
+      if options.has_key("VampireModulesSection"):
+        section = options["VampireModulesSection"]
+      path = None
+      if config.has_option(section,"path"):
+        path = config.get(section,"path").split(':')
+      if path:
+        file = _search(fullname,path,req)
+
+    if not file:
+      return None
+
+    if ispkg:
+      directory = os.path.dirname(os.path.dirname(file))
+    else:
+      directory = os.path.dirname(file)
+
+    return ModuleLoader(directory,req)
+
+
+sys.meta_path.insert(0,ModuleImporter())
