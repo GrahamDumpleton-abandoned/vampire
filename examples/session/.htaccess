@@ -1,5 +1,63 @@
+# Note, that if AllowOverrides is not allowed for this
+# directory, then disabling of the options MultiViews
+# and Indexes will cause a 500 error. If this occurs,
+# make sure those options aren't set for this directory
+# in the main Apache configuration file and then comment
+# them out in this file.
+
+# Disable MultiViews, they stop Vampire from working.
+Options -MultiViews
+
+# Disable Indexes so directory contents aren't exposed.
+Options -Indexes
+
+# Pass all requests through Vampire handler.
 SetHandler python-program
 PythonHandler vampire
+
+# Display of exception tracebacks and import messages.
 PythonDebug On
 
+# Stop the directory being added to path.
+PythonPath 'sys.path'
+
+# Enable mapping "import" to Vampire module loading
+# and caching mechanism where it can be used.
+#PythonOption VampireImportHooks On
+
+# Enable default content handlers.
 PythonOption VampireDefaultHandlers On
+
+# Specify default directory index file. Which you use
+# will depend on whether you are using ".html" extension
+# in requests or REST style URLs with no extension.
+# Which it will be is dictated by settings in the
+# Vampire configuration file.
+PythonOption VampireDirectoryIndex index.html
+#PythonOption VampireDirectoryIndex index
+
+# If structured naming conventions for form parameters
+# isn't wanted, it needs to be disabled explicitly as
+# it is on by default.
+#PythonOption VampireStructuredForms Off
+
+# Block access to configuration file.
+<Files ~ "^\.vampire">
+Order allow,deny
+deny from all
+</Files>
+
+# Block access to any default handlers.
+<Files _*>
+deny from all
+</Files>
+
+# Block access to raw Cheetah template files.
+<Files *.tmpl>
+deny from all
+</Files>
+
+# Block access to any backup files.
+<Files *.bak>
+deny from all
+</Files>
