@@ -515,13 +515,11 @@ class ModuleLoader:
     self.__req = req
 
   def load_module(self,fullname):
-    apache.log_error("load %s"%fullname)
     return importModule(fullname,self.__directory,self.__req)
 
 class ModuleImporter:
 
   def find_module(self,fullname,path=None):
-    apache.log_error("find %s %s" %(fullname,path))
 
     # Raise an exception so as to determine the stack
     # frame of the parent frame which has requested the
