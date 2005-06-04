@@ -51,7 +51,7 @@ def loginhandler(req):
   req.headers_out['Expires'] = '-1'
 
 
-class _SessionManager:
+class SessionManager:
 
   def __login__(self,req):
 
@@ -137,4 +137,4 @@ class _SessionManager:
     util.redirect(req,next)
 
 
-handler = vampire.Handler(_SessionManager())
+handler = vampire.Handler(SessionManager())

@@ -57,6 +57,11 @@ deny from all
 deny from all
 </Files>
 
+# Block access to raw PSP template files.
+<Files *.psp>
+deny from all
+</Files>
+
 # Block access to any backup files.
 <Files *.bak>
 deny from all
