@@ -12,6 +12,12 @@ __cheetah_root__ = %(__config_root__)s/../cheetah
 
 path = %(__cheetah_root__)s
 
+[Handlers]
+
+loginhandler = %(__config_root__)s/access.py
+
+handler_html = %(__config_root__)s/_handler.py
+
 [Access]
 
 index_page = %(__baseurl_abs__)s/index.html
@@ -19,9 +25,3 @@ login_page = %(__baseurl_abs__)s/login.html
 
 user_login = %(__baseurl_abs__)s/access/login
 user_logout = %(__baseurl_abs__)s/access/logout
-
-[Handlers]
-
-loginhandler = %(__config_root__)s/access.py
-
-handler_html = %(__config_root__)s/_handler.py
