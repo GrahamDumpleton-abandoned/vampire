@@ -107,6 +107,8 @@ _xmlrpc_rules[None] = (True,True,False)
 
 class Service:
 
+  __login__ = None
+
   def __init__(self,object):
     self.__object = object
 

@@ -135,8 +135,13 @@ class _ConfigCache:
     else:
       config_root = posixpath.dirname(req.filename)
 
-    baseurl_abs = posixpath.dirname(req.uri)
-    baseurl_rel = "."
+    offset = ""
+
+    if req.path_info and req.path_info != '/':
+      offset = (len(req.path_info.split('/'))-1) * "/.."
+
+    baseurl_abs = posixpath.dirname(req.uri) + offset
+    baseurl_rel = "." + offset
 
     config_root_prev = config_root
     baseurl_abs_prev = baseurl_abs

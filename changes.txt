@@ -211,6 +211,20 @@ Changes in Vampire 1.7
   Thus any code calling it may now have to return apache.OK explicitly
   itself from the handler the function is used in.
 
+- The "__baseurl_abs__" and "__baseurl_rel__" configuration defaults were
+  wrongly set when used in handler which was supplied additional path
+  information in the URL beyond that required to identify the handler.
+  This would be the case when using wrapper class "vampire.Handler()",
+  "vampire.Publisher()" and "vampire.Service()". Also would have been a
+  problem when using "vampire:publisher".
+
+- Login handler hooks were not working properly with wrapper classes such
+  as "vampire.Handler()" and "vampire.Publisher()". Problem was that a
+  login handler defined at level outside of the wrapper class could be
+  applied twice. If the login handler create a session object, this would
+  result in handler deadlocking on itself when login handler was called
+  a second time.
+
 
 Changes in Vampire 1.6
 ======================

@@ -149,3 +149,7 @@ Following items are being considered for future version of Vampire.
 
 - See if there is any way possible that the Vampire import mechanism could
   support packages.
+
+- The wrapper classes "vampire.PathInfo()" and "vampire.PathArgs()" don't
+  themselves do authentication of wrapped handler. As a result, the wrapped
+  handler can't individually override the login mechanism.

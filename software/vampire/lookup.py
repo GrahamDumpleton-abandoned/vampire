@@ -234,7 +234,11 @@ def _authenticate(req):
   if not login:
     login = _authenticate_basic
 
+  i = 0
+
   for object in objects:
+
+    i = i + 1
 
     func_code = None
 
@@ -254,8 +258,14 @@ def _authenticate(req):
           login = new.function(login,object.func_globals)
 
     else:
+      # If "__login__" is set but is "None" we skip it
+      # unless it is the very last object, in which case
+      # it indicates that authentication is being
+      # deferred.
+
       if hasattr(object,"__login__"):
-        login = object.__login__
+        if (object.__login__ is not None) or (i == len(objects)):
+          login = object.__login__
 
   if login:
     result = _execute(req,login,lazy=True)
@@ -1111,8 +1121,11 @@ def _select(req,name):
 
 class Handler:
 
-  def __init__(self,object):
+  __login__ = None
+
+  def __init__(self,object,**vars):
     self.__object = object
+    self.__vars = vars
 
   def __call__(self,req):
 
@@ -1220,6 +1233,8 @@ class Handler:
 
 
 class Publisher:
+
+  __login__ = None
 
   def __init__(self,object,**vars):
     self.__object = object
@@ -1438,6 +1453,10 @@ class Instance:
   def __init__(self,target,**vars):
     self.__target = target
     self.__vars = vars
+
+    if hasattr(target,"__login__"):
+      if target.__login__ is None:
+        self.__login__ = None
 
   def __call__(self,req):
     if not type(self.__target) in [types.ClassType,types.TypeType]:
