@@ -1,0 +1,30 @@
+#extends _layout
+#implements body
+
+#def title
+Login Page#slurp
+#end def                                                                        
+
+#import vampire
+#set $config = $vampire.loadConfig($req,".vampire")
+#set $user_login = $config.get("Access","user_login")
+
+<p>
+<form method="POST" action="$user_login">
+<table>
+<tr>
+<td>Username:</td>
+<td><input type="text" name="username"></td>
+</tr>
+<tr>
+<td>Password:</td>
+<td><input type="password" name="password"></td>
+</tr>
+<tr>
+<td></td>
+<td><input type="submit" value="Login"> <input type="reset"><td>
+</tr>
+</tr>
+</table>
+</form>
+</p>

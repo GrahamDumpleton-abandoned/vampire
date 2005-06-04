@@ -1,0 +1,16 @@
+#extends _layout
+#implements body
+
+#def title
+Home Page#slurp
+#end def
+
+#import vampire
+#set $config = $vampire.loadConfig($req,".vampire")
+#set $user_logout = $config.get("Access","user_logout")
+
+<p>
+<form method="POST" action="$user_logout">
+<p>
+<form><input type="submit" value="Logout"></form>
+</p>

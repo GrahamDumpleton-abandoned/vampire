@@ -1,8 +1,27 @@
-[Login]
+[DEFAULT]
 
-login = %(__baseurl_rel__)s/login.html
-index = %(__baseurl_rel__)s/index.html
+__psp_root__ = %(__config_root__)s/../psp
+__cheetah_root__ = %(__config_root__)s/../cheetah
+
+[Modules]
+
+# Where modules will be searched for if module can't be
+# found in same directory as parent. If still can't be
+# found, default to using standard Python import
+# mechanism.
+
+path = %(__cheetah_root__)s
+
+[Access]
+
+index_page = %(__baseurl_abs__)s/index.html
+login_page = %(__baseurl_abs__)s/login.html
+
+user_login = %(__baseurl_abs__)s/access/login
+user_logout = %(__baseurl_abs__)s/access/logout
 
 [Handlers]
 
-loginhandler = %(__config_root__)s/login.py
+loginhandler = %(__config_root__)s/access.py
+
+handler_html = %(__config_root__)s/_handler.py
