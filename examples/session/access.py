@@ -51,7 +51,36 @@ def loginhandler(req):
   req.headers_out['Expires'] = '-1'
 
 
+class UserDatabase:
+
+  USERS = {
+    "mickey": {
+      "password": "mouse",
+      "profile" : {
+        "fullname": "Mickey Mouse",
+        "groups": [ "PUBLIC", "ADMIN" ],
+      },
+    },
+    "porky": {
+      "password": "pig",
+      "profile": {
+        "fullname": "Porky Pig",
+        "groups": [ "PUBLIC" ],
+      }
+    }
+  }
+
+  def validate(self,username,password):
+
+    if self.USERS.has_key(username):
+      if self.USERS[username]["password"] == password:
+        return self.USERS[username]["profile"]
+
+
 class SessionManager:
+
+  def __init__(self,database):
+    self.__database = database
 
   def __login__(self,req):
 
@@ -65,18 +94,6 @@ class SessionManager:
     # does is load the session object, but nothing else.
 
     req.session = Session.Session(req)
-
-  def _validate(self,req,username,password):
-
-    # Validate that user has access to the site.
-
-    return username == "mickey" and password == "mouse"
-
-  def _profile(self,req,username):
-
-    # Return the users profile information.
-
-    return { "groups": [ "ADMIN" ] }
 
   def logout(self,req):
 
@@ -98,10 +115,12 @@ class SessionManager:
 
     config = vampire.loadConfig(req,".vampire")
 
-    # Validate the users credentials. If this fails
-    # redirect the user back to the login page.
+    # Validate that the user has access and if they do not
+    # redirect them back to the login page.
 
-    if not self._validate(req,username,password):
+    profile = self.__database.validate(username,password)
+
+    if not profile:
       util.redirect(req,config.get("Access","login_page"))
 
     # Save the username in the session object. This is
@@ -109,11 +128,7 @@ class SessionManager:
     # in subsequent requests.
 
     req.session["username"] = username
-
-    # Grab the users profile information and save it in
-    # the session object to avoid cost of later lookups.
-
-    req.session["profile"] = self._profile(req,username)
+    req.session["profile"] = profile
 
     # If no "next" attribute defined in session, assume
     # that location of this method was entered explicitly.
@@ -137,4 +152,7 @@ class SessionManager:
     util.redirect(req,next)
 
 
-handler = vampire.Handler(SessionManager())
+database = UserDatabase()
+manager = SessionManager(database)
+
+handler = vampire.Handler(manager)
