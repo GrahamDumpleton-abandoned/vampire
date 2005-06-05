@@ -4,7 +4,7 @@ Getting mod_python Working
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 25/05/2005
+:Updated: 05/06/2005
 
 .. contents::
 
@@ -240,6 +240,13 @@ Python module search path. The result will be that mod_python will not be
 able to find the module implementing the handler as it will not know which
 physical directory to search for it.
 
+If you have problems with mod_python being able to find your module even
+when the "Directory" directive is being used, do not be tempted simply to
+use the "PythonPath" directive to explicitly define its location. If the
+configuration is setup correctly it should not be required and the use
+of "PythonPath" can cause more harm than good in complicated systems and
+thus is best avoided.
+
 If the physical directory you specified for the "Directory" directive isn't
 located underneath your document root, or isn't otherwise mapped into the
 URL namespace of your server, you will need to configure Apache to map the
@@ -248,8 +255,9 @@ directive::
 
   Alias /some/url /some/file/system/directory
 
-Because this is being done in the global configuration, Apache will need to
-be restarted after any change has been made.
+Because all the changes described here are being done in the global
+configuration, Apache will need to be restarted after any change has been
+made.
 
 
 Apache Error Log
@@ -323,6 +331,115 @@ document, also make sure you indicate how far you got in following this
 procedure before things started not working.
 
 
+Where To Go Next
+================
+
+The basic content handler as described here, is really quite limited in
+what it can do. This is because only one content handler can be associated
+with a directory for any specific extension type. Further that extension
+type usually cannot clash with any extension type used by a static file in
+the same directory. Having multiple handlers within the one directory which
+are distinguished based purely on extension type can quickly become
+unmanageable.
+
+As a result, to get the most out of mod_python generally means building up
+a mechanism for dispatching requests against multiple handlers. This can be
+an interesting programming challenge in its own right, but rather than
+reinvent the wheel, it is highly recommended that an existing extension
+package implementing such a dispatch mechanism be used.
+
+All versions of mod_python include one such dispatcher for handlers called
+mod_python.publisher. This is suitable for simple web applications, but can
+become unwieldy in complicated systems as it doesn't embody any form of
+HTML page templating system. The code for generating a HTML response has to
+be either hand crafted, or a third party templating system used in
+conjunction with mod_python.publisher.
+
+In mod_python 3.1 there also exists the mod_python.psp extension. This
+implements a page templating system where code can be embedded within the
+actual HTML markup. The PSP package also has some support for sessions
+whereas in mod_python.publisher you would need to add explicit code for
+managing them. Embedding code within the HTML markup can also quickly
+become unmanageable and if PSP is used, it is recommended that the bulk of
+the code be placed in separate modules with minimal call outs from the
+actual HTML code.
+
+There are also numerous third party templating systems for Python which can
+be used. However, because they aren't necessarily targeted specifically at
+mod_python, extra work can be required to integrate them properly.
+
+One such templating system is Cheetah_. This also allows for mixing of code
+within the HTML markup, but in a manner which is more flexible that PSP.
+Cheetah templates aren't however valid HTML, which means they generally
+need to be hand crafted. If a page needs to be valid HTML to allow use of
+HTML page design tools, another choice where code is mixed in with the
+markup is ZopePageTemplates_.
+
+A slightly different approach to the code in markup type of templating
+systems is HTMLTemplate_. In this system a valid HTML page is constructed
+as normal, with specific nodes tagged as being significant in certain
+ways. The HTML page is then loaded into a DOM like structure which can be
+manipulated directly from code within the handler to fill out or modify
+different parts of the original HTML markup. This is the opposite to how
+PSP, Cheetah and ZopePageTemplates work, all of which effectively execute
+the template, with calls being made out to the Python code to grab
+information which is then incorporated into the result.
+
+An alternative to systems which somehow embed code in markup, is a servlet
+based approach. One example of this approach is mpservlets_. Here each page
+is represented as an object where different parts of the page are
+constructed by different methods of the class. Through use of class
+derivation it is possible to create a base class which defines the overall
+structure of a page where bits are then overridden in derived classes
+representing a specific page.
+
+As mentioned, with any third party templating system which is not
+necessarily targeted at mod_python, extra work is still required to make it
+work. One final system, but one which itself is not a framework nor a
+templating system, but which is designed specifically to make it easier to
+integrate such third party templating systems with mod_python is Vampire_.
+
+In effect Vampire acts like glue, providing a number of useful features not
+present within mod_python itself, thus making it easier to build more
+complicated systems. Firstly, Vampire provides a dispatch mechanism for
+multiple handlers based on named resources. Multiple views of resources can
+be presented based on different extension types.
+
+Through the use of special wrapper classes which are provided with Vampire,
+individual handlers can also be made to behave in the style of published
+methods as implemented by mod_python.publisher. Depending on which of two
+wrapper classes is used, the way in which a published method is implemented
+can be in the style of a normal content handler or that as implemented by
+mod_python.publisher.
+
+Vampire also provides explicit builtin support for using the HTMLTemplate
+package for generating HTML pages in response to a request. Examples are
+also included which illustrate how to integrate use of Cheetah, PSP and
+other third party templating systems. Construction of servlet based
+handlers is also quite straight forward. Across all these different
+templating systems, Vampire also provides one consistent mechanism for
+management of user sessions.
+
+All up, Vampire provides a much stronger base than mod_python itself upon
+which to build a web application. At the same time it does not enforce a
+particular style of building a web application, allowing use of handlers
+implemented in the style of conventional content handlers or as published
+methods in the style of mod_python.publisher. At the same time, various
+third party templating systems can be used for generating actual page
+content.
+
+So, if you are new to mod_python, it is highly recommended that you give
+Vampire_ a go. Its basic dispatch mechanism will save you a lot of grief in
+the early stages of learning how to use mod_python, with all the other
+features giving you more than adequate room to grow as your web application
+grows.
+
+
 .. _mod_python: http://www.modpython.org
 .. _mod_python FAQ: http://www.modpython.org/FAQ/faqw.py
 .. _mod_python mailing list: http://mailman.modpython.org/mailman/listinfo/mod_python
+.. _Cheetah: http://www.cheetahtemplate.org
+.. _ZopePageTemplates: http://zpt.sourceforge.net/
+.. _mpservlets: http://home.comcast.net/~d.popowich/mpservlets/
+.. _HTMLTemplate: http://freespace.virgin.net/hamish.sanderson/htmltemplate.html
+.. _Vampire: http://www.dscpl.com.au/projects/vampire
