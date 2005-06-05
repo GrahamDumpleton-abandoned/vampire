@@ -6,7 +6,7 @@ from mod_python import apache
 
 from lookup import Handler, Publisher, PathInfo, PathArgs, Instance
 from lookup import _handler, _publisher, _select, _form, _params, _execute
-from lookup import _authenticate _authenticate_basic
+from lookup import _authenticate, _authenticate_basic
 
 handler = _handler
 publisher = _publisher
