@@ -4,18 +4,19 @@ __version__ = "1.7"
 
 from mod_python import apache
 
-from lookup import _handler, _publisher, _select, _form
-from lookup import _authenticate_basic, _params, _execute
 from lookup import Handler, Publisher, PathInfo, PathArgs, Instance
+from lookup import _handler, _publisher, _select, _form, _params, _execute
+from lookup import _authenticate _authenticate_basic
 
 handler = _handler
 publisher = _publisher
 
-loginhandler = _authenticate_basic
-
 processForm = _form
 handlerArguments = _params
 executeHandler = _execute
+
+authenticateRequest = _authenticate
+basicAuthentication = _authenticate_basic
 
 # Setup redirections for all handlers except for
 # the PythonHandler directive. Some are actually
