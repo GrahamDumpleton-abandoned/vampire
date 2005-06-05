@@ -136,7 +136,7 @@ Following items are being considered for future version of Vampire.
   Vampire content handler, the feature would then be available.
 
 - Contemplate applying rules for creating structured form values to the
-  keys in a configuration file. This would allow:
+  keys in a configuration file. This would allow::
 
     [Settings]
 

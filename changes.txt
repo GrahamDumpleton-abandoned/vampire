@@ -149,14 +149,14 @@ Changes in Vampire 1.7
 - When using "vampire.importModule()", if the path argument is explicitly
   set to "None", the directory in which the module will be searched for
   will be that which the calling module is located in. This means that
-  instead of writing:
+  instead of writing::
 
     import os
 
     directory = os.path.dirname(__file__)
     xxx = vampire.importModule,"xxx",directory,__req__)
 
-  it is possible to use:
+  it is possible to use::
 
     xxx = vampire.importModule,"xxx",None,__req__)
 
@@ -196,7 +196,7 @@ Changes in Vampire 1.7
   option provided to disable reloading of page template files in the
   HTMLTemplate loading and caching mechanism. Again, this is preferable
   triggered from a module imported using PythonImport mechanism. The code
-  which would be used is:
+  which would be used is::
 
     import vampire
 
