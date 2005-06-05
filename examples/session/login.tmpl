@@ -8,7 +8,16 @@ Login Page#slurp
 #import vampire
 #set $config = $vampire.loadConfig($req,".vampire")
 #set $user_login = $config.get("Access","user_login")
+#set $index_page = $config.get("Access","index_page")
 
+#if $req.session.get("username",None)
+<p>
+You are already logged in.
+</p>
+<p>
+You should go to the <a href="$index_page">index</a> page instead.
+</p>
+#else
 <p>
 <form method="POST" action="$user_login">
 <table>
@@ -28,3 +37,4 @@ Login Page#slurp
 </table>
 </form>
 </p>
+#end if

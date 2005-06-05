@@ -1,5 +1,9 @@
 [DEFAULT]
 
+# Define location of PSP and Cheetah example directories
+# so that can access the handlers for those packages and
+# integrate them into one for this directory.
+
 __psp_root__ = %(__config_root__)s/../psp
 __cheetah_root__ = %(__config_root__)s/../cheetah
 
@@ -8,20 +12,45 @@ __cheetah_root__ = %(__config_root__)s/../cheetah
 # Where modules will be searched for if module can't be
 # found in same directory as parent. If still can't be
 # found, default to using standard Python import
-# mechanism.
+# mechanism. Look in Cheetah directory as Cheetah
+# templates in this direct extend to page layout in that
+# directory.
 
 path = %(__cheetah_root__)s
 
 [Handlers]
 
+# Login handler manages session creation and ensures
+# that user has access.
+
 loginhandler = %(__config_root__)s/access.py
+
+# Fallback handler for ".html" files which supports use
+# of PSP and Cheetah templates.
 
 handler_html = %(__config_root__)s/_handler.py
 
 [Access]
 
-index_page = %(__baseurl_abs__)s/index.html
-login_page = %(__baseurl_abs__)s/login.html
+# URL of the default index page where user should be
+# redirected after login if alternate target of request
+# couldn't be determined, or the login page was accessed
+# directly when the user wasn't logged in already.
 
-user_login = %(__baseurl_abs__)s/access/login
-user_logout = %(__baseurl_abs__)s/access/logout
+index_page = %(__baseurl_rel__)s/index.html
+
+# URL of the actual login page to which the user should
+# be redirected if they attempt to access a protected
+# page and they haven't yet logged in. This page is
+# treated in a special way in as much as it can be
+# viewed without the user needing to have logged in.
+
+login_page = %(__baseurl_rel__)s/login.html
+
+# URLs of the handlers which perform actual user login
+# and logout. These are provided so that any login form
+# or logout link or form button can refer to them
+# without them having to be hard coded into the page.
+
+user_login = %(__baseurl_rel__)s/access/login
+user_logout = %(__baseurl_rel__)s/access/logout
