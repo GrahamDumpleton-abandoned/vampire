@@ -7,6 +7,12 @@
 __psp_root__ = %(__config_root__)s/../psp
 __cheetah_root__ = %(__config_root__)s/../cheetah
 
+# Define location of layouts directory which contains
+# base class handler object for template loading when
+# using HTMLTemplate.
+
+__layouts_root__ = %(__config_root__)s/../../layouts
+
 [Modules]
 
 # Where modules will be searched for if module can't be

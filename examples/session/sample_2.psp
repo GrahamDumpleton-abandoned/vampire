@@ -1,0 +1,17 @@
+<html>
+<head>
+<title>PSP Sample</title>
+</head>
+<body>
+
+<h1>PSP Sample</h1>
+
+<p>
+Hello <%=req.session["profile"]["fullname"]%>.
+</p>
+<p>
+You should probably go back to the <a href="index.html">index</a> page now.
+</p>
+
+</body>
+</html>

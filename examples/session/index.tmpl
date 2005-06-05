@@ -10,11 +10,26 @@ Home Page#slurp
 #set $user_logout = $config.get("Access","user_logout")
 
 <p>
-Hello $req.session.profile["fullname"].
+Hello $req.session["profile"]["fullname"].
 </p>
 <p>
 Would you like to look at your user <a href="profile.html">profile</a>?
 </p>
+
 <p>
 Or perhaps you want to <a href="$user_logout">logout</a> instead?
+</p>
+
+<p>
+Note that this index page, the login form and the user profile page are all
+implemented using Cheetah.
+</p>
+<p>
+You should also check out the sample pages implemented using a
+<a href="sample_1.html">handler</a>, <a href="sample_2.html">PSP</a>
+and <a href="sample_3.html">HTMLTemplate</a>.
+</p>
+<p>
+Note how you can't actually tell how they are implemented, since the
+URL always uses a ".html" extension.
 </p>
