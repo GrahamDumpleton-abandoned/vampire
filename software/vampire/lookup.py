@@ -1348,6 +1348,8 @@ class Publisher:
 
 class PathInfo:
 
+  __login__ = None
+
   def __init__(self,callback,name="path",path=[]):
 
     self.__callback = callback
@@ -1366,6 +1368,14 @@ class PathInfo:
         if name not in expected:
           del args[name]
 
+    # Try authenticating objects traversed.
+
+    req.vampire["objects"].append(self.__callback)
+
+    _authenticate(req)
+
+    # Now finally execute target handler.
+
     return self.__callback(**args)
 
   def __getattr__(self,name):
@@ -1377,6 +1387,8 @@ class PathInfo:
 
 
 class PathArgs:
+
+  __login__ = None
 
   def __init__(self,callback,parent=None,path=[]):
 
@@ -1410,6 +1422,14 @@ class PathArgs:
 
     if self.__expected is None:
       self.__setup()
+
+    # Try authenticating objects traversed.
+
+    req.vampire["objects"].append(self.__callback)
+
+    _authenticate(req)
+
+    # Now finally execute target handler.
 
     if self.__expected[:1] == ["req"]:
 
