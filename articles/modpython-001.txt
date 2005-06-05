@@ -336,7 +336,7 @@ Where To Go Next
 
 The basic content handler as described here, is really quite limited in
 what it can do. This is because only one content handler can be associated
-with a directory for any specific extension type. Further that extension
+with a directory for any specific extension type. Further, that extension
 type usually cannot clash with any extension type used by a static file in
 the same directory. Having multiple handlers within the one directory which
 are distinguished based purely on extension type can quickly become
