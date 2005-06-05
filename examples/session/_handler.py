@@ -15,10 +15,10 @@ def handler_html(req):
 
   target = os.path.splitext(req.filename)[0]
 
-  if os.path.exists(target+".psp"):
-    return psp.handler_html(req)
-
   if os.path.exists(target+".tmpl"):
     return cheetah.handler_html(req)
+
+  if os.path.exists(target+".psp"):
+    return psp.handler_html(req)
 
   return apache.DECLINED
