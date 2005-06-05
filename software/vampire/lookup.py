@@ -1450,21 +1450,45 @@ class PathArgs:
 
 class Instance:
 
+  __login__ = None
+
   def __init__(self,target,**vars):
     self.__target = target
     self.__vars = vars
 
-    if hasattr(target,"__login__"):
-      if target.__login__ is None:
-        self.__login__ = None
-
   def __call__(self,req):
+
+    # Raise an error if target was a class type.
+
     if not type(self.__target) in [types.ClassType,types.TypeType]:
       raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+
+    # Set things up if used outside of a handler
+    # dispatched by Vampire.
+
+    if not hasattr(req,"vampire"):
+      req.vampire = {}
+
+    if not req.vampire.has_key("__login__"):
+      req.vampire["__login__"] = None
+    if not req.vampire.has_key("objects"):
+      req.vampire["objects"] = []
+    if not req.vampire.has_key("defaults"):
+      req.vampire["defaults"] = []
+
+    # Create an instance of the target object.
 
     instance = _execute(req,self.__target,lazy=True,vars=self.__vars)
 
     if not callable(instance):
       raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
+
+    # Try authenticating objects traversed.
+
+    req.vampire["objects"].append(instance)
+
+    _authenticate(req)
+
+    # Execute the handler object which was created.
 
     return _execute(req,instance,lazy=True,vars=self.__vars)
