@@ -216,7 +216,7 @@ Changes in Vampire 1.7
   information in the URL beyond that required to identify the handler.
   This would be the case when using wrapper class "vampire.Handler()",
   "vampire.Publisher()" and "vampire.Service()". Also would have been a
-  problem when using "vampire:publisher".
+  problem when using "vampire::publisher".
 
 - Login handler hooks were not working properly with wrapper classes such
   as "vampire.Handler()" and "vampire.Publisher()". Problem was that a
