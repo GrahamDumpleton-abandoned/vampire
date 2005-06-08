@@ -17,8 +17,3 @@ class Handler(psp.Servlet):
     self.render()
 
 handler_html = vampire.Instance(Handler)
-
-def handler_psp(req):
-  if os.path.exists(req.filename):
-    return apache.HTTP_NOT_FOUND
-  return apache.DECLINED

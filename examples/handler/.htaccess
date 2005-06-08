@@ -37,3 +37,8 @@ PythonOption VampireDirectoryIndex index.html
 Order allow,deny
 deny from all
 </Files>
+
+# Block access to raw PSP template files.
+<Files *.psp>
+deny from all
+</Files>

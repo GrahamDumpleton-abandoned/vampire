@@ -16,8 +16,3 @@ def handler_html(req,message=""):
   settings = { "message": message }
   template = psp.PSP(req,filename=path,vars=settings)
   template.run()
-
-def handler_psp(req):
-  if os.path.exists(req.filename):
-    return apache.HTTP_NOT_FOUND
-  return apache.DECLINED
