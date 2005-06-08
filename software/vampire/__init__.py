@@ -1,6 +1,6 @@
 # COPYRIGHT 2004-2005 DUMPLETON SOFTWARE CONSULTING PTY LIMITED
 
-__version__ = "1.7"
+__version__ = "1.8"
 
 from mod_python import apache
 

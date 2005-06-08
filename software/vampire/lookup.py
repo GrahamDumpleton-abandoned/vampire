@@ -748,6 +748,8 @@ def _handler(req):
           if os.path.splitext(file)[1] != ".py":
             return apache.HTTP_INTERNAL_SERVER_ERROR
           req.vampire["defaults"] = _import(req,file)
+          if not req.vampire["defaults"]:
+            raise ImportError("No file named %s"%file)
 
         # Look for default login handler in module of
         # default handlers to override the inbuilt basic
@@ -773,6 +775,10 @@ def _handler(req):
           if module:
             if hasattr(module,"loginhandler"):
               req.vampire["__login__"] = getattr(module,"loginhandler")
+            else:
+              raise ImportError("Cannot import loginhandler from %s"%file)
+          else:
+            raise ImportError("No file named %s"%file)
 
         # If a specific content handler wasn't already
         # found for the actual request, see if default
@@ -799,6 +805,10 @@ def _handler(req):
               if module:
                 status,traverse,execute,access,objects = _resolve(
                     req,module,[method],rules)
+                if status != apache.OK:
+                  raise ImportError("Cannot import %s from %s"%(method,file))
+              else:
+                raise ImportError("No file named %s"%file)
 
   req.vampire["objects"] = objects
 
