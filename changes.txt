@@ -8,10 +8,10 @@ Following details changes made in various versions of Vampire which have
 been made available.
 
 .. warning ::
-  The current officially released version of Vampire is 1.6. Features
-  described here for Vampire 1.7 are only available by checking out
-  the development copy of the source code from the Vampire source code
-  repository directly.
+  The current officially released version of Vampire is 1.7. Features
+  described here for versions later than that are only available by
+  checking out the development copy of the source code from the Vampire
+  source code repository directly.
 
 
 Changes in Vampire 1.7
@@ -27,7 +27,7 @@ Changes in Vampire 1.7
   such that although the standard Python "import" statement is used, under
   the covers, the Vampire import mechanism is used to load a module.
 
-  Note though that this support only extends as far as file base modules
+  Note though that this support only extends as far as file based modules
   and not to full blown packages. Python doesn't seem to be able to support
   packages which live totally outside of sys.modules.
 
@@ -194,7 +194,7 @@ Changes in Vampire 1.7
 
 - Similar to being able to disable reloading of modules by the module cache,
   option provided to disable reloading of page template files in the
-  HTMLTemplate loading and caching mechanism. Again, this is preferable
+  HTMLTemplate loading and caching mechanism. Again, this is preferably
   triggered from a module imported using PythonImport mechanism. The code
   which would be used is::
 
