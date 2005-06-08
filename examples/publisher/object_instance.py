@@ -1,22 +1,22 @@
 import vampire
 import time
 
-class OldStyleClass:
+class Old:
 
   def __init__(self):
     self.__time = time.time()
 
   def __call__(self,req,arg1=None,arg2=None):
-    return self.__time,"OldStyleClass.__call__()",arg1,arg2
+    return self.__time,"Old.__call__()",arg1,arg2
 
-old_instance = vampire.Instance(OldStyleClass)
+old = vampire.Instance(Old)
 
-class NewStyleClass(object):
+class New(object):
 
   def __init__(self):
     self.__time = time.time()
 
   def __call__(self,req,arg1=None,arg2=None):
-    return self.__time,"NewStyleClass.__call__()",arg1,arg2
+    return self.__time,"New.__call__()",arg1,arg2
 
-new_instance = vampire.Instance(NewStyleClass)
+new = vampire.Instance(New)
