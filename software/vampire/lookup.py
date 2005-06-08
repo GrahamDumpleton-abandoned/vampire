@@ -1478,7 +1478,7 @@ class Instance:
 
   def __call__(self,req):
 
-    # Raise an error if target was a class type.
+    # Raise an error if target not a class type.
 
     if not type(self.__target) in [types.ClassType,types.TypeType]:
       raise apache.SERVER_RETURN, apache.HTTP_INTERNAL_SERVER_ERROR
