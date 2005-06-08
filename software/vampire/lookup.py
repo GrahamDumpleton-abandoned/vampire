@@ -1107,6 +1107,9 @@ def _select(req,name):
 
   module = _moduleCache.importModule(stub,directory,req)
 
+  if not module:
+    raise ImportError("No file named %s"%handler)
+
   # Determine the appropriate content handler.
 
   function = None
@@ -1114,10 +1117,8 @@ def _select(req,name):
   if hasattr(module,name):
     function = getattr(module,name)
 
-  # Were we able to find a function to execute.
-
   if function == None:
-    return apache.OK
+    raise ImportError("Cannot import %s from %s"%(name,handler))
 
   # Execute the actual handler function.
 
