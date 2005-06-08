@@ -94,6 +94,7 @@ class PSP(psp.PSP):
     environ["psp"] = interface
     environ["session"] = session
 
+    environ.update(self.vars)
     environ.update(vars)
 
     # Now execute the actual page to handle the request.
@@ -119,6 +120,36 @@ class PSP(psp.PSP):
 
       else:
         raise et,ev,etb
+
+
+# A servlet like handler for serving up PSP files. This
+# class can be used where for a specific PSP file it is
+# necessary to do more complicated things than what can
+# sensibly be put in the PSP file itself. The servlet
+# class should be used in conjunction with the wrapper
+# class "vampire.Instance()" as it is written such that
+# a new instance should be created for each request.
+
+class Servlet:
+
+  content_type = "text/html"
+
+  def __init__(self,req):
+    self.req = req
+    self.vars = {}
+
+  def render(self):
+
+    path = os.path.splitext(self.req.filename)[0] + ".psp"
+
+    self.req.content_type = self.content_type
+    self.req.send_http_header()
+
+    template = PSP(self.req,filename=path,vars=self.vars)
+    template.run()
+
+  def __call__(self):
+    self.render()
 
 
 # Basic handler for serving up PSP files. The handler
