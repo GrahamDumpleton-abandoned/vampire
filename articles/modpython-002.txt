@@ -121,3 +121,97 @@ and anything below it. Using the "PythonHandler" directive in a
 subdirectory will not even undo this, even when used within the context of
 a distinct interpreter. The "PythonPath" directive should there before used
 with great caution and not at all if possible.
+
+
+Explicit Import of Modules
+==========================
+
+When using mod_python, instead of using the "import" statement to import
+modules, the "import_module()" function can be used. The benefits of using
+the "import_module()" function are that the exact location of the module
+can be specified, avoiding the need for the directory containing the module
+to be added into the Python module search path. Using the "import_module()"
+function, it is also easier to import arbitrarily named modules the names
+of which will not be known of in advance, as the name of the module is
+supplied as an argument of the function and doesn't need to be hard coded
+as a syntactical argument of the import statement.
+
+The prototype for the "import_module()" function is as follows::
+
+  import_module(module_name,autoreload=1,log=0,path=None)
+
+The only required parameter is that of the module name. In supplying only
+the module name, a search will be made of the Python module search path. If
+the "path" parameter is supplied, it should be a list of directories to
+search for the module. To load a module from a particular location, the
+"path" parameter would be a list containing just the directory containing
+the desired module.
+
+The "import_module()" method can feasibly be used at global scope within a
+module, or within an actual handler function executed as a consequence of a
+request. To import a module from the same directory as the handler, the
+location can be derived from the special "__file__" variable present within
+a module.
+
+::
+
+  from mod_python import apache
+  import os
+
+  directory = os.path.dirname(__file__)
+  module1 = apache.import_module("module1",path=[directory])
+
+  def handler(req):
+    module2 = apache.import_module("module2",path=[directory])
+    package1 = apache.import_module("package1",path=[directory])
+    package2 = apache.import_module("package1.package2",path=[directory])
+    module3 = apache.import_module("package1.module3",path=[directory])
+    ...
+
+As well as file based modules, the "import_module()" can also be used to
+import the root of a package, or a sub package/module of a package. Whereas
+when using the "import" statement to import a sub package/module still
+requires access to the module to be via the root package name, the
+"import_module()" function returns a direct reference to the sub
+package/module.
+
+
+Auto Reload Mechanism
+=====================
+
+In the context of a module specified using a handler directive, the intent
+of the automatic module reloading mechanism is that when the code file
+corresponding to the handler is changed on disk, that this will be detected
+the next time a request arrives which would require the handler to be
+executed. Having detected this change, the module will first be reloaded
+and only then will the handler be executed.
+
+Whether or not automatic module reloading is enabled for a handler
+specified using a handler directive is controlled by the "PythonAutoReload"
+directive. By default automatic module reloading is enabled at this level
+and it would need to be explicitly disabled if it wasn't required, such as
+in a production environment.
+
+When using the "import_module()" function explicitly from within a handler
+module, whether the automatic module reloading mechanism is enabled is
+controlled through the "autoreload" argument. By default, automatic module
+reloading is enabled at this level as well and would need to be explicitly
+disabled to stop it from occurring. This can only be done by supplying the
+"autoreload" argument, the "PythonAutoReload" directive has absolutely no
+affect in this circumstance.
+
+For a module being imported by an explicit call to the "import_module()"
+function from within the context of a handler being executed in response to
+a request, whether the module is up to date will be evaluated for each
+request. If the module has been changed on disk, it will be reimported
+at the time of the handler being executed.
+
+If the importing of the module by an explicit call to the "import_module()"
+function is performed at global scope within a module, whether the child
+module has changed and whether it needs to be reimported, is only
+determined at the time that the parent module is first imported and when
+the parent module is subsequently reimported.
+
+
+Logging of Module Imports
+=========================
