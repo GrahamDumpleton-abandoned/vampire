@@ -1,0 +1,45 @@
+==========================
+Module Importing is Broken
+==========================
+
+:Author: Graham Dumpleton
+:Contact: grahamd@dscpl.com.au
+:Updated: 19/06/2005
+
+.. contents::
+
+
+This article describes the various problems that exist with the module
+importing system which is included with mod_python. Its purpose is to
+highlight in one spot the issues so that users are aware of them, but also
+to serve as a basis for discussion for moving forward and fixing the
+problems. The descriptions here are based on the state of mod_python as of
+version 3.1.3.
+
+
+Module Import Function
+======================
+
+The module importing system in mod_python is all based upon the Python
+function "import_module()" contained in the "mod_python.apache". This
+function is used to import modules which have been specified by any of the
+"Python*Handler", "Python*Filter" or "PythonConnectionHandler" directives.
+It is not however used for any modules imported using the "PythonImport"
+directive. In this final case, the standard Python import mechanism is
+used.
+
+The "import_module()" function may also be used explicitly from within any
+Python code executing within the context of mod_python. For example, the
+"import_module()" method is used by "mod_python.publisher" to import
+individual Python code files held within the document tree. Having loaded
+such a code file as a module, it will then map URLs into calls against
+distinct functions contained within the module.
+
+One of the main reasons for the existance of the "import_module()" method
+is to facilitate the provision of a mechanism for the automatic reloading
+of modules when the code file kept on disk has changed. Unfortunately the
+effectiveness of this is limited due to shortcomings in the design of the
+module importing system along with a number of bugs in the current
+implementation. The nature of how the module importing system works in
+relation to the existing Python module importing system also raises
+problems in respect of a multithreaded system.
