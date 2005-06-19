@@ -9,12 +9,13 @@ Module Importing is Broken
 .. contents::
 
 
-This article describes the various problems that exist with the module
-importing system which is included with mod_python. Its purpose is to
-highlight in one spot the issues so that users are aware of them, but also
-to serve as a basis for discussion for moving forward and fixing the
-problems. The descriptions here are based on the state of mod_python as of
-version 3.1.3.
+This article describes various problems that exist with the module
+importing system which is included with mod_python along with suggestions
+as to where improvements could be made. Its purpose is to highlight in one
+spot the problems so that users are aware of them, but also to serve as a
+basis for discussion for moving forward and fixing any bugs or generally
+improving the module importing mechanism. The descriptions here are based
+on the state of mod_python as of version 3.1.3.
 
 
 Module Import Function
@@ -231,3 +232,45 @@ Where explicit use is made of the "import_module()" function, to have
 whether or not a module is being imported can only be enabled by supplying
 a value as the "log" argument argument which evaluates to true. The
 "PythonDebug" directive has absolutely no affect in this circumstance.
+
+
+Enabling Logging Globally
+=========================
+
+Because the only way to enable logging when using the "import_module()"
+function explicitly is by supplying the "log" argument to the function
+itself, there is no effective way of enabling logging of imports globally
+in one place **[ISSUE 1]**.
+
+This is the case, because although the "req" object is available within the
+context of handler and could be queried as to the state of the "PythonDebug"
+setting, the same cannot be done at global scope in a module.
+
+::
+
+  from mod_python import apache
+  import os
+
+  directory = os.path.dirname(__file__)
+
+  # No way to determine from the Apache configuration at
+  # global scope what the "log" argument should be set to.
+
+  module1 = apache.import_module("module1",path=[directory])
+
+  def handler(req):
+    log = req.get_config().get("PythonDebug",0)
+    module2 = apache.import_module("module2",log=log,path=[directory])
+    ...
+
+Even in a production environment where "PythonDebug" may be disabled to
+prevent internal details of Python related errors being returned to a
+client making a request, being able to get out information about when
+module imports are occuring is still useful. Because the logging of this
+information is bound to the "PythonDebug" directive, it cannot be
+separately enabled **[ISSUE 2]**.
+
+During debugging, to know when a module is being imported for the first
+time, as opposed to it being reimported at a later time, can be important.
+At present the messages which are logged do not distinguish between the two
+cases of an initial import and a subsequent reimport **[ISSUE 3]**.
