@@ -25,15 +25,15 @@ function "import_module()" contained in the "mod_python.apache". This
 function is used to import modules which have been specified by any of the
 "Python*Handler", "Python*Filter" or "PythonConnectionHandler" directives.
 It is not however used for any modules imported using the "PythonImport"
-directive. In this final case, the standard Python import mechanism is
-used.
+directive. In this final case, the standard Python C API import functions
+are used.
 
 The "import_module()" function may also be used explicitly from within any
 Python code executing within the context of mod_python. For example, the
-"import_module()" method is used by "mod_python.publisher" to import
+"import_module()" method is used by mod_python.publisher to import
 individual Python code files held within the document tree. Having loaded
-such a code file as a module, it will then map URLs into calls against
-distinct functions contained within the module.
+such a code file as a module, mod_python.publisher will then map URLs into
+calls against distinct functions contained within the module.
 
 One of the main reasons for the existance of the "import_module()" method
 is to facilitate the provision of a mechanism for the automatic reloading
@@ -42,4 +42,82 @@ effectiveness of this is limited due to shortcomings in the design of the
 module importing system along with a number of bugs in the current
 implementation. The nature of how the module importing system works in
 relation to the existing Python module importing system also raises
-problems in respect of a multithreaded system.
+issues in respect of a multithreaded system along with a number of other
+problems.
+
+
+The Handler Directives
+======================
+
+The handler directives are placed into the main Apache configuration file
+or into a ".htaccess" file contained within the appropriate directory in
+the document tree. These directives are used to specify the module
+containing the handler function to be executed for a particular phase of
+processing.
+
+For example, to specify that the mod_python supplied mod_python.publisher
+module should be used for the content handling phase of any request where a
+".py" extension were used, the main Apache configuration file would need to
+contain::
+
+  <Directory /some/path>
+  AddHandler python-program .py
+  PythonHandler mod_python.publisher .py
+  </Directory>
+
+Alternatively, if you wished to use your own custom handler for the content
+handling phase of any request made against the directory, and it was stored
+within the same directory for which mod_python was being enabled, you might
+instead use::
+
+  <Directory /some/path>
+  AddHandler python-program .py
+  PythonHandler myhandler
+  </Directory>
+
+In the case of mod_python.publisher, the module would normally be installed
+into the "site-packages" directory of the Python distribution. As such, it
+will be found by a search of the default Python module search path.
+
+For the case of the custom handler however, it isn't installed into the
+"site-packages" directory, nor in any other directory contained in the
+Python module search path. This means that it will not be able to be
+located when Python is asked to load it.
+
+To avoid this problem, mod_python will automatically insert at the head of
+the Python module search path, the root directory within the document tree
+for which the PythonHandler directory was specified. This having been done,
+the module containing the custom handler will now be able to be found.
+
+If a custom handler is not placed into the root directory of the document
+tree where mod_python is enabled, nor is it located within any directory
+listed in the Python module search path, it will be necessary to override
+the Python module search path to contain the directory where it is located.
+
+The Python module search path can be overridden using the "PythonPath"
+directive. For example, if the custom handler were actually located within
+a subdirectory of the root directory where mod_python was enabled, the main
+Apache configuration would then need to be defined as::
+
+  <Directory /some/path>
+  PythonPath "['/some/path/modules']+sys.path"
+  AddHandler python-program .py
+  PythonHandler myhandler
+  </Directory>
+
+As the "PythonPath" directive will replace the prior value of the Python
+module search path, it is necessary when merely wishing to extend it to
+reference the prior value. In effect, the value specified for the
+"PythonPath" directive is evalulated and thus one can use the Python
+language itself to construct the new value for the path. The final value
+must be a list of strings where each string is the path name of a
+directory to be searched.
+
+Note that setting the "PythonPath" directive explicitly will result in the
+root directory of the document tree for which mod_python was enabled, no
+longer being added into the Python module search path. That is, the value
+specified by the "PythonPath" directive takes precedence for that directory
+and anything below it. Using the "PythonHandler" directive in a
+subdirectory will not even undo this, even when used within the context of
+a distinct interpreter. The "PythonPath" directive should there before used
+with great caution and not at all if possible.
