@@ -15,7 +15,16 @@ as to where improvements could be made. Its purpose is to highlight in one
 spot the problems so that users are aware of them, but also to serve as a
 basis for discussion for moving forward and fixing any bugs or generally
 improving the module importing mechanism. The descriptions here are based
-on the state of mod_python as of version 3.1.3.
+on the state of mod_python as of version 3.1.3. Some of the issues have
+already been addressed for the next version of mod_python but are described
+here anyway.
+
+
+Overview of Module Importing
+############################
+
+First up an overview is given of the key points of what the module
+importing system comprises and how it is used.
 
 
 Module Import Function
@@ -234,8 +243,16 @@ a value as the "log" argument argument which evaluates to true. The
 "PythonDebug" directive has absolutely no affect in this circumstance.
 
 
-Enabling Logging Globally
-=========================
+Catalogue of Problems/Issues
+############################
+
+Now for a catalogue of the various problems and issues. Some will argue
+that some of these are minor and this is true, but the aim here is to look
+at improving what is there as well as fixing any bugs.
+
+
+Configuration of Logging
+========================
 
 Because the only way to enable logging when using the "import_module()"
 function explicitly is by supplying the "log" argument to the function
@@ -243,8 +260,10 @@ itself, there is no effective way of enabling logging of imports globally
 in one place **[ISSUE 1]**.
 
 This is the case, because although the "req" object is available within the
-context of handler and could be queried as to the state of the "PythonDebug"
-setting, the same cannot be done at global scope in a module.
+context of a handler and could be queried as to the state of the
+"PythonDebug" setting, the same cannot be done at global scope in a module.
+Either way, it places extra work on the user to make this explicit check
+to determine if logging should be enabled or not.
 
 ::
 
@@ -271,6 +290,37 @@ information is bound to the "PythonDebug" directive, it cannot be
 separately enabled **[ISSUE 2]**.
 
 During debugging, to know when a module is being imported for the first
-time, as opposed to it being reimported at a later time, can be important.
-At present the messages which are logged do not distinguish between the two
-cases of an initial import and a subsequent reimport **[ISSUE 3]**.
+time, as opposed to it being reloaded at a later time, can be important.
+At present the messages which are logged do not in general distinguish
+between the two cases of an initial import and a subsequent reimport of
+the same module **[ISSUE 3]**.
+
+
+Going Backwards in Time
+=======================
+
+When ascertaining if a module has been changed on disk since the last time
+it was loaded, mod_python will only consider the file as having changed if
+the modification time is newer than that which it was previously. This
+means you cannot restore an older file from a backup with a modification
+time earlier than the current file **[ISSUE 4]**. You would need to
+physically touch the file to make the modification time newer than that of
+the file being replaced in order to force it to be reloaded.
+
+
+Multiple Module Reloads
+=======================
+
+Whether on the first import or a subsequent reload, if a multithreaded MPM
+is being used and multiple threads call into the "import_module()" function
+at the same time for the same module, the module can be loaded more than
+once even though it isn't required **[ISSUE 5]**.
+
+This is because of a lack of thread locks on the module cache. Multiple
+threads can at the same time determine that the module needs to be
+reloaded. Although this occurs, the locks implicit within the underlying
+Python module importing system prevents each thread from importing the
+actual module at the same time. Each thread will however in turn still
+separately import the module with all imports except for the first being
+redundant.
+
