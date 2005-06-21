@@ -4,7 +4,7 @@ Module Importing is Broken
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 19/06/2005
+:Updated: 21/06/2005
 
 .. contents::
 
@@ -385,6 +385,10 @@ What About the Children
 =======================
 
 
+Mixing It Up With Import
+========================
+
+
 Reloading of Packages
 =====================
 
@@ -392,3 +396,14 @@ Reloading of Packages
 Overwriting Global Data
 =======================
 
+
+Have I Seen You Before
+======================
+
+
+Where Do We Go From Here
+########################
+
+Lets get the current behaviour, problems and issues documented first. Thus,
+feedback on material above would be appreciated. Please, no solutions,
+leave that until after initial proposal is outlined here.
