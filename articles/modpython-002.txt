@@ -296,25 +296,16 @@ between the two cases of an initial import and a subsequent reimport of
 the same module **[ISSUE 3]**.
 
 
-Going Backwards in Time
-=======================
-
-When ascertaining if a module has been changed on disk since the last time
-it was loaded, mod_python will only consider the file as having changed if
-the modification time is newer than that which it was previously. This
-means you cannot restore an older file from a backup with a modification
-time earlier than the current file **[ISSUE 4]**. You would need to
-physically touch the file to make the modification time newer than that of
-the file being replaced in order to force it to be reloaded.
-
-
-Multiple Module Reloads
-=======================
+Redundant Module Reloads
+========================
 
 Whether on the first import or a subsequent reload, if a multithreaded MPM
 is being used and multiple threads call into the "import_module()" function
 at the same time for the same module, the module can be loaded more than
-once even though it isn't required **[ISSUE 5]**.
+once even though it isn't required **[ISSUE 4]**. Separate PATCHES_ are
+available for this problem.
+
+.. _PATCHES: ../patches.html
 
 This is because of a lack of thread locks on the module cache. Multiple
 threads can at the same time determine that the module needs to be
@@ -323,4 +314,81 @@ Python module importing system prevents each thread from importing the
 actual module at the same time. Each thread will however in turn still
 separately import the module with all imports except for the first being
 redundant.
+
+
+Going Backwards in Time
+=======================
+
+When ascertaining if a module has been changed on disk since the last time
+it was loaded, mod_python will only consider the file as having changed if
+the modification time is newer than that which it was previously. This
+means you cannot restore an older file from a backup with a modification
+time earlier than the current file **[ISSUE 5]**. You would need to
+physically touch the file to make the modification time newer than that of
+the file being replaced in order to force it to be reloaded. This issue
+is further described in JIRA as `MODPYTHON-7`_.
+
+.. _MODPYTHON-7: http://issues.apache.org/jira/browse/MODPYTHON-7
+
+
+Packages Loaded Wrongly
+=======================
+
+The "import_module()" function can be used to load either a standalone file
+based module or a package. It can also be used to load a sub module/package
+from within a package.
+
+When loading a sub module/package which wasn't implicitly loaded when the
+package root was imported, the "import_module()" function does not insert a
+reference to the sub module/package into the appropriate parent module
+within the package **[ISSUE 6]**. This issue is further described in JIRA
+as `MODPYTHON-12`_.
+
+.. _MODPYTHON-12: http://issues.apache.org/jira/browse/MODPYTHON-12
+
+The problem means that if mod_python.publisher or mod_python.psp are loaded
+as the PythonHandler and at a later point a handler attempts to use the
+Python import statement on these sub modules of the mod_python package,
+they will not be able to be found. This is because the reference to the
+sub modules is not registered in the mod_python module as "publisher"
+and "psp" appropriately.
+
+
+Disabling of AutoReload
+=======================
+
+Similar to the problem of enabling/disabling logging of module reloads,
+disabling of the autoreload feature for modules cannot be turned off
+globally in one place **[ISSUE 7]**.
+
+This is because although the PythonAutoReload directive can be used to
+disable top level handler imports, it does not control whether autoreload
+is enabled for explicit use of the "import_module()" function. In this case
+it is up to the user to somehow determine whether the autoreload feature
+should be disabled and pass an explicit argument to the "import_module()"
+function call to disable it for that specific call. As shown for logging,
+the request object is not accessible when code at global scope within a
+module is being executed and so any configuration cannot be consulted.
+
+This is made worse by the fact that different parts of the document tree
+can have the autoreload feature enabled at the same time it is disabled
+elsewhere. The problem that arises here is that a module may get reloaded
+when not expected resulting in an mismatch in versions of code being used.
+
+If automatic reloading of modules is disabled, it should be globally
+disabled for that whole interpreter from that point onwards until a
+restart. It should not be able to be disabled or enabled for just selected
+parts of a specific interpreter.
+
+
+What About the Children
+=======================
+
+
+Reloading of Packages
+=====================
+
+
+Overwriting Global Data
+=======================
 
