@@ -246,9 +246,10 @@ a value as the "log" argument argument which evaluates to true. The
 Catalogue of Problems/Issues
 ############################
 
-Now for a catalogue of the various problems and issues. Some will argue
-that some of these are minor and this is true, but the aim here is to look
-at improving what is there as well as fixing any bugs.
+Now for a catalogue of the various problems and issues that can arise. Some
+will argue that some of these are minor and this is true, but the aim here
+is to catch as many as possible of the strange things that can occur or
+perceived shortcomings, even if trivial.
 
 
 Configuration of Logging
@@ -316,8 +317,8 @@ separately import the module with all imports except for the first being
 redundant.
 
 
-Going Backwards in Time
-=======================
+Restoring of Backup Files
+=========================
 
 When ascertaining if a module has been changed on disk since the last time
 it was loaded, mod_python will only consider the file as having changed if
@@ -383,8 +384,8 @@ override any attempt to selectively disable/enable the feature in selected
 parts of the document tree.
 
 
-What About the Children
-=======================
+Children Are Not Consulted
+==========================
 
 Where the Python code file for a module which is referenced in a Handler
 directive is changed and the autoreload feature is enabled, that Python
@@ -404,8 +405,8 @@ ancestors through all parents should be touched to ensure that all parents
 are reloaded as necessary.
 
 
-Redudant Module Loading
-=======================
+Redundant Module Loading
+========================
 
 Because the Python module search path is extended with the directory in the
 document tree where the Handler directive is defined, it is possible for a
@@ -432,20 +433,59 @@ import a sub module/package of a package and the parent within the module
 had already imported the module using the "import" statement.
 
 This ability to import a module through two different means is also in
-effect the underlying trigger for **[ISSUE 6]** although that issue is a
+effect the underlying trigger for [ISSUE 6] although that issue is a
 distinct problem in its own right because of how packages are incorrectly
 handled.
 
 
+Caching of Attributes
+=====================
+
+The ability to mix the "import" statement with "apache.import_module()"
+also becomes a problem when the "from" statement is used in conjunction
+with the "import" statement. A module may use "from/import" to get access
+to specific attributes from within another module. If that other module is
+also imported using "apache.import_module()" it could at some time be
+reloaded, which may result in the attributes obtained using "from/import"
+becoming disconnected from the original module with them not reflecting
+the new values which have just been loaded **[ISSUE 10]**
+
+This can also occur when just the "import" statement is used and the parent
+module explicitly copies an attribute from the child module into itself.
+Other variations of the problem include the parent module calculating and
+caching some results based on attributes obtained from the child through
+direct access or as returned as the result of calling some function within
+the child.
+
+These sorts of problems would only dissappear if the "import" statement
+made use of the module importing and caching system when possible and
+[ISSUE 8] were addressed such that parent modules were reloaded
+automatically when a child module has been changed.
+
+
 Reloading of Packages
 =====================
+
+When the "apache.import_module()" function is used to import a sub
+module/package of a package, it will correctly first load any ancestors of
+the sub module/package. As already described however, packages do suffer
+the problems detailed for [ISSUE 6], [ISSUE 9] and [ISSUE 10].
+
+These problems are further complicated because a sub component of a package
+may reference back through the root of the package using the "import"
+statement to get access to a module or package appearing within the sibling
+of a parent. This results in cycles within the dependency graph of imports
+within the package itself. All in all, the current implementation of
+automatic module reloading is in general inadequate to deal with this. The
+only reliable way to ensure consistency within a package as a whole, is to
+reload every part of a package when any part of it changes **[ISSUE 11]**.
 
 
 Overwriting Global Data
 =======================
 
 
-Have I Seen You Before
+Using Same Module Name
 ======================
 
 
