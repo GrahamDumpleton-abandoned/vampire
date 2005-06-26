@@ -4,7 +4,7 @@ Module Importing is Broken
 
 :Author: Graham Dumpleton
 :Contact: grahamd@dscpl.com.au
-:Updated: 21/06/2005
+:Updated: 26/06/2005
 
 .. contents::
 
@@ -375,18 +375,56 @@ can have the autoreload feature enabled at the same time it is disabled
 elsewhere. The problem that arises here is that a module may get reloaded
 when not expected resulting in an mismatch in versions of code being used.
 
-If automatic reloading of modules is disabled, it should be globally
-disabled for that whole interpreter from that point onwards until a
-restart. It should not be able to be disabled or enabled for just selected
-parts of a specific interpreter.
+Being able to have the autoreload feature selectively enabled/disabled in
+distinct parts of the document tree is useful, however, there should
+probably also be a way of globally disabling the autoreload feature for
+that whole interpreter from that point onwards until a restart. This would
+override any attempt to selectively disable/enable the feature in selected
+parts of the document tree.
 
 
 What About the Children
 =======================
 
+Where the Python code file for a module which is referenced in a Handler
+directive is changed and the autoreload feature is enabled, that Python
+code file will be reloaded before the handler is executed. If at global
+scope within this module the "apache.import_module()" function had been
+explicitly used to import a child module and rather than the top level
+module code file being modified, the code file for the child module is
+changed, nothing is reloaded **[ISSUE 8]**.
+
+The only way to currently force the reloading of the child module is to
+manually touch the top level module to change its modification time as
+well, thereby triggering a reload of the parent and the child. Note that if
+there is multiple levels of imports, one in practice has to manually touch
+all ancestor modules of the module which was changed, right back up to the
+root module. If the child module was imported from multiple places, all
+ancestors through all parents should be touched to ensure that all parents
+are reloaded as necessary.
+
 
 Mixing It Up With Import
 ========================
+
+Because the Python module search path is extended with the directory in the
+document tree where the Handler directive is defined, it is possible for a
+module contained within the document tree to be imported from different
+places using the "import" statement and the "apache.import_module()"
+function **[ISSUE 9]**.
+
+This is in effect the underlying trigger for **[ISSUE 6]** although that
+issue is a distinct problem in its own right because of how packages are
+incorrectly handled.
+
+When the "import" statement is first used to import a module and that
+module is later requested to be imported using the "apache.import_module()"
+function, that later request will result in a redundant reload of the
+module. This is because the "apache.import_module()" function places a
+"__mtime__" attribute in the module as part of the scheme to determine when
+to reload a module. Where "import" was first used to import the module,
+that attribute will not exist and its value will default to "0", causing
+"apache.import_module()" to think it is out of date and reload it.
 
 
 Reloading of Packages
@@ -401,9 +439,3 @@ Have I Seen You Before
 ======================
 
 
-Where Do We Go From Here
-########################
-
-Lets get the current behaviour, problems and issues documented first. Thus,
-feedback on material above would be appreciated. Please, no solutions,
-leave that until after initial proposal is outlined here.
