@@ -484,6 +484,38 @@ reload every part of a package when any part of it changes **[ISSUE 11]**.
 Overwriting Global Data
 =======================
 
+When a module is reloaded, it occurs into the same object space as the
+existing module is using. This means that any existing data is overwritten.
+In general this is what you want, however it can cause big problems in a
+multithreaded system. This is because data can be getting overwritten at
+the same time that a handler in the same module or another module and
+executing in a separate thread is trying to access it **[ISSUE 12]**.
+
+Loading on top of existing data can also be a problem where the data is a
+shared resource such as a database pool. The existing instance of the
+database pool could be replaced and become inaccessible without any
+resources it has acquired being released. If multiple reloads occur, this
+can result in resources being exhausted.
+
+Note that the problem with shared resources strictly speaking can't be
+classified as a bug. Code simply should be structured so as to deal with it
+correctly, but most wouldn't even be aware of the need to do it. The best
+approach is simply not to place such shared resources within modules that
+can be automatically reloaded.
+
+
+Removal Of Existing Data
+========================
+
+Arising from the fact that a module is reloaded into the same object space,
+is the issue that if an attribute, whether it be data or a function, is
+removed from the code file on disk, when the module is reloaded that item
+is not removed from the copy of the module cached within the Python process
+**[ISSUE 13]**.
+
+In other words, reloading is always addititive and nothing is ever removed.
+The only way to remove something from a module is to restart Apache.
+
 
 Using Same Module Name
 ======================
