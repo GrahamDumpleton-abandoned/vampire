@@ -296,8 +296,8 @@ between the two cases of an initial import and a subsequent reimport of
 the same module **[ISSUE 3]**.
 
 
-Redundant Module Reloads
-========================
+Cache Access Not Exclusive
+==========================
 
 Whether on the first import or a subsequent reload, if a multithreaded MPM
 is being used and multiple threads call into the "import_module()" function
@@ -404,18 +404,15 @@ ancestors through all parents should be touched to ensure that all parents
 are reloaded as necessary.
 
 
-Mixing It Up With Import
-========================
+Redudant Module Loading
+=======================
 
 Because the Python module search path is extended with the directory in the
 document tree where the Handler directive is defined, it is possible for a
 module contained within the document tree to be imported from different
 places using the "import" statement and the "apache.import_module()"
-function **[ISSUE 9]**.
-
-This is in effect the underlying trigger for **[ISSUE 6]** although that
-issue is a distinct problem in its own right because of how packages are
-incorrectly handled.
+function **[ISSUE 9]**. This can cause redundant module loading to occur
+as well as being the basis for other problems.
 
 When the "import" statement is first used to import a module and that
 module is later requested to be imported using the "apache.import_module()"
@@ -425,6 +422,19 @@ module. This is because the "apache.import_module()" function places a
 to reload a module. Where "import" was first used to import the module,
 that attribute will not exist and its value will default to "0", causing
 "apache.import_module()" to think it is out of date and reload it.
+
+For basic modules triggering of this redundant loading of the module would
+require user code to have explicitly used the two different import
+mechanisms from two different places. In the case of packages, it can
+happen through no fault of the users code. Specifically, the redundant
+reload will occur when the "apache.import_module()" function is used to
+import a sub module/package of a package and the parent within the module
+had already imported the module using the "import" statement.
+
+This ability to import a module through two different means is also in
+effect the underlying trigger for **[ISSUE 6]** although that issue is a
+distinct problem in its own right because of how packages are incorrectly
+handled.
 
 
 Reloading of Packages
