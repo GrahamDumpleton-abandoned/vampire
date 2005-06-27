@@ -49,14 +49,16 @@ class Template:
 
     self.req = req
 
-  def __loadTemplate(self):
+  def loadTemplate(self):
 
     # Load the page template specific to the request.
 
-    if not os.path.exists(self.req.filename):
+    filename = os.path.splitext(self.req.filename)[0] + ".html"
+
+    if not os.path.exists(filename):
       raise apache.SERVER_RETURN, apache.DECLINED
 
-    self.template = vampire.loadTemplate(self.req.filename,self.node_name)
+    self.template = vampire.loadTemplate(filename,self.node_name)
 
   def __deliverResponse(self):
 
@@ -113,7 +115,7 @@ class Template:
 
     # Load the appropriate page template file.
 
-    self.__loadTemplate()
+    self.loadTemplate()
 
     # Call the derived class method for processing of
     # request and filling out of page template content.
