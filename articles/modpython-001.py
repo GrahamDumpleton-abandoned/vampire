@@ -12,4 +12,4 @@ def handler_html(req):
   if not os.path.exists(target):
     return apache.DECLINED
 
-  util.redirect(req,file)
+  util.redirect(req,file,permanent=1)
