@@ -2,13 +2,10 @@
 Articles
 ========
 
-`Getting mod_python Working`_
-  Intended to assist newbies to mod_python in trying to get their first
-  test program to work.
+Articles covering Vampire.
 
 `Quick Overview of Vampire`_
-  Provides a slightly more in depth overview of some of the main features
-  provided by Vampire.
+  Provides an overview of some of the main features provided by Vampire.
 
 `Apache Configuration Files`_
   Provides instructions on how to configure Apache to make use of Vampire.
@@ -18,7 +15,6 @@ Articles
   forms.
 
 
-.. _Getting MOD_PYTHON Working: articles/modpython-001.html
 .. _Quick Overview of Vampire: articles/vampire-001.html
 .. _Apache Configuration Files: articles/vampire-002.html
 .. _Processing Form Parameters: articles/vampire-003.html
