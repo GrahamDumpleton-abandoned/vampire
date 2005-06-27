@@ -21,6 +21,13 @@ Changes in Vampire 1.8
   configuration file as holding a handler doesn't exist, or if the file
   exists but no such handler is contained in the file.
 
+- Removed restriction in vampire.Publisher() whereby it could only be used
+  to handle GET and POST requests. The restriction still exists in
+  vampire::publisher to maintain compatability with mod_python.publisher.
+  If restrictions on allowed method type are required, the handler itself
+  should make such a check, or a wrapper class could be created and which
+  is used to impose such a restriction.
+
 
 Changes in Vampire 1.7
 ======================

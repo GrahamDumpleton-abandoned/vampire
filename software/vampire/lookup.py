@@ -1253,16 +1253,6 @@ class Publisher:
 
   def __call__(self,req):
 
-    # The mod_python.publisher code only allows GET and
-    # POST. Don't know why it couldn't permit other types
-    # of requests, but then it is mean't to be simplistic.
-
-    if hasattr(req,"allow_methods"):
-      req.allow_methods(["GET","POST"])
-
-    if req.method not in ["GET","POST"]:
-      raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
-
     # Check to see if this is actually being executed
     # from outside of Vampire. In that case, we need to
     # determine the appropriate value for "path_info"
