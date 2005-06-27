@@ -2,7 +2,7 @@
 Articles
 ========
 
-Articles covering Vampire.
+Articles covering Vampire:
 
   `Quick Overview of Vampire`_
     Provides an overview of some of the main features provided by Vampire.
