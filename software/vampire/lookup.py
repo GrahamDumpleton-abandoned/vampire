@@ -403,6 +403,8 @@ def _params(object):
     elif hasattr(object,"__call__"):
       if type(object.__call__) is types.MethodType:
         return _inspect(object.__call__,True)
+      else:
+        return _params(object.__call__)
 
     elif hasattr(object,"func_code"):
       return _inspect(object,False)
@@ -915,9 +917,9 @@ def _publisher(req):
   # of requests, but then it is mean't to be simplistic.
 
   if hasattr(req,"allow_methods"):
-    req.allow_methods(["GET","POST"])
+    req.allow_methods(["GET","POST","HEAD"])
 
-  if req.method not in ["GET","POST"]:
+  if req.method not in ["GET","POST","HEAD"]:
     raise apache.SERVER_RETURN, apache.HTTP_METHOD_NOT_ALLOWED
 
   # Create a working area in request object if it
@@ -995,7 +997,7 @@ def _publisher(req):
   # prevents traversal into an object when falling back
   # on "index" module. The original mod_python.publisher
   # also has a bug whereby it can fallback to default
-  # "index.py" file when it should if genuine import
+  # "index.py" file when it shouldn't if genuine import
   # error occurs when loading first module. This is
   # because it doesn't properly distinguish case where
   # module simply did not exist.
@@ -1212,7 +1214,7 @@ class Handler:
     # Return control to Apache if we were unable to find
     # an appropriate handler to execute.
 
-    if status != apache.OK:
+    if status != apache.OK or not execute:
       return apache.DECLINED
 
     # Authenticate all the objects that were traversed.

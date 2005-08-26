@@ -22,11 +22,21 @@ Changes in Vampire 1.8
   exists but no such handler is contained in the file.
 
 - Removed restriction in vampire.Publisher() whereby it could only be used
-  to handle GET and POST requests. The restriction still exists in
-  vampire::publisher to maintain compatability with mod_python.publisher.
-  If restrictions on allowed method type are required, the handler itself
-  should make such a check, or a wrapper class could be created and which
-  is used to impose such a restriction.
+  to handle GET and POST methods. Any method type will be passed through
+  and handler is expected to filter out unsupported methods.
+
+- Removed restriction in vampire::publisher on use of HEAD method. That
+  is, it will now handle GET, POST and HEAD. A handler doesn't need to
+  do anything special for HEAD and should just treat it like a GET. Apache
+  will discard any actual content written back in response.
+
+- When using vampire.Handler(), if an object wasn't callable and was
+  accessed, an internal server error response was being wrongly generated.
+
+- The handlerArguments() method wasn't always handling case where "__call__"
+  attribute was being explicitly set to be something other than a instance
+  method. For example, an actual object which itself had a "__call__()"
+  method.
 
 
 Changes in Vampire 1.7

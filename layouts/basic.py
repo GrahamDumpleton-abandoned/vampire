@@ -17,7 +17,7 @@ class Template:
 
   # Default list of allowed request method types.
 
-  allowed_methods = [ "GET", "POST" ]
+  allowed_methods = [ "GET", "POST", "HEAD" ]
 
   # Default name of the node used in HTML to denote
   # special elements with associated HTMLTemplate

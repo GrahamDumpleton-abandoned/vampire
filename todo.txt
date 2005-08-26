@@ -7,4 +7,3 @@ on a completely new package to replace it based on what has been learned
 from writing Vampire. Possibly the only thing that will be rolled back into
 Vampire is a slightly improved version of the module importing and caching
 system.
-
