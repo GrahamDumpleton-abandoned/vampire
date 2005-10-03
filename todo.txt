@@ -6,4 +6,5 @@ No new features are being contemplated for Vampire. In fact, work has begun
 on a completely new package to replace it based on what has been learned
 from writing Vampire. Possibly the only thing that will be rolled back into
 Vampire is a slightly improved version of the module importing and caching
-system.
+system. Note that this new package will have a totally different high level
+programming API and philosophy.
