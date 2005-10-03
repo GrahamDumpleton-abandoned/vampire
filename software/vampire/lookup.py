@@ -938,12 +938,12 @@ def _publisher(req):
   # is used will think that you are importing a submodule
   # of a package. In this code, because the standard Python
   # module import system isn't used and the actual file
-  # is open directly by name, a embedded '.' besides that
+  # is opened directly by name, a embedded '.' besides that
   # used for the extension will technically work.
 
   path,module_name =  os.path.split(req.filename)
 
-  # If the request is against the the directory itself,
+  # If the request is against the directory itself,
   # fallback to looking for the "index" module.
 
   if not module_name:  
@@ -961,14 +961,13 @@ def _publisher(req):
   suffixes = ["py"]
 
   if hasattr(req,"get_addhandler_exts"):
-    suffixes = req.get_addhandler_exts().split()
+    suffixes += req.get_addhandler_exts().split()
     if req.extension:
       suffixes.append(req.extension[1:])
 
-  if suffixes:
-    exp = "\\." + "$|\\.".join(suffixes) + "$"
-    suff_matcher = re.compile(exp)
-    module_name = suff_matcher.sub("",module_name)
+  exp = "\\." + "$|\\.".join(suffixes) + "$"
+  suff_matcher = re.compile(exp)
+  module_name = suff_matcher.sub("",module_name)
 
   # Next need to determine the traversal path for the
   # function which will be called from the "path_info".
