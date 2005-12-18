@@ -74,6 +74,8 @@ class _ConfigCache:
 
   def _search(self,req,name):
 
+    #req.log_error("name = %s"%name)
+
     result = {
       "__handler_root__" : "",
       "__config_root__" : "",
@@ -99,6 +101,8 @@ class _ConfigCache:
 
     # Couldn't determine upper bounds of search.
 
+    #req.log_error("handler_root [1] = %s"%handler_root)
+
     if handler_root is None:
       return result
 
@@ -119,6 +123,8 @@ class _ConfigCache:
 
     handler_root = posixpath.normpath(handler_root)
 
+    #req.log_error("handler_root [2] = %s"%handler_root)
+
     # Now search back up directories for file.
 
     result["__handler_root__"] = handler_root
@@ -135,6 +141,8 @@ class _ConfigCache:
     else:
       config_root = posixpath.dirname(req.filename)
 
+    #req.log_error("config_root = %s"%config_root)
+
     offset = ""
 
     if req.path_info and req.path_info != '/':
@@ -150,6 +158,8 @@ class _ConfigCache:
     while len(config_root) >= len(handler_root):
 
       config_file = posixpath.join(config_root,name)
+
+      #req.log_error("config_file = %s"%config_file)
 
       if os.path.exists(config_file):
         config_root = posixpath.normpath(config_root)
