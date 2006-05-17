@@ -35,6 +35,9 @@ class HTMLFragmentTranslator(docutils.writers.html4css1.HTMLTranslator):
 
 class HTMLFragmentWriter(docutils.writers.html4css1.Writer):
 
+  settings_defaults = {'output_encoding_error_handler': 'xmlcharrefreplace',
+                       'embed_stylesheet': 0}
+
   def __init__(self,*params,**kwargs):
           docutils.writers.html4css1.Writer.__init__(self,*params,**kwargs)
           self.translator_class = HTMLFragmentTranslator
